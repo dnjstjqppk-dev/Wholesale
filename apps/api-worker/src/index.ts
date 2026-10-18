@@ -282,3 +282,4 @@ export default {
     return problemResponse(404, 'NOT_FOUND', 'Not Found', `Endpoint ${url.pathname} does not exist`);
   },
 };
+
