@@ -54,3 +54,4 @@ function onApply() {
 .success-msg { color: #166534; font-size: 13px; margin: 0 0 10px 0; }
 .btn-search-sim { background: #FF6600; color: #FFF; border: none; padding: 8px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 </style>
+

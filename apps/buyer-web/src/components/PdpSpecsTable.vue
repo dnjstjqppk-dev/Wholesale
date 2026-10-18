@@ -50,3 +50,4 @@ defineProps<{
 .spec-th { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 14px; text-align: left; width: 20%; color: #334155; font-weight: 700; }
 .spec-td { border: 1px solid #E2E8F0; padding: 10px 14px; color: #475569; width: 30%; }
 </style>
+

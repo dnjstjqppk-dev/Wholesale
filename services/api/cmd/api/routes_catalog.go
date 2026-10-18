@@ -150,3 +150,4 @@ func (s *Server) registerCatalogRoutes(mux *http.ServeMux) {
 		})
 	})
 }
+

@@ -85,3 +85,4 @@ function onSubmit() {
 .btn-submit-inquiry { flex: 1; background: #FF6600; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
 .btn-cancel { padding: 12px 20px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; color: #475569; }
 </style>
+

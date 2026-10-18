@@ -113,3 +113,4 @@ const categories = [
 .radio-label:hover { color: #FF6600; }
 .select-box { width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; color: #334155; outline: none; background: #FFF; }
 </style>
+

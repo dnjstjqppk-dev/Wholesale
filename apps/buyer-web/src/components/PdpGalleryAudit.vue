@@ -86,3 +86,4 @@ const selectedPhotoLabel = computed(() => photos[selectedPhotoIndex.value].thumb
 .fac-item .k { color: #64748B; display: block; margin-bottom: 2px; }
 .fac-item .v { font-weight: 700; color: #1E293B; }
 </style>
+

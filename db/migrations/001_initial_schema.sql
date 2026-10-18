@@ -645,7 +645,7 @@ CREATE TABLE IF NOT EXISTS inventory_balances (
     available NUMERIC(20,6) NOT NULL DEFAULT 0,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_wh_sku UNIQUE (warehouse_id, sku_id),
-    CONSTRAINT chk_available_balance CHECK (available = on_hand - reserved AND on_hand >= 0 AND reserved >= 0)
+    CONSTRAINT chk_available_balance CHECK (available = on_hand - reserved AND on_hand >= 0 AND reserved >= 0 AND available >= 0 AND reserved <= on_hand)
 );
 
 CREATE TABLE IF NOT EXISTS inventory_reservations (
@@ -1117,6 +1117,53 @@ CREATE TABLE IF NOT EXISTS ledger_entries (
     memo VARCHAR(255),
     CONSTRAINT chk_debit_or_credit CHECK ((debit_minor > 0 AND credit_minor = 0) OR (credit_minor > 0 AND debit_minor = 0))
 );
+
+-- Ledger Immutability: Prevent UPDATE or DELETE on entries belonging to posted journals
+CREATE OR REPLACE FUNCTION fn_prevent_posted_ledger_mutation()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_is_posted BOOLEAN;
+BEGIN
+    SELECT is_posted INTO v_is_posted FROM ledger_journals WHERE id = OLD.journal_id;
+    IF v_is_posted THEN
+        RAISE EXCEPTION 'CANNOT_MUTATE_POSTED_LEDGER: Journal entries in a posted journal are immutable. Use reversal journal instead.';
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_prevent_posted_ledger_mutation ON ledger_entries;
+CREATE TRIGGER trg_prevent_posted_ledger_mutation
+    BEFORE UPDATE OR DELETE ON ledger_entries
+    FOR EACH ROW EXECUTE FUNCTION fn_prevent_posted_ledger_mutation();
+
+-- Ledger Double-Entry Balance: Enforce sum(debit) == sum(credit) for posted journals
+CREATE OR REPLACE FUNCTION fn_validate_posted_journal_balance()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_total_debit BIGINT;
+    v_total_credit BIGINT;
+BEGIN
+    IF NEW.is_posted THEN
+        SELECT COALESCE(SUM(debit_minor), 0), COALESCE(SUM(credit_minor), 0)
+        INTO v_total_debit, v_total_credit
+        FROM ledger_entries
+        WHERE journal_id = NEW.id;
+
+        IF v_total_debit = 0 OR v_total_credit = 0 OR v_total_debit <> v_total_credit THEN
+            RAISE EXCEPTION 'UNBALANCED_LEDGER_JOURNAL: Posted journal % has unbalanced entries: debit=% credit=%',
+                NEW.journal_number, v_total_debit, v_total_credit;
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_validate_posted_journal_balance ON ledger_journals;
+CREATE CONSTRAINT TRIGGER trg_validate_posted_journal_balance
+    AFTER INSERT OR UPDATE ON ledger_journals
+    DEFERRABLE INITIALLY DEFERRED
+    FOR EACH ROW EXECUTE FUNCTION fn_validate_posted_journal_balance();
 
 CREATE TABLE IF NOT EXISTS ledger_reversals (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

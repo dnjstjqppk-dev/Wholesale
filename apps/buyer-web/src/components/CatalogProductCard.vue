@@ -114,3 +114,4 @@ defineEmits<{
 .btn-start-order { flex: 1; background: #1E293B; color: #FFF; text-align: center; text-decoration: none; padding: 8px 0; border-radius: 6px; font-size: 12px; font-weight: 700; transition: background 0.15s; }
 .btn-start-order:hover { background: #FF6600; }
 </style>
+

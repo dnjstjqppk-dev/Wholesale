@@ -161,3 +161,4 @@ function decrementQty() {
 .btn-custom-rfq { background: #FFF; border: 1px solid #CBD5E1; color: #1E293B; text-align: center; text-decoration: none; padding: 11px; border-radius: 8px; font-size: 13px; font-weight: 700; }
 .btn-custom-rfq:hover { border-color: #FF6600; color: #FF6600; }
 </style>
+
