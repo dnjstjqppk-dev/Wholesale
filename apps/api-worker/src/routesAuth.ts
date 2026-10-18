@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 // apps/api-worker/src/routesAuth.ts
 import { jsonResponse, problemResponse } from './response';
 import { users, organizations, BUYER_ORG_ID, SUPPLIER_ORG_ID, ADMIN_ORG_ID } from './store';

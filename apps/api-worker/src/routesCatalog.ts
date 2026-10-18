@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 // apps/api-worker/src/routesCatalog.ts
 import { jsonResponse, problemResponse } from './response';
 import { listings, SUPPLIER_ORG_ID } from './store';

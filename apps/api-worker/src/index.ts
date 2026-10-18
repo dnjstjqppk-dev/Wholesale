@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 // apps/api-worker/src/index.ts
 // Cloudflare Workers Modular B2B API Engine
 

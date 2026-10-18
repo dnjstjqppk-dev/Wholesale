@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 // apps/api-worker/src/store.ts
 // Domain State Store for In-Memory Worker Demonstration
 

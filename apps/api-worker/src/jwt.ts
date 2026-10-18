@@ -1,3 +1,4 @@
+/// <reference lib="dom" />
 // apps/api-worker/src/jwt.ts
 // Web Crypto HMAC-SHA256 JWT Implementation (UTF-8 Safe & Isolate Resilient)
 

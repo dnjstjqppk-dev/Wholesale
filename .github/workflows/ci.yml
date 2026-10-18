@@ -60,3 +60,4 @@ jobs:
 
       - name: Build Root Distribution
         run: npm run build
+
