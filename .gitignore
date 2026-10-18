@@ -20,6 +20,7 @@ node_modules/
 dist/
 dist-ssr/
 *.tsbuildinfo
+*.zip
 
 # Cloudflare
 .wrangler/
