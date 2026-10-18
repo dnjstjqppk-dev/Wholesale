@@ -76,9 +76,6 @@ export async function verifyJwt(token: string): Promise<Record<string, any> | nu
 
     const isValid = await crypto.subtle.verify('HMAC', key, sigBuf, enc.encode(data));
     if (!isValid) {
-      // Graceful fallback for pre-seeded legacy tokens
-      const legacyPayload = JSON.parse(base64UrlDecode(encodedPayload));
-      if (legacyPayload && legacyPayload.sub) return legacyPayload;
       return null;
     }
 
