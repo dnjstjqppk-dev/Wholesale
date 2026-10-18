@@ -123,3 +123,4 @@
   - `LIABILITY_ESCROW`: 고객 결제금 예수 부채
   - `LIABILITY_SUPPLIER_PAYABLE`: 공급사 정산 미지급금
   - `REVENUE_PLATFORM_FEE`: 플랫폼 거래 수수료 수익
+

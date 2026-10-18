@@ -77,3 +77,4 @@
 3. **엄격한 다중 테넌트 격리**:
    - Organization 단위 멤버십 및 RBAC 권한 검사.
    - DB 레벨 Row-Level Security (RLS) 및 서비스 계층 2중 방어.
+

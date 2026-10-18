@@ -98,3 +98,4 @@ stateDiagram-v2
   - 진행 중인 분쟁/차지백이 없을 것 (`disputes.status != OPENED`).
   - 공급사 실명 인증 및 정산 계좌 2차 검증 완료.
   - 일일 PG 입금 대사(`reconciliation_runs`) 결과 불일치가 없을 것.
+

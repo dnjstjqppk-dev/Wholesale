@@ -93,3 +93,4 @@ func (s *SettlementRecord) FreezeOnDispute() {
 	s.HasActiveDispute = true
 	s.Status = StatusHeld
 }
+

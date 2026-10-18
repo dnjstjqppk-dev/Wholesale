@@ -159,3 +159,4 @@ func (m *Manager) Fulfill(reservationID uuid.UUID) error {
 
 	return nil
 }
+

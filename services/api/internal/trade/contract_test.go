@@ -81,3 +81,4 @@ func TestContractSigningAndIntegrity(t *testing.T) {
 		t.Errorf("Unexpected error for valid approval: %v", err)
 	}
 }
+

@@ -108,3 +108,4 @@ func ValidateApproval(requesterUserID uuid.UUID, approverUserID uuid.UUID) error
 	}
 	return nil
 }
+

@@ -51,3 +51,4 @@ func TestSettlementCalculationAndDisputeHold(t *testing.T) {
 		t.Errorf("Expected ErrDisputeActiveHold during dispute, got: %v", err)
 	}
 }
+

@@ -105,3 +105,4 @@ func CreateReversal(original *Journal, reason string) (*Journal, error) {
 
 	return CreateJournal(original.ID, "JOURNAL_REVERSAL", original.Currency, reversedEntries)
 }
+

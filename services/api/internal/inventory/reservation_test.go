@@ -101,3 +101,4 @@ func TestReservationLifecycleReleaseAndFulfill(t *testing.T) {
 		t.Errorf("Balance mismatch after fulfill: %+v", bal)
 	}
 }
+

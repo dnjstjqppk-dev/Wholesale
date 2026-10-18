@@ -70,3 +70,4 @@ CREATE POLICY settlements_isolation_policy ON settlements
     USING (
         supplier_organization_id = NULLIF(current_setting('app.current_org_id', true), '')::UUID
     );
+

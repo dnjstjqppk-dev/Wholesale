@@ -47,3 +47,4 @@ func (f *OrderItemFulfillment) ApplyShipment(qty decimal.Decimal) error {
 	f.ShippedQuantity = f.ShippedQuantity.Add(qty)
 	return nil
 }
+

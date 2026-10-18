@@ -24,3 +24,4 @@ REQ-SET-02,Settlement,분쟁(Dispute) 발생 시 정산 대금 자동 동결(HEL
 REQ-MOB-01,Mobile,Flutter 구매자/공급사 듀얼 모드 모바일 앱,apps/mobile/lib/main.dart,N/A,N/A,Mobile App Navigation,apps/mobile/lib/main.dart compilation check,COMPLETED
 REQ-EXT-01,External,실 PG 계약 및 라이브 결제 승인망 연동,N/A,payments,processLivePayment,/orders/:id/payments,실제 법인 PG 계약 및 운영 키 발급 대기,EXTERNAL_BLOCKED
 REQ-EXT-02,External,실 관세청/통관 및 해운 물류사 실시간 추적 API,N/A,shipments,trackLiveShipment,/shipments,관세청 Unipass 및 포워더 API 협약 대기,EXTERNAL_BLOCKED
+

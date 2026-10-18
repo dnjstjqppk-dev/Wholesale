@@ -70,3 +70,4 @@ func TestDoubleEntryLedger(t *testing.T) {
 		t.Errorf("Reversal entry 0 mismatch: %+v", revJ.Entries[0])
 	}
 }
+
