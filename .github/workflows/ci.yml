@@ -7,8 +7,75 @@ on:
     branches: [ main ]
 
 jobs:
+  governance-and-lint:
+    name: Zero-Mock & Governance Linter
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify Zero-Mock Policy
+        run: |
+          echo "Scanning for mockCatalog occurrences..."
+          if git grep -i "mockCatalog"; then
+            echo "ERROR: Mock catalog files or references detected! Zero-Mock violation."
+            exit 1
+          fi
+          echo "Zero-Mock audit passed: 0 static mock catalogs detected."
+
+      - name: Verify Single Source of Truth Documentation
+        run: |
+          if [ -f "REQUIREMENTS_ACCEPTANCE.csv" ]; then
+            echo "ERROR: Duplicate REQUIREMENTS_ACCEPTANCE.csv found in root. Must reside solely in docs/."
+            exit 1
+          fi
+          if [ ! -f "docs/REQUIREMENTS_ACCEPTANCE.csv" ]; then
+            echo "ERROR: Missing docs/REQUIREMENTS_ACCEPTANCE.csv."
+            exit 1
+          fi
+          echo "SSOT documentation audit passed."
+
+  database-and-contracts:
+    name: PostgreSQL 17 & Contract Invariant Tests
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: wholesale
+          POSTGRES_USER: wholesale_admin
+          POSTGRES_PASSWORD: wholesale_secure_pass_2026
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run PostgreSQL 17+ Schema Verification
+        run: node tests/contract/schema_verification_test.js
+
+      - name: Run OpenAPI 3.0 & Event Schema Contract Tests
+        run: node tests/contract/contract_test.js
+
+      - name: Run Full B2B Trade Cycle Invariant Tests
+        run: node tests/e2e/e2e_full_cycle.js
+
+      - name: Run 100-Client Concurrency & Zero-Oversell Load Test
+        run: node tests/load/load_concurrency.js
+
   backend-test:
-    name: Backend Go Tests
+    name: Backend Go Domain Engines & Ledger Tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -31,7 +98,7 @@ jobs:
           go test -v ./...
 
   frontend-build:
-    name: Frontend Monorepo Builds
+    name: Frontend Monorepo Clean Builds
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,4 +127,3 @@ jobs:
 
       - name: Build Root Distribution
         run: npm run build
-

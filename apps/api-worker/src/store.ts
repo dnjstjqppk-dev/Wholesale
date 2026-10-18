@@ -1,6 +1,7 @@
 /// <reference lib="dom" />
 // apps/api-worker/src/store.ts
-// Domain State Store for In-Memory Worker Demonstration
+// Cloudflare Edge Local Fallback Cache (Active when CORE_API_URL is disconnected)
+// Primary Persistent Authority: Core Go Backend (services/api) + PostgreSQL 17 (001_initial_schema.sql)
 
 export const BUYER_ORG_ID = '22222222-2222-2222-2222-222222222222';
 export const SUPPLIER_ORG_ID = '11111111-1111-1111-1111-111111111111';

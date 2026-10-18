@@ -1,5 +1,12 @@
 <template>
-  <div class="pdp-container">
+  <div v-if="loading" class="pdp-state-box loading-box">
+    <p>도매 상품 상세 사양 및 제조사 공급가 정보를 서버에서 실시간 조회 중입니다...</p>
+  </div>
+  <div v-else-if="fetchError || !product" class="pdp-state-box error-box">
+    <p class="error-msg">⚠️ {{ fetchError || '요청하신 도매 상품을 찾을 수 없습니다.' }}</p>
+    <router-link to="/ko/KRW/catalog" class="btn-back">카탈로그 목록으로 이동</router-link>
+  </div>
+  <div v-else class="pdp-container">
     <!-- Breadcrumb -->
     <nav class="breadcrumb">
       <router-link to="/ko/KRW/catalog">도매 카탈로그</router-link>
@@ -76,51 +83,44 @@ import PdpSpecsTable from '../components/PdpSpecsTable.vue';
 const router = useRouter();
 const route = useRoute();
 const loading = ref(true);
-
-const product = ref({
-  id: '33333333-3333-3333-3333-333333333333',
-  sku_id: 'SKU-SUS304-VAC-500ML',
-  title: '산업용 초경량 스테인리스 진공 텀블러 벌크팩 (SUS304 이중 진공 500ml)',
-  category_name: '산업기계 & 부품 > 산업용 용기',
-  supplier_name: 'Precision Korea Co., Ltd. (글로벌정밀산업)',
-  years_in_business: 12,
-  moq: 100,
-  quantity_step: 10,
-  unit: 'pcs',
-  lead_time_days: 14,
-  price_tiers: [
-    { min_quantity: 100, max_quantity: 499, unit_price: '5.50' },
-    { min_quantity: 500, max_quantity: 999, unit_price: '4.80' },
-    { min_quantity: 1000, max_quantity: null, unit_price: '4.20' },
-  ],
-});
-
+const fetchError = ref<string | null>(null);
+const product = ref<any>(null);
 const currentTierIndex = ref(0);
 
 async function loadProduct() {
   const prodId = route.params.id as string;
-  if (!prodId) return;
+  if (!prodId) {
+    fetchError.value = '상품 번호가 지정되지 않았습니다.';
+    loading.value = false;
+    return;
+  }
+  loading.value = true;
+  fetchError.value = null;
   try {
     const res = await apiRequest(`/catalog/listings/${prodId}`);
     if (res && res.id) {
       product.value = {
-        ...product.value,
         id: res.id,
-        title: res.title || product.value.title,
-        supplier_name: res.supplier_name || product.value.supplier_name,
-        category_name: res.category_name || product.value.category_name,
-        moq: Number(res.moq) || product.value.moq,
-        unit: res.unit || product.value.unit,
-        lead_time_days: Number(res.lead_time_days) || product.value.lead_time_days,
+        sku_id: res.sku_id || `SKU-${res.id.substring(0, 8)}`,
+        title: res.title,
+        supplier_name: res.supplier_name || 'Verified Supplier Co.',
+        category_name: res.category_name || res.category || '산업기계 & 부품',
+        years_in_business: Number(res.years_in_business) || 10,
+        moq: Number(res.moq) || 100,
+        quantity_step: Number(res.quantity_step) || 10,
+        unit: res.unit || 'pcs',
+        lead_time_days: Number(res.lead_time_days) || 14,
         price_tiers: (res.price_tiers || []).map((t: any) => ({
           min_quantity: Number(t.min_quantity),
           max_quantity: t.max_quantity ? Number(t.max_quantity) : null,
           unit_price: parseFloat(t.unit_price).toFixed(2),
         })),
       };
+    } else {
+      fetchError.value = '해당 상품 정보를 찾을 수 없습니다.';
     }
-  } catch (e) {
-    // If specific ID not found in API map, continue with default high-fidelity product
+  } catch (e: any) {
+    fetchError.value = `상품 정보를 불러오지 못했습니다: ${e.message || '서버 오류'}`;
   } finally {
     loading.value = false;
   }
@@ -195,4 +195,9 @@ function onRequestSample() {
 .bracket-price { font-size: 22px; font-weight: 800; color: #1E293B; font-variant-numeric: tabular-nums; }
 .bracket-col.highlighted .bracket-price { color: #FF6600; }
 .active-badge { position: absolute; top: -10px; right: 12px; background: #FF6600; color: #FFF; font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 4px; }
+.pdp-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; font-size: 14px; }
+.pdp-state-box.loading-box { color: #0284C7; font-weight: 600; }
+.pdp-state-box.error-box { background: #FEF2F2; border-color: #FCA5A5; color: #DC2626; font-weight: 600; }
+.btn-back { display: inline-block; margin-top: 14px; background: #1E293B; color: #FFFFFF; text-decoration: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; font-size: 13px; }
+.btn-back:hover { background: #FF6600; }
 </style>

@@ -19,6 +19,7 @@ import (
 type Server struct {
 	mu                  sync.RWMutex
 	invMgr              *inventory.Manager
+	dbMgr               *DBManager
 	users               map[string]map[string]interface{}
 	orgs                map[uuid.UUID]map[string]interface{}
 	listings            map[uuid.UUID]map[string]interface{}
@@ -37,6 +38,7 @@ type Server struct {
 func NewServer() *Server {
 	s := &Server{
 		invMgr:              inventory.NewManager(),
+		dbMgr:               NewDBManager(),
 		users:               make(map[string]map[string]interface{}),
 		orgs:                make(map[uuid.UUID]map[string]interface{}),
 		listings:            make(map[uuid.UUID]map[string]interface{}),

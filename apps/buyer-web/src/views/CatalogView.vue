@@ -68,8 +68,20 @@
           </div>
         </div>
 
+        <!-- Loading & Error States -->
+        <div v-if="loading" class="catalog-state-box loading-box">
+          <p>도매 상품 및 제조사 카탈로그를 서버에서 불러오는 중입니다...</p>
+        </div>
+        <div v-else-if="fetchError" class="catalog-state-box error-box">
+          <p class="error-msg">⚠️ {{ fetchError }}</p>
+          <button class="btn-retry" @click="fetchListings">다시 시도</button>
+        </div>
+        <div v-else-if="filteredListings.length === 0" class="catalog-state-box empty-box">
+          <p>선택하신 조건에 일치하는 도매 상품이 없습니다.</p>
+          <button class="btn-retry" @click="resetFilters">필터 초기화</button>
+        </div>
         <!-- High-Density Product Grid -->
-        <div class="product-grid">
+        <div v-else class="product-grid">
           <CatalogProductCard
             v-for="item in filteredListings"
             :key="item.id"
@@ -97,7 +109,32 @@ import { useRoute, useRouter } from 'vue-router';
 import CatalogFilterSidebar from '../components/CatalogFilterSidebar.vue';
 import CatalogProductCard from '../components/CatalogProductCard.vue';
 import CatalogInquiryModal from '../components/CatalogInquiryModal.vue';
-import { sampleCatalogListings } from '../data/mockCatalog';
+import { apiRequest } from '../api';
+
+export interface CatalogItem {
+  id: string;
+  sku_id: string;
+  title: string;
+  category: string;
+  category_name: string;
+  supplier_name: string;
+  is_verified_supplier: boolean;
+  country: string;
+  moq: number;
+  quantity_step: number;
+  unit: string;
+  lead_time_days: number;
+  incoterm: string;
+  trade_assurance: boolean;
+  customization: boolean;
+  years_in_business: number;
+  response_rate: string;
+  price_tiers: Array<{
+    min_quantity: string;
+    max_quantity: string | null;
+    unit_price: string;
+  }>;
+}
 
 const route = useRoute();
 const router = useRouter();
@@ -115,7 +152,9 @@ const quickRfqQty = ref(1000);
 const quickRfqUnit = ref('pcs');
 
 const activeInquiryItem = ref<any>(null);
-const listings = ref(sampleCatalogListings);
+const listings = ref<CatalogItem[]>([]);
+const loading = ref(true);
+const fetchError = ref<string | null>(null);
 
 const filteredListings = computed(() => {
   return listings.value.filter(item => {
@@ -139,8 +178,6 @@ function resetFilters() {
   selectedCategory.value = 'ALL';
   selectedIncoterm.value = 'ALL';
 }
-
-import { apiRequest } from '../api';
 
 function openInquiryModal(item: any) {
   activeInquiryItem.value = item;
@@ -169,17 +206,42 @@ function submitQuickRfq() {
   router.push(`/${lang}/${curr}/sourcing/rfq/new`);
 }
 
-onMounted(async () => {
-  if (route.query.category) selectedCategory.value = route.query.category as string;
-  if (route.query.verified === 'true') filterVerified.value = true;
+async function fetchListings() {
+  loading.value = true;
+  fetchError.value = null;
   try {
     const res = await apiRequest('/catalog/listings');
-    if (res && res.items && res.items.length > 0) {
-      listings.value = res.items;
+    if (res && Array.isArray(res.items)) {
+      listings.value = res.items.map((item: any) => ({
+        ...item,
+        moq: Number(item.moq) || 100,
+        quantity_step: Number(item.quantity_step) || 10,
+        years_in_business: Number(item.years_in_business) || 10,
+        trade_assurance: item.trade_assurance ?? true,
+        customization: item.customization ?? true,
+        incoterm: item.incoterms || item.incoterm || 'FOB',
+        category_name: item.category_name || item.category || '산업기계 & 부품',
+        supplier_name: item.supplier_name || 'Verified Supplier Co.',
+        price_tiers: (item.price_tiers || []).map((t: any) => ({
+          min_quantity: String(t.min_quantity),
+          max_quantity: t.max_quantity ? String(t.max_quantity) : null,
+          unit_price: typeof t.unit_price === 'number' ? t.unit_price.toFixed(2) : String(t.unit_price),
+        })),
+      }));
+    } else {
+      listings.value = [];
     }
-  } catch (e) {
-    console.warn('API listings fetch fallback:', e);
+  } catch (err: any) {
+    fetchError.value = `카탈로그 서버 통신 오류: ${err.message || '네트워크 연결 실패'}`;
+  } finally {
+    loading.value = false;
   }
+}
+
+onMounted(() => {
+  if (route.query.category) selectedCategory.value = route.query.category as string;
+  if (route.query.verified === 'true') filterVerified.value = true;
+  fetchListings();
 });
 </script>
 
@@ -209,4 +271,10 @@ onMounted(async () => {
 .toolbar-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; }
 .sort-select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; background: #FFF; }
 .product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.catalog-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; color: #64748B; font-size: 14px; }
+.loading-box { color: #0284C7; font-weight: 600; }
+.error-box { background: #FEF2F2; border-color: #FCA5A5; color: #DC2626; font-weight: 600; }
+.empty-box { background: #F8FAFC; color: #64748B; }
+.btn-retry { margin-top: 12px; background: #FF6600; color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.btn-retry:hover { background: #EA580C; }
 </style>

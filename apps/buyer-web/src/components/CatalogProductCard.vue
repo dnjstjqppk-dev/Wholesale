@@ -2,8 +2,8 @@
   <div class="b2b-product-card">
     <!-- Thumbnail & Category Pill -->
     <div class="card-thumb">
-      <div class="img-mock">
-        <span class="mock-text">{{ item.category_name }}</span>
+      <div class="img-placeholder">
+        <span class="placeholder-text">{{ item.category_name }}</span>
       </div>
       <span class="cat-pill">{{ item.category }}</span>
       <span v-if="item.customization" class="oem-pill">OEM/ODM</span>
@@ -88,7 +88,7 @@ defineEmits<{
 .b2b-product-card { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; transition: box-shadow 0.2s, border-color 0.2s; }
 .b2b-product-card:hover { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08); border-color: #FF6600; }
 .card-thumb { height: 160px; background: #F1F5F9; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-.img-mock { text-align: center; color: #94A3B8; font-size: 13px; font-weight: 600; padding: 12px; }
+.img-placeholder { text-align: center; color: #94A3B8; font-size: 13px; font-weight: 600; padding: 12px; }
 .cat-pill { position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.6); color: #FFF; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
 .oem-pill { position: absolute; top: 10px; right: 10px; background: #EA580C; color: #FFF; font-size: 10px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
 .card-content { padding: 16px; display: flex; flex-direction: column; flex: 1; }

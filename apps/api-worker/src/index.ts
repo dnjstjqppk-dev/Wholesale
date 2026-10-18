@@ -9,7 +9,9 @@ import { handleSourcing } from './routesSourcing';
 import { handleTrade } from './routesTrade';
 import { handleGovernance } from './routesGovernance';
 
-export interface Env {}
+export interface Env {
+  CORE_API_URL?: string;
+}
 
 export default {
   async fetch(request: Request, _env: Env): Promise<Response> {
@@ -35,8 +37,20 @@ export default {
           governance: 'active (SHA-256 digital document hash contract verification)',
           inventory: 'active (atomic reservation & oversell prevention)',
           logistics: 'active (cumulative split-shipment bound validation)',
+          core_proxy: _env?.CORE_API_URL ? 'enabled (origin: ' + _env.CORE_API_URL + ')' : 'edge-native mode',
         },
       });
+    }
+
+    // Edge Gateway Proxy to Core Go Backend
+    if (_env?.CORE_API_URL) {
+      try {
+        const upstreamUrl = new URL(url.pathname + url.search, _env.CORE_API_URL);
+        const proxyReq = new Request(upstreamUrl.toString(), request);
+        return await fetch(proxyReq);
+      } catch (err: any) {
+        console.warn('Upstream Core API proxy attempt failed, delegating to edge domain engine:', err);
+      }
     }
 
     // Route delegation
