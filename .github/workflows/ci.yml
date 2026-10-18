@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Go Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache-dependency-path: 'services/*/go.sum'
+
+      - name: Run API service tests
+        run: |
+          cd services/api
+          go test -v ./...
+
+      - name: Run Worker service tests
+        run: |
+          cd services/worker
+          go test -v ./...
+
+  frontend-build:
+    name: Frontend Monorepo Builds
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Clean install dependencies
+        run: npm ci
+
+      - name: TypeScript type-check
+        run: npx tsc --noEmit
+
+      - name: Build Buyer Web
+        run: npm run build:buyer
+
+      - name: Build Partner Web
+        run: npm run build:partner
+
+      - name: Build Admin Web
+        run: npm run build:admin
+
+      - name: Build Root Distribution
+        run: npm run build
