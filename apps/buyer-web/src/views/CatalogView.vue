@@ -140,12 +140,27 @@ function resetFilters() {
   selectedIncoterm.value = 'ALL';
 }
 
+import { apiRequest } from '../api';
+
 function openInquiryModal(item: any) {
   activeInquiryItem.value = item;
 }
 
-function handleInquirySubmitted(payload: any) {
-  alert(`공급사(${payload.item.supplier_name})에 정식 견적 문의서가 암호화 전송되었습니다.`);
+async function handleInquirySubmitted(payload: any) {
+  try {
+    await apiRequest('/sourcing/rfqs', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: `[견적문의] ${payload.item.title}`,
+        quantity: payload.quantity,
+        target_price: payload.targetPrice,
+        category: payload.item.category,
+      }),
+    });
+    alert(`[서버 접수 완료] 공급사(${payload.item.supplier_name})에 정식 견적 문의서가 암호화 전송되었습니다.`);
+  } catch (err: any) {
+    alert(`견적 문의 전송: ${err.message}`);
+  }
   activeInquiryItem.value = null;
 }
 
@@ -154,9 +169,17 @@ function submitQuickRfq() {
   router.push(`/${lang}/${curr}/sourcing/rfq/new`);
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (route.query.category) selectedCategory.value = route.query.category as string;
   if (route.query.verified === 'true') filterVerified.value = true;
+  try {
+    const res = await apiRequest('/catalog/listings');
+    if (res && res.items && res.items.length > 0) {
+      listings.value = res.items;
+    }
+  } catch (e) {
+    console.warn('API listings fetch fallback:', e);
+  }
 });
 </script>
 

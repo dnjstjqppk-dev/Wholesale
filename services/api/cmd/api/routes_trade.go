@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/google/uuid"
 	"wholesale/services/api/internal/payment"
+
+	"github.com/google/uuid"
 	"wholesale/services/api/internal/trade"
 )
 

@@ -36,16 +36,35 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { apiRequest } from '../api';
 
 const router = useRouter();
+const route = useRoute();
+const submitting = ref(false);
 const claimAmount = ref(1500);
 const reason = ref('DEFECTIVE_BATCH');
 const details = ref('');
 
-function handleSubmit() {
-  alert('분쟁이 정식 접수되었으며 공급사 대금 정산이 동결(HELD)되었습니다. 본사 관리자 중재관이 배정됩니다.');
-  router.push('/ko/KRW/orders');
+async function handleSubmit() {
+  submitting.value = true;
+  const orderId = (route.params.id as string) || 'ord-20261018-001';
+  try {
+    const res = await apiRequest('/disputes', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_id: orderId,
+        requested_amount_minor: Math.round(claimAmount.value * 100),
+        reason: `${reason.value}: ${details.value || '규격 불일치 및 클레임 제기'}`,
+      }),
+    });
+    alert(`[분쟁 접수 및 공급사 에스크로 동결 완료]\n분쟁 ID: ${res.id}\n주문 ID: ${res.order_id}\n청구액: $${(res.requested_amount_minor / 100).toFixed(2)} USD\n에스크로 동결액: $${(res.escrow_frozen_minor / 100).toFixed(2)} USD\n상태: ${res.status}\n관리자 중재 심사로 이관되었습니다.`);
+    router.push('/ko/KRW/orders');
+  } catch (err: any) {
+    alert(`분쟁 접수 처리 실패: ${err.message}`);
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 

@@ -29,8 +29,20 @@
         </div>
 
         <div class="card-actions">
-          <button v-if="order.payment_status === 'DOWN_PAYMENT_PENDING'" class="btn-action pay" @click="payDownPayment(order)">
-            계약금 30% ($1,440.00) 결제
+          <router-link
+            v-if="!order.is_contract_signed"
+            :to="`/${$route.params.locale || 'ko'}/${$route.params.currency || 'KRW'}/orders/${order.id}/contract`"
+            class="btn-action contract"
+          >
+            ✍️ 전자계약 서명하기 (Sign Contract)
+          </router-link>
+          <button
+            v-else-if="order.payment_status === 'DOWN_PAYMENT_PENDING'"
+            class="btn-action pay"
+            :disabled="paying"
+            @click="payDownPayment(order)"
+          >
+            {{ paying ? '에스크로 결제 승인 중...' : `계약금 30% ($${((order.downpayment_minor || 126000) / 100).toFixed(2)}) 결제` }}
           </button>
           <button v-if="order.order_status === 'INSPECTION_PENDING'" class="btn-action inspect" @click="passInspection(order)">
             제3자 품질 검수 합격 승인
@@ -45,28 +57,66 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { apiRequest } from '../api';
 
-const orders = ref([
+const loading = ref(true);
+const paying = ref(false);
+const error = ref('');
+
+const orders = ref<any[]>([
   {
-    id: 'ORD-2026-0001',
-    order_number: 'ORD-2026-0001',
+    id: 'ord-20261018-001',
+    order_number: 'ORD-20261018-001',
     created_at: '2026-10-18 15:30',
     supplier_name: 'Precision Korea Co., Ltd.',
     currency: 'USD',
-    total_amount_minor: 480000,
+    total_amount_minor: 420000,
+    downpayment_minor: 126000,
+    balance_minor: 294000,
     order_status: 'IN_PRODUCTION',
     payment_status: 'PARTIALLY_PAID_30',
     fulfillment_status: 'READY_TO_DISPATCH',
     dispute_status: 'NONE',
     settlement_status: 'HELD_ESCROW',
+    is_contract_signed: true,
   },
 ]);
 
-function payDownPayment(order: any) {
-  order.payment_status = 'PARTIALLY_PAID_30';
-  order.order_status = 'IN_PRODUCTION';
-  alert('계약금 30%가 에스크로 가상계좌로 입금 확정되었습니다.');
+async function loadOrders() {
+  loading.value = true;
+  error.value = '';
+  try {
+    const res = await apiRequest('/trade/orders');
+    if (res && res.orders && res.orders.length > 0) {
+      orders.value = res.orders;
+    }
+  } catch (err: any) {
+    // Keep baseline list
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadOrders();
+});
+
+async function payDownPayment(order: any) {
+  paying.value = true;
+  try {
+    const res = await apiRequest('/payments/process', {
+      method: 'POST',
+      body: JSON.stringify({ order_id: order.id }),
+    });
+    order.payment_status = 'PARTIALLY_PAID_30';
+    order.order_status = 'IN_PRODUCTION';
+    alert(`[에스크로 PG 결제 및 원장 분개 완료]\n거래 ID: ${res.pg_transaction_id}\n결제 금액: $${(res.amount_minor / 100).toFixed(2)} USD\n차변: ${res.ledger_entry.debit_account}\n대변: ${res.ledger_entry.credit_account}\n무결성 원장 분개가 완료되었습니다.`);
+  } catch (err: any) {
+    alert(`결제 처리 실패: ${err.message}`);
+  } finally {
+    paying.value = false;
+  }
 }
 
 function passInspection(order: any) {

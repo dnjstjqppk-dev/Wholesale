@@ -48,31 +48,88 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
+import { apiRequest } from '../api';
 
 const router = useRouter();
+const route = useRoute();
+const loading = ref(true);
+const accepting = ref(false);
 
 const quote = ref({
-  id: '55555555-5555-5555-5555-555555555555',
+  id: 'quote-001',
   supplier_name: 'Precision Korea Co., Ltd.',
   status: 'ISSUED',
   current_revision: {
-    revision_number: 2,
-    unit_price: '4.80',
+    revision_number: 1,
+    unit_price: '4.20',
     lead_time_days: 14,
-    incoterms: 'FOB Busan (Incoterms 2020)',
+    incoterms: 'FOB Busan Port',
     status: 'ISSUED',
   },
   revisions: [
-    { revision_number: 2, unit_price: '4.80', status: 'ISSUED', created_at: '2026-10-18 14:00' },
-    { revision_number: 1, unit_price: '5.20', status: 'SUPERSEDED', created_at: '2026-10-17 11:30' },
+    { revision_number: 1, unit_price: '4.20', status: 'ISSUED', created_at: '2026-10-18 14:00' },
   ],
 });
 
-function handleAccept() {
-  alert('견적이 승인되어 정식 도매 거래 계약(Trade Contract)이 생성되었습니다.');
-  router.push('/ko/KRW/orders/ORD-2026-0001/contract');
+async function loadQuote() {
+  const quoteId = (route.params.id as string) || 'quote-001';
+  try {
+    const res = await apiRequest(`/sourcing/quotes/${quoteId}`);
+    if (res && res.id) {
+      quote.value = {
+        id: res.id,
+        supplier_name: res.supplier_name || quote.value.supplier_name,
+        status: res.status || 'ISSUED',
+        current_revision: {
+          revision_number: res.revision_number || 1,
+          unit_price: res.unit_price || '4.20',
+          lead_time_days: res.lead_time_days || 14,
+          incoterms: res.incoterms || 'FOB Busan Port',
+          status: res.status || 'ISSUED',
+        },
+        revisions: res.revisions || [
+          { revision_number: 1, unit_price: res.unit_price || '4.20', status: 'ISSUED', created_at: res.created_at || '2026-10-18' }
+        ],
+      };
+    }
+  } catch (e) {
+    // Keep fallback
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadQuote();
+});
+
+async function handleAccept() {
+  accepting.value = true;
+  try {
+    const idempKey = `idemp-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    const quoteId = quote.value.id || 'quote-001';
+    const res = await apiRequest(`/sourcing/quotes/${quoteId}/accept`, {
+      method: 'POST',
+      headers: {
+        'Idempotency-Key': idempKey,
+      },
+    });
+
+    const orderId = res.id || 'ord-20261018-001';
+    alert(`[견적 승인 및 도매 계약서 발급 완료]\n주문번호: ${res.order_number || orderId}\n총 금액: $${(res.total_amount_minor / 100).toFixed(2)} USD (계약금 30%: $${(res.downpayment_minor / 100).toFixed(2)})\n전자계약 체결 페이지로 이동합니다.`);
+    router.push(`/ko/KRW/orders/${orderId}/contract`);
+  } catch (err: any) {
+    if (err.message && err.message.includes('409')) {
+      alert('이미 승인 처리된 견적입니다. 발주 관리 목록으로 이동합니다.');
+      router.push('/ko/KRW/orders');
+    } else {
+      alert(`견적 승인 실패: ${err.message}`);
+    }
+  } finally {
+    accepting.value = false;
+  }
 }
 </script>
 

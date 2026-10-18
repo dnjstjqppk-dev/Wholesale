@@ -231,3 +231,4 @@ func TestStep2FulfillmentDisputeAndSettlement(t *testing.T) {
 		t.Fatalf("Payout wire release failed: code=%d", res.StatusCode)
 	}
 }
+

@@ -1,26 +1,26 @@
 {
   "name": "wholesale",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
+  "workspaces": [
+    "apps/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "deploy": "wrangler deploy"
-  },
-  "dependencies": {
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "lucide-react": "^0.475.0"
+    "dev": "npm --prefix apps/buyer-web run dev",
+    "build:buyer": "npm --prefix apps/buyer-web run build",
+    "build:partner": "npm --prefix apps/partner-web run build",
+    "build:admin": "npm --prefix apps/admin-web run build",
+    "build": "npm --prefix apps/buyer-web run build && node -e \"const fs = require('fs'); fs.rmSync('dist', {recursive: true, force: true}); fs.cpSync('apps/buyer-web/dist', 'dist', {recursive: true});\"",
+    "preview": "npm --prefix apps/buyer-web run preview",
+    "deploy": "wrangler deploy",
+    "deploy:buyer": "npm --prefix apps/buyer-web run deploy",
+    "deploy:partner": "npm --prefix apps/partner-web run deploy",
+    "deploy:admin": "npm --prefix apps/admin-web run deploy",
+    "deploy:api": "npm --prefix apps/api-worker run deploy",
+    "deploy:all": "npm run deploy:api && npm run deploy:buyer && npm run deploy:partner && npm run deploy:admin"
   },
   "devDependencies": {
-    "@types/react": "^18.3.18",
-    "@types/react-dom": "^18.3.5",
-    "@vitejs/plugin-react": "^4.3.4",
-    "typescript": "~5.7.2",
-    "vite": "^6.2.0",
     "wrangler": "^4.151.1"
   }
 }
-

@@ -59,9 +59,12 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
+import { apiRequest } from '../api';
 
 const router = useRouter();
+const route = useRoute();
+const signing = ref(false);
 
 const contract = ref({
   contract_number: 'CTR-2026-0001',
@@ -69,10 +72,24 @@ const contract = ref({
   buyer_signed: false,
 });
 
-function handleSignBuyer() {
-  contract.value.buyer_signed = true;
-  alert('구매사 전자서명이 SHA-256 해시 검증을 통과하여 완료되었습니다.\n계약금(30%) 결제 단계로 이동합니다.');
-  router.push('/ko/KRW/orders');
+async function handleSignBuyer() {
+  signing.value = true;
+  const orderId = (route.params.id as string) || 'ord-20261018-001';
+  try {
+    const res = await apiRequest(`/trade/orders/${orderId}/contract/sign`, {
+      method: 'POST',
+      body: JSON.stringify({
+        document_hash: contract.value.document_hash,
+      }),
+    });
+    contract.value.buyer_signed = true;
+    alert(`[전자계약 체결 및 SHA-256 서명 검증 완료]\n계약 ID: ${res.contract_id}\n문서 해시: ${res.document_hash.slice(0, 16)}...\n체결 상태: ${res.status}\n계약금(30%) 에스크로 결제 단계로 이동합니다.`);
+    router.push('/ko/KRW/orders');
+  } catch (err: any) {
+    alert(`계약 서명 처리 실패: ${err.message}`);
+  } finally {
+    signing.value = false;
+  }
 }
 </script>
 

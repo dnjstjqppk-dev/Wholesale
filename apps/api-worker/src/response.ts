@@ -14,7 +14,13 @@ export function jsonResponse(data: unknown, status = 200): Response {
   });
 }
 
-export function problemResponse(status: number, code: string, title: string, detail: string): Response {
+export function problemResponse(
+  status: number,
+  code: string,
+  title: string,
+  detail: string,
+  fieldErrors?: any[]
+): Response {
   return new Response(
     JSON.stringify({
       type: 'about:blank',
@@ -23,6 +29,7 @@ export function problemResponse(status: number, code: string, title: string, det
       code,
       detail,
       request_id: crypto.randomUUID(),
+      field_errors: fieldErrors,
     }),
     {
       status,

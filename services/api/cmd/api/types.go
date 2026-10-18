@@ -30,4 +30,3 @@ func writeProblem(w http.ResponseWriter, status int, code, title, detail string)
 		RequestID: uuid.New().String(),
 	})
 }
-

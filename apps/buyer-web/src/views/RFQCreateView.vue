@@ -66,8 +66,10 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import { apiRequest } from '../api';
 
 const router = useRouter();
+const submitting = ref(false);
 
 const form = ref({
   title: '',
@@ -81,9 +83,26 @@ const item = ref({
   unit: 'pcs',
 });
 
-function handleSubmit() {
-  alert('RFQ가 성공적으로 발행되어 적격 공급사 시장에 게시되었습니다.');
-  router.push('/ko/KRW/orders');
+async function handleSubmit() {
+  submitting.value = true;
+  try {
+    const res = await apiRequest('/sourcing/rfqs', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: form.value.title || item.value.title || '산업용 도매 조달 프로젝트',
+        quantity: item.value.requestedQty || 1000,
+        unit: item.value.unit || 'pcs',
+        destination_country: form.value.destinationCountry || 'KR',
+        expires_at: form.value.expiresAt || '2026-12-31',
+      }),
+    });
+    alert(`[RFQ 공식 발행 성공]\nRFQ 번호: ${res.id}\n프로젝트명: ${res.title}\n요청수량: ${res.requested_qty} ${res.unit}\n적격 검증 공급사 네트워크로 입찰 요청이 전송되었습니다.`);
+    router.push('/ko/KRW/orders');
+  } catch (err: any) {
+    alert(`RFQ 발행 실패: ${err.message}`);
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 

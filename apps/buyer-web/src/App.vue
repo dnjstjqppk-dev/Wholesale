@@ -72,6 +72,10 @@
           <router-link to="/ko/KRW/sourcing/rfq/new" class="rfq-cta-btn">
             ✍️ RFQ 견적 요청
           </router-link>
+          <router-link to="/ko/KRW/cart" class="nav-icon-link">
+            <span class="icon">🛒</span>
+            <span class="label">도매 카트</span>
+          </router-link>
           <router-link to="/ko/KRW/orders" class="nav-icon-link">
             <span class="icon">📦</span>
             <span class="label">발주·계약</span>

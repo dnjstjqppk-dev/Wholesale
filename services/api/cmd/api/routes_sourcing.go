@@ -6,9 +6,10 @@ import (
 	"net/http"
 	"time"
 
+	"wholesale/services/api/internal/sourcing"
+
 	"github.com/google/uuid"
 	"github.com/shopspring/decimal"
-	"wholesale/services/api/internal/sourcing"
 )
 
 func (s *Server) registerSourcingRoutes(mux *http.ServeMux) {

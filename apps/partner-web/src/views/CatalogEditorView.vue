@@ -2,7 +2,9 @@
   <div class="catalog-editor-page">
     <div class="page-head">
       <h2>도매 상품 및 수량 구간 단가(Tiered Pricing) 편집</h2>
-      <button class="btn-save" @click="handleSave">저장 및 심사 요청</button>
+      <button class="btn-save" :disabled="submitting" @click="handleSave">
+        {{ submitting ? '저장 및 배포 중...' : '저장 및 마켓 배포 요청' }}
+      </button>
     </div>
 
     <div class="editor-grid">
@@ -27,7 +29,7 @@
           </div>
         </div>
         <div class="field">
-          <label>표준 제조/납기 소요일수 (Lead Time)</label>
+          <label>표준 제조/납기 소요일수 (Lead Time, 일)</label>
           <input v-model.number="form.leadTimeDays" type="number" />
         </div>
       </div>
@@ -46,7 +48,7 @@
           </div>
           <div v-for="(tier, idx) in form.tiers" :key="idx" class="t-row">
             <input v-model.number="tier.min" type="number" />
-            <input v-model.number="tier.max" type="number" :placeholder="idx === form.tiers.length - 1 ? '무제한 (Infinity)' : ''" />
+            <input v-model.number="tier.max" type="number" :placeholder="idx === form.tiers.length - 1 ? '무제한 (+)' : ''" />
             <input v-model="tier.price" type="text" />
             <button class="btn-del" @click="removeTier(idx)">×</button>
           </div>
@@ -59,6 +61,9 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { apiRequest } from '../api';
+
+const submitting = ref(false);
 
 const form = ref({
   title: '산업용 초경량 스테인리스 진공 텀블러 벌크팩',
@@ -83,8 +88,34 @@ function removeTier(idx: number) {
   }
 }
 
-function handleSave() {
-  alert('구간 단가 및 발주 조건이 성공적으로 저장되었습니다.');
+async function handleSave() {
+  submitting.value = true;
+  try {
+    const price_tiers = form.value.tiers.map(t => ({
+      min_quantity: String(t.min),
+      max_quantity: t.max ? String(t.max) : null,
+      unit_price: String(t.price),
+      currency: 'USD',
+    }));
+
+    const res = await apiRequest('/catalog/listings', {
+      method: 'POST',
+      body: JSON.stringify({
+        title: form.value.title,
+        moq: form.value.moq,
+        quantity_step: form.value.step,
+        unit: form.value.unit,
+        lead_time_days: form.value.leadTimeDays,
+        price_tiers,
+      }),
+    });
+
+    alert(`[서버 저장 성공]\n상품 ID: ${res.id}\n'${res.title}' 품목이 API 서버 및 공개 카탈로그에 정상 반영되었습니다.`);
+  } catch (err: any) {
+    alert(`저장 실패: ${err.message}`);
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 
@@ -93,6 +124,7 @@ function handleSave() {
 .page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .page-head h2 { margin: 0; font-size: 20px; color: #172B4D; }
 .btn-save { background: #C2410C; color: #FFF; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.btn-save:disabled { background: #CBD5E1; cursor: not-allowed; }
 .editor-grid { display: flex; flex-direction: column; gap: 24px; }
 .card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
 .card h3 { margin: 0 0 16px 0; font-size: 16px; color: #172B4D; }
@@ -110,4 +142,3 @@ function handleSave() {
 .btn-del { background: #FEE2E2; color: #DC2626; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 16px; font-weight: 700; }
 .tier-tip { font-size: 12px; color: #64748B; margin-top: 14px; }
 </style>
-

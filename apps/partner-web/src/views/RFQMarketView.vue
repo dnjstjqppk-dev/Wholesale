@@ -3,7 +3,15 @@
     <h2>공개 RFQ 입찰 시장 (RFQ Marketplace)</h2>
     <p class="subtitle">국내외 검증된 바이어 기업들이 발행한 조달 프로젝트에 공식 입찰합니다.</p>
 
-    <div class="rfq-list">
+    <div v-if="loading" class="loading-state">
+      RFQ 시장 목록을 API 서버에서 조회 중입니다...
+    </div>
+
+    <div v-else-if="error" class="error-banner">
+      ⚠️ {{ error }}
+    </div>
+
+    <div v-else class="rfq-list">
       <div v-for="rfq in rfqs" :key="rfq.id" class="rfq-card">
         <div class="card-head">
           <span class="dest-badge">{{ rfq.destination_country }}</span>
@@ -33,8 +41,8 @@
               <label>Incoterms 2020</label>
               <input v-model="rfq.bidIncoterm" type="text" placeholder="FOB Busan" />
             </div>
-            <button class="btn-bid" @click="submitBid(rfq)">
-              {{ rfq.hasBid ? '견적 수정본(Rev 2) 발행' : '신규 견적 제출 (Rev 1)' }}
+            <button class="btn-bid" :disabled="submitting" @click="submitBid(rfq)">
+              {{ submitting ? '제출 중...' : (rfq.hasBid ? '견적 수정본(Rev 2) 발행' : '신규 견적 제출 (Rev 1)') }}
             </button>
           </div>
           <p v-if="rfq.hasBid" class="history-note">
@@ -47,27 +55,55 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
+import { apiRequest } from '../api';
 
-const rfqs = ref([
-  {
-    id: 'rfq-001',
-    title: '2026 하반기 산업용 스테인리스 텀블러 5,000개 조달',
-    destination_country: 'US',
-    expires_at: '2026-11-30',
-    requested_qty: '5,000',
-    unit: 'pcs',
-    target_price: '5.00',
-    hasBid: false,
-    bidPrice: '4.80',
-    bidLeadTime: 14,
-    bidIncoterm: 'FOB Busan Port',
-  },
-]);
+const loading = ref(true);
+const submitting = ref(false);
+const error = ref('');
+const rfqs = ref<any[]>([]);
 
-function submitBid(rfq: any) {
-  rfq.hasBid = true;
-  alert(`견적서가 성공적으로 발행되어 바이어 기업에게 전송되었습니다. (단가: $${rfq.bidPrice})`);
+async function loadRFQs() {
+  loading.value = true;
+  error.value = '';
+  try {
+    const res = await apiRequest('/sourcing/rfqs');
+    rfqs.value = (res.items || []).map((item: any) => ({
+      ...item,
+      hasBid: false,
+      bidPrice: item.target_price || '4.50',
+      bidLeadTime: item.lead_time_days || 14,
+      bidIncoterm: 'FOB Busan Port',
+    }));
+  } catch (err: any) {
+    error.value = err.message || 'RFQ 목록 로드 실패';
+  } finally {
+    loading.value = false;
+  }
+}
+
+onMounted(() => {
+  loadRFQs();
+});
+
+async function submitBid(rfq: any) {
+  submitting.value = true;
+  try {
+    const res = await apiRequest(`/sourcing/rfqs/${rfq.id}/quotes`, {
+      method: 'POST',
+      body: JSON.stringify({
+        unit_price: rfq.bidPrice,
+        lead_time_days: rfq.bidLeadTime,
+        incoterms: rfq.bidIncoterm,
+      }),
+    });
+    rfq.hasBid = true;
+    alert(`[공식 견적서(Quote) 발행 성공]\n견적 ID: ${res.id}\nRFQ: ${rfq.title}\n제안단가: $${res.unit_price} USD\n납기: ${res.lead_time_days}일\n바이어에게 공식 견적서가 안전하게 전송되었습니다.`);
+  } catch (err: any) {
+    alert(`견적 제출 실패: ${err.message}`);
+  } finally {
+    submitting.value = false;
+  }
 }
 </script>
 
@@ -75,6 +111,8 @@ function submitBid(rfq: any) {
 .rfq-market-page { max-width: 1000px; margin: 0 auto; }
 h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .subtitle { color: #64748B; font-size: 13px; margin-bottom: 24px; }
+.loading-state { padding: 40px; text-align: center; color: #64748B; }
+.error-banner { background: #FEF2F2; color: #B91C1C; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
 .rfq-list { display: flex; flex-direction: column; gap: 20px; }
 .rfq-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
 .card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; }
@@ -92,4 +130,3 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .btn-bid { background: #C2410C; color: #FFF; border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .history-note { font-size: 11px; color: #64748B; margin-top: 10px; }
 </style>
-

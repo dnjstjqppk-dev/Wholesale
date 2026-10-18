@@ -181,3 +181,4 @@ func (s *Server) seedInitialData() {
 	j, _ := payment.CreateJournal(orderID, "ESCROW_SEED", "USD", entries)
 	s.journals = append(s.journals, j)
 }
+

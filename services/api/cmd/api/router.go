@@ -22,3 +22,4 @@ func (s *Server) routes() http.Handler {
 		mux.ServeHTTP(w, r)
 	})
 }
+
