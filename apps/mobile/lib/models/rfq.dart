@@ -1,4 +1,4 @@
-class RFQ {
+﻿class RFQ {
   final String id;
   final String title;
   final String destinationCountry;

@@ -1,4 +1,4 @@
-class PriceTier {
+﻿class PriceTier {
   final int minQuantity;
   final int? maxQuantity;
   final String unitPrice;

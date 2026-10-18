@@ -1,4 +1,4 @@
-class Order {
+﻿class Order {
   final String id;
   final String orderNumber;
   final String status;
