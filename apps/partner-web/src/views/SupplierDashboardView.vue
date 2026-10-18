@@ -60,3 +60,4 @@
 .kpi-card .value.highlight { color: #C2410C; }
 .kpi-card .sub { font-size: 11px; color: #94A3B8; margin-top: 6px; }
 </style>
+

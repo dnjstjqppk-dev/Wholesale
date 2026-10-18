@@ -86,3 +86,4 @@ func (s *UserSession) HasCapability(requiredCapability string) bool {
 		return false
 	}
 }
+

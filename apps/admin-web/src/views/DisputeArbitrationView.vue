@@ -95,3 +95,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
 .btn-arbitrate { background: #C2410C; color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .limit-note { font-size: 11px; color: #94A3B8; margin-top: 8px; }
 </style>
+

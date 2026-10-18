@@ -119,3 +119,4 @@ func (item *RFQItem) AwardItem(qty decimal.Decimal) error {
 	item.AwardedQty = newAwarded
 	return nil
 }
+

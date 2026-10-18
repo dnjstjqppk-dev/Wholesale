@@ -113,3 +113,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
 .j-footer { display: flex; justify-content: flex-end; }
 .btn-reversal { background: #334155; border: 1px solid #475569; color: #F8FAFC; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
 </style>
+

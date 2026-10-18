@@ -97,3 +97,4 @@ function handleSignBuyer() {
 .sig-box { background: #F8FAFC; border: 1px solid #D8E0EB; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .btn-sign { background: #C2410C; color: #FFF; border: none; padding: 10px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 </style>
+

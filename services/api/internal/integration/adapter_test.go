@@ -64,3 +64,4 @@ func TestPriceScannerWholesaleFeedIntegrity(t *testing.T) {
 		t.Errorf("Expected ErrConsentRevoked on inactive consent, got: %v", err)
 	}
 }
+

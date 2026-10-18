@@ -74,3 +74,4 @@ function isTierActive(tier: PriceTierItem): boolean {
   color: #C2410C;
 }
 </style>
+

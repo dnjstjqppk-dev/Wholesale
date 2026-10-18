@@ -1,0 +1,14 @@
+{
+  "name": "wholesale-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "wrangler deploy"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250214.0",
+    "typescript": "~5.7.2",
+    "wrangler": "^4.151.1"
+  }
+}

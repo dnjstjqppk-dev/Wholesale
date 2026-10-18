@@ -80,3 +80,4 @@ func TestRoleCapabilities(t *testing.T) {
 		t.Error("Buyer approver should have BUYER_APPROVE capability")
 	}
 }
+

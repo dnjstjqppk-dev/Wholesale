@@ -105,3 +105,4 @@ func (d *Dispute) Arbitrate(arbitratorID uuid.UUID, isPlatformAdmin bool, refund
 		fmt.Sprintf("Arbitrated: refund=%d, payout=%d. Notes: %s", refundMinor, payoutMinor, resolutionNotes))
 	return nil
 }
+

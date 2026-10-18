@@ -111,3 +111,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
 .paid-tag { color: #38BDF8; font-size: 12px; font-weight: 600; }
 .sod-note { font-size: 11px; color: #94A3B8; margin-top: 6px; }
 </style>
+

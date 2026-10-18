@@ -54,3 +54,4 @@ func TestDisputeLifecycleAndArbitration(t *testing.T) {
 		t.Errorf("Expected ErrDisputeAlreadyResolved, got %v", err)
 	}
 }
+

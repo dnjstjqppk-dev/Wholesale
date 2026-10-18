@@ -27,3 +27,4 @@ ORDER BY pt.min_quantity ASC;
 SELECT id, listing_id, sku_code, variant_options, weight_kg, is_active
 FROM skus
 WHERE listing_id = $1 AND is_active = TRUE;
+

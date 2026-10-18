@@ -96,3 +96,4 @@ func RevokeConsent(consent *ChannelConsent, listingID, actorID uuid.UUID, reason
 		RevokedAt: consent.UpdatedAt,
 	}, nil
 }
+

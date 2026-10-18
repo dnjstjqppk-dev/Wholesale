@@ -21,3 +21,4 @@ INSERT INTO payment_schedules (
     order_id, stage, percentage, due_amount_minor, currency, status, due_date
 ) VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
+

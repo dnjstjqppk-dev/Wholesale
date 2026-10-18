@@ -102,3 +102,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .btn-action.inspect { background: #15803D; color: #FFF; border: none; }
 .btn-action.dispute { background: #FFF; border: 1px solid #EF4444; color: #DC2626; }
 </style>
+

@@ -140,3 +140,4 @@ const filteredItems = computed(() => {
 .moq-label { font-size: 12px; font-weight: 600; color: #64748B; }
 .btn-detail { background: #C2410C; color: #FFF; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 12px; font-weight: 600; }
 </style>
+

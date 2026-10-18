@@ -28,3 +28,4 @@ SET buyer_signed_at = CURRENT_TIMESTAMP,
     is_fully_signed = (supplier_signed_at IS NOT NULL)
 WHERE id = $1 AND buyer_signed_at IS NULL
 RETURNING *;
+

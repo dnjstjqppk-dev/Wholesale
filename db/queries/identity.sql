@@ -29,3 +29,4 @@ SELECT o.id, o.legal_name, o.trade_name, o.business_type, o.capabilities, o.is_v
 FROM organizations o
 JOIN memberships m ON m.organization_id = o.id
 WHERE m.user_id = $1 AND m.is_active = TRUE;
+

@@ -39,3 +39,4 @@ const config = computed(() => {
   white-space: nowrap;
 }
 </style>
+

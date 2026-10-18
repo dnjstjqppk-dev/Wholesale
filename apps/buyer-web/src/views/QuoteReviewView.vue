@@ -96,3 +96,4 @@ function handleAccept() {
 .alert-sod { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 6px; padding: 10px; font-size: 11px; color: #92400E; margin: 16px 0; }
 .btn-accept { width: 100%; background: #C2410C; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 </style>
+

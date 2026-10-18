@@ -116,3 +116,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .history-row { display: flex; justify-content: space-between; padding: 8px; background: #F8FAFC; border-radius: 4px; margin-bottom: 6px; font-size: 13px; }
 .date { color: #64748B; }
 </style>
+

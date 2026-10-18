@@ -19,3 +19,4 @@ RETURNING *;
 UPDATE quote_revisions
 SET status = 'SUPERSEDED'
 WHERE quote_id = $1 AND id = $2;
+

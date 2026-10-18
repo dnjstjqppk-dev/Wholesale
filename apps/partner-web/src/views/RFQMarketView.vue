@@ -92,3 +92,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .btn-bid { background: #C2410C; color: #FFF; border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .history-note { font-size: 11px; color: #64748B; margin-top: 10px; }
 </style>
+

@@ -86,3 +86,4 @@ function formatAmount(minor: number): string {
 .total-row { border-top: 1px solid #172B4D; font-weight: 700; color: #172B4D; padding-top: 6px; }
 .num { text-align: right; font-variant-numeric: tabular-nums; }
 </style>
+

@@ -18,3 +18,4 @@ SET status = 'PAID_OUT',
     disbursed_at = CURRENT_TIMESTAMP
 WHERE id = $1 AND status = 'RELEASE_ELIGIBLE' AND has_active_dispute = FALSE
 RETURNING *;
+

@@ -83,3 +83,4 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
 .btn-approve { background: #059669; color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 .btn-reject { background: #DC2626; color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 </style>
+

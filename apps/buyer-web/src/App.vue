@@ -77,3 +77,4 @@ function changeLocale() {
 .app-footer { background: #0F243B; color: #94A3B8; padding: 24px; text-align: center; font-size: 13px; }
 .app-footer .sub { font-size: 12px; margin-top: 4px; color: #64748B; }
 </style>
+

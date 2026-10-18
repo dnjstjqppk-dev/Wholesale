@@ -110,3 +110,4 @@ function handleSave() {
 .btn-del { background: #FEE2E2; color: #DC2626; border: none; border-radius: 4px; width: 32px; height: 32px; cursor: pointer; font-size: 16px; font-weight: 700; }
 .tier-tip { font-size: 12px; color: #64748B; margin-top: 14px; }
 </style>
+

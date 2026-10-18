@@ -60,3 +60,4 @@ h2 { margin: 0 0 8px 0; font-size: 20px; color: #172B4D; }
 .actions { margin-top: 24px; }
 .btn-submit { background: #DC2626; color: #FFF; border: none; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; font-size: 15px; }
 </style>
+

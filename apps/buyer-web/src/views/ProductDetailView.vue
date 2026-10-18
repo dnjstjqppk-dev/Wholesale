@@ -176,3 +176,4 @@ function handlePlaceOrder() {
 .btn-primary:disabled { background: #CBD5E1; cursor: not-allowed; }
 .btn-secondary { padding: 12px 18px; border: 1px solid #D8E0EB; border-radius: 6px; text-decoration: none; color: #172B4D; font-weight: 600; font-size: 14px; }
 </style>
+
