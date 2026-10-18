@@ -11,7 +11,7 @@ import { handleGovernance } from './routesGovernance';
 export interface Env {}
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, _env: Env): Promise<Response> {
     const url = new URL(request.url);
 
     // CORS preflight
