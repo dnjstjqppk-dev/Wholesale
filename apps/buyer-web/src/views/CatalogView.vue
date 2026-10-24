@@ -37,6 +37,12 @@
       </div>
     </section>
 
+    <!-- Active Search Keyword Pill -->
+    <div v-if="keywordFilter" class="active-query-bar">
+      <span>🔍 검색 키워드: <strong>"{{ keywordFilter }}"</strong></span>
+      <button class="btn-clear-q" @click="clearKeyword">✕ 검색어 해제</button>
+    </div>
+
     <!-- Main Marketplace Catalog Area -->
     <div class="catalog-main-layout">
       <!-- Left Filter Sidebar Component -->
@@ -86,8 +92,8 @@
             v-for="item in filteredListings"
             :key="item.id"
             :item="item"
-            :locale="($route.params.locale as string) || 'ko'"
-            :currency="($route.params.currency as string) || 'KRW'"
+            :locale="(route.params.locale as string) || 'ko'"
+            :currency="(route.params.currency as string) || 'KRW'"
             @inquiry="openInquiryModal"
           />
         </div>
@@ -98,47 +104,22 @@
     <CatalogInquiryModal
       :item="activeInquiryItem"
       @close="activeInquiryItem = null"
-      @submitted="handleInquirySubmitted"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import CatalogFilterSidebar from '../components/CatalogFilterSidebar.vue';
 import CatalogProductCard from '../components/CatalogProductCard.vue';
 import CatalogInquiryModal from '../components/CatalogInquiryModal.vue';
 import { apiRequest } from '../api';
 
-export interface CatalogItem {
-  id: string;
-  sku_id: string;
-  title: string;
-  category: string;
-  category_name: string;
-  supplier_name: string;
-  is_verified_supplier: boolean;
-  country: string;
-  moq: number;
-  quantity_step: number;
-  unit: string;
-  lead_time_days: number;
-  incoterm: string;
-  trade_assurance: boolean;
-  customization: boolean;
-  years_in_business: number;
-  response_rate: string;
-  price_tiers: Array<{
-    min_quantity: string;
-    max_quantity: string | null;
-    unit_price: string;
-  }>;
-}
-
 const route = useRoute();
 const router = useRouter();
 
+const keywordFilter = ref('');
 const filterVerified = ref(false);
 const filterTradeAssurance = ref(false);
 const filterCustomization = ref(false);
@@ -152,25 +133,49 @@ const quickRfqQty = ref(1000);
 const quickRfqUnit = ref('pcs');
 
 const activeInquiryItem = ref<any>(null);
-const listings = ref<CatalogItem[]>([]);
+const listings = ref<any[]>([]);
 const loading = ref(true);
 const fetchError = ref<string | null>(null);
 
 const filteredListings = computed(() => {
-  return listings.value.filter(item => {
-    if (filterVerified.value && !item.is_verified_supplier) return false;
+  const list = listings.value.filter(item => {
+    if (keywordFilter.value) {
+      const q = keywordFilter.value.toLowerCase();
+      const matchText = `${item.title} ${item.supplier_name} ${item.category_name} ${item.sub_category || ''}`.toLowerCase();
+      if (!matchText.includes(q)) return false;
+    }
+    if (filterVerified.value && !item.verified_supplier && !item.is_verified_supplier) return false;
     if (filterTradeAssurance.value && !item.trade_assurance) return false;
     if (filterCustomization.value && !item.customization) return false;
     if (selectedCategory.value !== 'ALL' && item.category !== selectedCategory.value) return false;
-    if (selectedIncoterm.value !== 'ALL' && item.incoterm !== selectedIncoterm.value) return false;
+    if (selectedIncoterm.value !== 'ALL' && !String(item.incoterm || item.incoterms).includes(selectedIncoterm.value)) return false;
     if (selectedMoqPreset.value === '100' && item.moq > 100) return false;
     if (selectedMoqPreset.value === '500' && item.moq > 500) return false;
     if (selectedMoqPreset.value === '1000' && item.moq < 1000) return false;
     return true;
   });
+
+  return [...list].sort((a, b) => {
+    if (sortOrder.value === 'moq_asc') return (Number(a.moq) || 0) - (Number(b.moq) || 0);
+    if (sortOrder.value === 'price_asc') {
+      const pa = parseFloat(a.price_tiers?.[0]?.unit_price || '0');
+      const pb = parseFloat(b.price_tiers?.[0]?.unit_price || '0');
+      return pa - pb;
+    }
+    if (sortOrder.value === 'lead_asc') return (Number(a.lead_time_days) || 14) - (Number(b.lead_time_days) || 14);
+    return (b.verified_supplier ? 1 : 0) - (a.verified_supplier ? 1 : 0);
+  });
 });
 
+function clearKeyword() {
+  keywordFilter.value = '';
+  const loc = (route.params.locale as string) || 'ko';
+  const cur = (route.params.currency as string) || 'KRW';
+  router.replace(`/${loc}/${cur}/catalog`);
+}
+
 function resetFilters() {
+  keywordFilter.value = '';
   filterVerified.value = false;
   filterTradeAssurance.value = false;
   filterCustomization.value = false;
@@ -183,27 +188,16 @@ function openInquiryModal(item: any) {
   activeInquiryItem.value = item;
 }
 
-async function handleInquirySubmitted(payload: any) {
-  try {
-    await apiRequest('/sourcing/rfqs', {
-      method: 'POST',
-      body: JSON.stringify({
-        title: `[견적문의] ${payload.item.title}`,
-        quantity: payload.quantity,
-        target_price: payload.targetPrice,
-        category: payload.item.category,
-      }),
-    });
-    alert(`[서버 접수 완료] 공급사(${payload.item.supplier_name})에 정식 견적 문의서가 암호화 전송되었습니다.`);
-  } catch (err: any) {
-    alert(`견적 문의 전송: ${err.message}`);
-  }
-  activeInquiryItem.value = null;
-}
-
 function submitQuickRfq() {
   const [lang, curr] = [(route.params.locale as string) || 'ko', (route.params.currency as string) || 'KRW'];
-  router.push(`/${lang}/${curr}/sourcing/rfq/new`);
+  router.push({
+    path: `/${lang}/${curr}/sourcing/rfq/new`,
+    query: {
+      title: quickRfqItem.value || undefined,
+      qty: String(quickRfqQty.value || 1000),
+      unit: quickRfqUnit.value,
+    },
+  });
 }
 
 async function fetchListings() {
@@ -217,9 +211,11 @@ async function fetchListings() {
         moq: Number(item.moq) || 100,
         quantity_step: Number(item.quantity_step) || 10,
         years_in_business: Number(item.years_in_business) || 10,
+        verified_supplier: item.verified_supplier ?? item.is_verified_supplier ?? true,
+        is_verified_supplier: item.verified_supplier ?? item.is_verified_supplier ?? true,
         trade_assurance: item.trade_assurance ?? true,
-        customization: item.customization ?? true,
-        incoterm: item.incoterms || item.incoterm || 'FOB',
+        customization: Boolean(item.customization),
+        incoterm: item.incoterms || item.incoterm || 'FOB Busan Port',
         category_name: item.category_name || item.category || '산업기계 & 부품',
         supplier_name: item.supplier_name || 'Verified Supplier Co.',
         price_tiers: (item.price_tiers || []).map((t: any) => ({
@@ -238,9 +234,18 @@ async function fetchListings() {
   }
 }
 
-onMounted(() => {
+function syncRouteQuery() {
   if (route.query.category) selectedCategory.value = route.query.category as string;
+  if (route.query.q !== undefined) keywordFilter.value = (route.query.q as string) || '';
   if (route.query.verified === 'true') filterVerified.value = true;
+}
+
+watch(() => route.query, () => {
+  syncRouteQuery();
+}, { deep: true });
+
+onMounted(() => {
+  syncRouteQuery();
   fetchListings();
 });
 </script>
@@ -248,33 +253,37 @@ onMounted(() => {
 <style scoped>
 .catalog-page { display: flex; flex-direction: column; gap: 24px; }
 .hero-banner { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 12px; padding: 32px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; gap: 32px; }
-.banner-badge { background: #FF6600; color: #FFF; font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 12px; }
-.banner-title { font-size: 26px; font-weight: 800; margin: 0 0 10px 0; }
-.banner-desc { font-size: 14px; color: #94A3B8; margin: 0 0 18px 0; max-width: 600px; line-height: 1.5; }
-.banner-highlights { display: flex; gap: 16px; font-size: 12px; color: #E2E8F0; font-weight: 600; }
-.banner-rfq-card { background: #FFFFFF; color: #1E293B; border-radius: 10px; padding: 20px; width: 340px; flex-shrink: 0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
-.rfq-card-head { display: flex; gap: 10px; margin-bottom: 14px; }
+.banner-content { max-width: 660px; }
+.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid #FF6600; color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
+.banner-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; line-height: 1.3; }
+.banner-desc { font-size: 14px; color: #CBD5E1; margin: 0 0 18px 0; }
+.banner-highlights { display: flex; gap: 16px; font-size: 12px; color: #38BDF8; font-weight: 600; }
+
+.banner-rfq-card { background: #FFFFFF; color: #1E293B; border-radius: 10px; padding: 20px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.rfq-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .rfq-icon { font-size: 24px; }
-.rfq-card-head h3 { margin: 0; font-size: 15px; font-weight: 700; }
+.rfq-card-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
 .rfq-card-head p { margin: 2px 0 0 0; font-size: 11px; color: #64748B; }
-.rfq-mini-form { display: flex; flex-direction: column; gap: 10px; }
-.rfq-mini-form input, .rfq-mini-form select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; outline: none; }
-.qty-row { display: flex; gap: 8px; }
-.qty-row input { flex: 1; }
-.btn-quick-rfq { background: #FF6600; color: #FFF; border: none; padding: 10px; border-radius: 6px; font-weight: 700; font-size: 13px; cursor: pointer; }
-.catalog-main-layout { display: flex; gap: 24px; align-items: flex-start; }
-.products-section { flex: 1; display: flex; flex-direction: column; gap: 16px; }
-.section-toolbar { display: flex; justify-content: space-between; align-items: center; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 14px 20px; }
+.rfq-mini-form { display: flex; flex-direction: column; gap: 8px; }
+.rfq-mini-form input, .rfq-mini-form select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
+.qty-row { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
+.btn-quick-rfq { background: #FF6600; color: #FFF; border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
+
+.active-query-bar { display: flex; justify-content: space-between; align-items: center; background: #FFF7ED; border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: #9A3412; }
+.btn-clear-q { background: #FFF; border: 1px solid #FB923C; color: #C2410C; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.catalog-main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
+.products-section { display: flex; flex-direction: column; gap: 16px; }
+.section-toolbar { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
 .toolbar-left h2 { margin: 0; font-size: 16px; font-weight: 800; color: #1E293B; }
 .toolbar-left .count { color: #FF6600; }
-.toolbar-left .sub-hint { font-size: 12px; color: #64748B; margin-top: 4px; display: block; }
-.toolbar-right { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #475569; }
-.sort-select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 10px; font-size: 13px; outline: none; background: #FFF; }
-.product-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.catalog-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; color: #64748B; font-size: 14px; }
-.loading-box { color: #0284C7; font-weight: 600; }
-.error-box { background: #FEF2F2; border-color: #FCA5A5; color: #DC2626; font-weight: 600; }
-.empty-box { background: #F8FAFC; color: #64748B; }
-.btn-retry { margin-top: 12px; background: #FF6600; color: #FFFFFF; border: none; padding: 8px 16px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-.btn-retry:hover { background: #EA580C; }
+.sub-hint { font-size: 12px; color: #64748B; }
+.toolbar-right { display: flex; align-items: center; gap: 8px; }
+.sort-label { font-size: 12px; color: #64748B; font-weight: 600; }
+.sort-select { border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 10px; font-size: 12px; }
+
+.product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+.catalog-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; color: #475569; font-size: 14px; }
+.error-box .error-msg { color: #DC2626; font-weight: 700; margin-bottom: 12px; }
+.btn-retry { background: #1E293B; color: #FFF; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
 </style>

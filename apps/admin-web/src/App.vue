@@ -2,7 +2,7 @@
   <div class="admin-app">
     <!-- Top Global Switcher -->
     <div class="global-switcher-bar">
-      <span>WHOLESALE 플랫폼 운영 관리자 콘솔 (Admin Operations)</span>
+      <span>WHOLESALE 플랫폼 운영 관리자 콘솔 (Platform Governance & Operations)</span>
       <div class="links">
         <a href="https://wholesale.dnjstjqppk.workers.dev/" target="_blank">🛒 구매자 웹 콘솔 바로가기</a>
         <span class="sep">|</span>
@@ -18,19 +18,22 @@
         <span class="env-pill">Zero Trust Secured</span>
       </div>
       <div class="header-right">
-        <span class="admin-user">Super Admin (최고운영책임자)</span>
-        <span class="role-pill">PLATFORM_ADMIN</span>
+        <span class="admin-user">{{ currentUser.full_name }}</span>
+        <span class="role-pill">{{ currentUser.role }}</span>
       </div>
     </header>
 
     <div class="app-body">
       <aside class="sidebar">
         <nav class="nav-menu">
-          <router-link to="/verifications" class="nav-item">🏢 기업·공급사 실사 심사</router-link>
+          <router-link to="/" class="nav-item">📊 종합 운영 관제 대시보드</router-link>
+          <router-link to="/verifications" class="nav-item">🏢 공급사 KYB 실사 심사</router-link>
           <router-link to="/moderation" class="nav-item">🔍 상품/RFQ 모더레이션</router-link>
-          <router-link to="/ledger-audit" class="nav-item">⚖️ 복식부기 원장 감사 (Ledger)</router-link>
           <router-link to="/disputes" class="nav-item">⚖️ 분쟁 중재 (Arbitration)</router-link>
-          <router-link to="/settlements" class="nav-item">💰 정산 이중통제 승인 (Dual Control)</router-link>
+          <router-link to="/ledger-audit" class="nav-item">📖 복식부기 원장 감사</router-link>
+          <router-link to="/reconciliation" class="nav-item">⚡ PG 일일 결제 대사</router-link>
+          <router-link to="/settlements" class="nav-item">💰 정산 이중통제 승인 (SoD)</router-link>
+          <router-link to="/audit" class="nav-item">🔒 불변 보안 감사 로그</router-link>
         </nav>
       </aside>
 
@@ -40,6 +43,13 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { getCurrentUser } from './api';
+
+const currentUser = ref(getCurrentUser());
+</script>
 
 <style scoped>
 .admin-app { display: flex; flex-direction: column; min-height: 100vh; background-color: #0B132B; color: #E2E8F0; }
@@ -55,10 +65,10 @@
 .header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .role-pill { background: #DC2626; color: #FFF; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }
 .app-body { display: flex; flex: 1; }
-.sidebar { width: 260px; background: #1C2541; border-right: 1px solid #3A506B; padding: 20px 0; }
+.sidebar { width: 250px; background: #1C2541; border-right: 1px solid #3A506B; padding: 20px 0; }
 .nav-menu { display: flex; flex-direction: column; }
-.nav-item { padding: 12px 24px; color: #94A3B8; text-decoration: none; font-size: 14px; font-weight: 600; border-left: 3px solid transparent; }
+.nav-item { padding: 12px 20px; color: #94A3B8; text-decoration: none; font-size: 13px; font-weight: 600; border-left: 3px solid transparent; }
 .nav-item:hover { background: #0B132B; color: #FFF; }
 .nav-item.router-link-exact-active { background: #0B132B; color: #38BDF8; border-left-color: #38BDF8; }
-.content-area { flex: 1; padding: 32px; box-sizing: border-box; max-width: 1200px; background: #0B132B; }
+.content-area { flex: 1; padding: 32px; box-sizing: border-box; max-width: 1240px; background: #0B132B; }
 </style>

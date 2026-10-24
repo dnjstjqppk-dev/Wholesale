@@ -1,47 +1,79 @@
 <template>
-  <div class="bulk-upload-page">
-    <h2>도매 상품 및 SKU 대량 등록 (CSV Import)</h2>
-    <p class="desc">
-      수백 개 품목을 CSV 파일로 일괄 등록합니다.
-      <br /><strong>※ 실제 파싱 검증(Dry-run)을 먼저 수행하여 행별 유효성을 검사합니다 (No Mock).</strong>
-    </p>
-
-    <div class="upload-box">
-      <div class="drop-zone">
-        <input type="file" accept=".csv" @change="handleFileSelect" />
-        <p>클릭하여 CSV 파일을 선택하거나 드래그하여 업로드하세요</p>
-        <span class="file-spec">컬럼 규격: SKU_CODE, TITLE, MOQ, STEP, UNIT, LEAD_TIME, TIER1_MIN, TIER1_PRICE</span>
+  <div class="bulk-upload">
+    <div class="head-row">
+      <div>
+        <h2>CSV 대량 상품 등록 및 서버 트랜잭션 검증 (Bulk Import)</h2>
+        <p class="subtitle">수백 개의 도매 SKU와 구간단가를 서버 API(`POST /v1/catalog/bulk-upload`)를 통해 Dry-run 검증 후 원자적(Atomically)으로 등록합니다.</p>
       </div>
-
-      <div class="options">
-        <label><input v-model="isDryRun" type="checkbox" /> Dry-run 모드 (실제 DB 커밋 없이 행별 오류만 사전 검사)</label>
-      </div>
-
-      <button class="btn-process" :disabled="!rawCsvText" @click="processCSV">
-        {{ isDryRun ? 'CSV 유효성 사전 검사 (Dry-Run)' : '실제 DB 일괄 등록 실행' }}
-      </button>
+      <button class="btn-template" @click="downloadTemplate">📥 표준 CSV 양식 다운로드</button>
     </div>
 
-    <!-- Parsed Results Table -->
-    <div v-if="parsedReport" class="report-box">
-      <div class="report-head">
-        <h3>검사 결과 리포트</h3>
-        <div class="stats">
-          <span class="stat total">전체 {{ parsedReport.total }}행</span>
-          <span class="stat pass">정상 {{ parsedReport.validCount }}행</span>
-          <span class="stat fail">오류 {{ parsedReport.errorCount }}행</span>
+    <div class="card">
+      <div class="upload-section">
+        <div class="file-row">
+          <label>1. CSV 파일 업로드 또는 원본 데이터 편집 (헤더 포함)</label>
+          <input type="file" accept=".csv,.txt" @change="onCsvFileChosen" />
         </div>
+        <textarea v-model="csvContent" rows="7" class="csv-textarea"></textarea>
+        <p class="hint">※ 컬럼 규격: `title,category,moq,unit,base_price,sub_category,lead_time_days,incoterms`</p>
       </div>
 
-      <div v-if="parsedReport.errors.length > 0" class="error-table">
-        <h4>행별 오류 내역 (Row Error Report)</h4>
-        <div v-for="(err, idx) in parsedReport.errors" :key="idx" class="err-row">
-          <span class="line-no">Line {{ err.row }}:</span>
-          <span class="err-txt">{{ err.message }}</span>
-        </div>
+      <div class="action-bar">
+        <button class="btn-dryrun" :disabled="processing" @click="runServerDryRun">
+          🔍 1단계: 서버 Dry-run 유효성 사전 검증 (`POST /v1/catalog/bulk-upload`)
+        </button>
+        <button
+          class="btn-commit"
+          :disabled="processing || !dryRunResult || dryRunResult.invalid_count > 0 || dryRunResult.valid_count === 0"
+          @click="commitBulkUpload"
+        >
+          🚀 2단계: 검증 통과 품목 카탈로그 원자적(Atomic) 일괄 등록
+        </button>
       </div>
-      <div v-else class="success-banner">
-        모든 데이터가 완벽히 검증되었습니다. (오류 0건)
+
+      <!-- Dry Run Result -->
+      <div v-if="dryRunResult" class="result-section">
+        <div class="result-summary">
+          <span class="tag-total">전체 행: {{ dryRunResult.total_rows }}건</span>
+          <span class="tag-ok">유효 통과: {{ dryRunResult.valid_count }}건</span>
+          <span v-if="dryRunResult.invalid_count > 0" class="tag-err">오류 행: {{ dryRunResult.invalid_count }}건</span>
+        </div>
+        <p class="server-msg">{{ dryRunResult.message }}</p>
+
+        <div v-if="dryRunResult.errors?.length > 0" class="err-box">
+          <h4>⚠️ 서버 검증 오류 상세</h4>
+          <ul>
+            <li v-for="(e, i) in dryRunResult.errors" :key="i">Row #{{ e.row }}: {{ e.error }}</li>
+          </ul>
+        </div>
+
+        <table v-if="dryRunResult.sample_preview?.length > 0" class="result-table">
+          <thead>
+            <tr>
+              <th>상품명</th>
+              <th>카테고리</th>
+              <th>MOQ</th>
+              <th>단위</th>
+              <th>기본 단가 (USD)</th>
+              <th>인도조건</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(r, idx) in dryRunResult.sample_preview" :key="idx">
+              <td class="bold">{{ r.title }}</td>
+              <td>{{ r.category }} ({{ r.sub_category }})</td>
+              <td>{{ r.moq }}</td>
+              <td>{{ r.unit }}</td>
+              <td>${{ Number(r.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</td>
+              <td>{{ r.incoterms }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div v-if="commitResult" class="commit-banner">
+        <strong>✅ 서버 일괄 등록 완료 (Job ID: {{ commitResult.import_job_id }})</strong>
+        <p>{{ commitResult.message }} — 등록된 상품은 즉시 구매자 카탈로그에 노출됩니다.</p>
       </div>
     </div>
   </div>
@@ -49,93 +81,103 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { apiRequest } from '../api';
 
-const rawCsvText = ref('');
-const isDryRun = ref(true);
-const parsedReport = ref<{
-  total: number;
-  validCount: number;
-  errorCount: number;
-  errors: Array<{ row: number; message: string }>;
-} | null>(null);
+const SAMPLE_CSV = `title,category,moq,unit,base_price,sub_category,lead_time_days,incoterms
+SUS304 이중 진공 텀블러 500ml 벌크,CAT-HOM,100,pcs,4.20,스테인리스 진공 텀블러,14,FOB Busan Port
+고강도 카톤 수출용 박스 600x400,CAT-PKG,500,pcs,1.15,골판지 카톤 박스,7,FOB Incheon
+CNC 정밀 가공 티타늄 볼트 M8 세트,CAT-IND,200,sets,8.50,CNC 머시닝센터,14,FOB Busan Port`;
 
-function handleFileSelect(event: Event) {
-  const target = event.target as HTMLInputElement;
-  if (!target.files || target.files.length === 0) return;
-  const file = target.files[0];
+const csvContent = ref(SAMPLE_CSV);
+const processing = ref(false);
+const dryRunResult = ref<any>(null);
+const commitResult = ref<any>(null);
+
+function downloadTemplate() {
+  const blob = new Blob([SAMPLE_CSV], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'wholesale_bulk_upload_template.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function onCsvFileChosen(e: Event) {
+  const input = e.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
   const reader = new FileReader();
-  reader.onload = (e) => {
-    rawCsvText.value = (e.target?.result as string) || '';
+  reader.onload = () => {
+    csvContent.value = reader.result as string;
+    dryRunResult.value = null;
+    commitResult.value = null;
   };
   reader.readAsText(file);
 }
 
-function processCSV() {
-  if (!rawCsvText.value) return;
-  const lines = rawCsvText.value.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-  if (lines.length <= 1) {
-    parsedReport.value = { total: 0, validCount: 0, errorCount: 1, errors: [{ row: 1, message: '헤더 외 데이터 행이 없습니다.' }] };
-    return;
+async function runServerDryRun() {
+  processing.value = true;
+  commitResult.value = null;
+  try {
+    const res = await apiRequest('/catalog/bulk-upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        csv_content: csvContent.value,
+        dry_run: true,
+      }),
+    });
+    dryRunResult.value = res;
+  } catch (err: any) {
+    alert(`Dry-run 검증 실패: ${err.message}`);
+  } finally {
+    processing.value = false;
   }
+}
 
-  const errors: Array<{ row: number; message: string }> = [];
-  let validCount = 0;
-
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map(c => c.trim());
-    const rowNum = i + 1;
-    if (cols.length < 5) {
-      errors.push({ row: rowNum, message: `필수 컬럼 누락 (열 개수 ${cols.length}개, 최소 5개 필요)` });
-      continue;
-    }
-    const moq = parseFloat(cols[2]);
-    const step = parseFloat(cols[3]);
-    if (isNaN(moq) || moq <= 0) {
-      errors.push({ row: rowNum, message: `MOQ 수치 오류: '${cols[2]}' (0 초과 숫자 필수)` });
-      continue;
-    }
-    if (isNaN(step) || step <= 0) {
-      errors.push({ row: rowNum, message: `STEP 수치 오류: '${cols[3]}' (0 초과 숫자 필수)` });
-      continue;
-    }
-    validCount++;
-  }
-
-  parsedReport.value = {
-    total: lines.length - 1,
-    validCount,
-    errorCount: errors.length,
-    errors,
-  };
-
-  if (!isDryRun.value && errors.length === 0) {
-    alert(`성공: ${validCount}개 도매 상품이 원자적(Atomically)으로 등록되었습니다.`);
+async function commitBulkUpload() {
+  processing.value = true;
+  try {
+    const res = await apiRequest('/catalog/bulk-upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        csv_content: csvContent.value,
+        dry_run: false,
+      }),
+    });
+    commitResult.value = res;
+  } catch (err: any) {
+    alert(`일괄 등록 실패: ${err.message}`);
+  } finally {
+    processing.value = false;
   }
 }
 </script>
 
 <style scoped>
-.bulk-upload-page { max-width: 900px; margin: 0 auto; }
-h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
-.desc { color: #64748B; font-size: 13px; margin-bottom: 24px; line-height: 1.5; }
-.upload-box { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.drop-zone { border: 2px dashed #CBD5E1; border-radius: 6px; padding: 32px; text-align: center; margin-bottom: 16px; background: #F8FAFC; }
-.drop-zone input { margin-bottom: 12px; }
-.drop-zone p { margin: 0 0 6px 0; color: #42526E; font-size: 14px; }
-.file-spec { font-size: 12px; color: #64748B; }
-.options { margin-bottom: 20px; font-size: 13px; color: #172B4D; }
-.btn-process { background: #C2410C; color: #FFF; border: none; padding: 12px 24px; font-size: 14px; font-weight: 700; border-radius: 6px; cursor: pointer; }
-.btn-process:disabled { background: #CBD5E1; cursor: not-allowed; }
-.report-box { margin-top: 24px; background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.report-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.report-head h3 { margin: 0; font-size: 16px; color: #172B4D; }
-.stats { display: flex; gap: 12px; font-size: 13px; font-weight: 700; }
-.stat.pass { color: #15803D; }
-.stat.fail { color: #DC2626; }
-.error-table { background: #FEF2F2; border: 1px solid #FECACA; border-radius: 6px; padding: 16px; margin-top: 12px; font-size: 13px; }
-.error-table h4 { margin: 0 0 10px 0; color: #991B1B; font-size: 14px; }
-.err-row { padding: 4px 0; display: flex; gap: 8px; color: #B91C1C; }
-.line-no { font-weight: 700; }
-.success-banner { background: #DCFCE7; color: #15803D; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; }
+.bulk-upload { max-width: 980px; }
+.head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
+.subtitle { color: #64748B; font-size: 13px; margin: 0; }
+.btn-template { background: #FFF; border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; color: #1E293B; }
+.card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
+.file-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.upload-section label { font-size: 13px; font-weight: 700; color: #172B4D; }
+.csv-textarea { width: 100%; font-family: monospace; font-size: 12px; padding: 12px; border: 1px solid #D8E0EB; border-radius: 6px; background: #F8FAFC; box-sizing: border-box; }
+.hint { font-size: 11px; color: #64748B; margin: 6px 0 16px 0; }
+.action-bar { display: flex; gap: 12px; margin-bottom: 20px; }
+.btn-dryrun { background: #1E293B; color: #FFF; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
+.btn-commit { background: #15803D; color: #FFF; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
+.btn-commit:disabled { background: #CBD5E1; cursor: not-allowed; }
+.result-summary { display: flex; gap: 12px; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
+.tag-total { background: #F1F5F9; padding: 4px 10px; border-radius: 4px; }
+.tag-ok { background: #DCFCE7; color: #15803D; padding: 4px 10px; border-radius: 4px; }
+.tag-err { background: #FEE2E2; color: #B91C1C; padding: 4px 10px; border-radius: 4px; }
+.server-msg { font-size: 13px; color: #334155; margin-bottom: 12px; }
+.err-box { background: #FEF2F2; border: 1px solid #FECACA; padding: 12px; border-radius: 6px; color: #B91C1C; font-size: 12px; margin-bottom: 12px; }
+.result-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.result-table th, .result-table td { border: 1px solid #D8E0EB; padding: 8px 10px; text-align: left; }
+.result-table th { background: #F8FAFC; }
+.bold { font-weight: 700; }
+.commit-banner { margin-top: 16px; background: #F0FDF4; border: 1px solid #86EFAC; padding: 14px 18px; border-radius: 6px; color: #14532D; font-size: 13px; }
 </style>
-

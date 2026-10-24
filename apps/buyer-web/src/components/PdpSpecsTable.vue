@@ -2,33 +2,20 @@
   <section class="specs-section">
     <div class="specs-head">
       <h2>산업용 기술 사양 및 검사 규격 (Specifications)</h2>
+      <span class="sku-tag">SKU: {{ skuId || 'N/A' }}</span>
     </div>
     <div class="specs-table-container">
       <table class="specs-table">
         <tbody>
-          <tr>
-            <th class="spec-th">품목 식별 번호 (SKU)</th>
-            <td class="spec-td">{{ skuId }}</td>
-            <th class="spec-th">원산지 국가 (Country of Origin)</th>
-            <td class="spec-td">대한민국 (Republic of Korea)</td>
-          </tr>
-          <tr>
-            <th class="spec-th">주요 원소재 (Material)</th>
-            <td class="spec-td">오스테나이트계 SUS304 (식품/의료 등급 스테인리스)</td>
-            <th class="spec-th">가공 공법 (Processing)</th>
-            <td class="spec-td">이중벽 진공 브레이징 (Dual Vacuum Brazing)</td>
-          </tr>
-          <tr>
-            <th class="spec-th">공차 기준 (Tolerance)</th>
-            <td class="spec-td">±0.05 mm 정밀 가공 규격 준수</td>
-            <th class="spec-th">표면 처리 (Surface Finishing)</th>
-            <td class="spec-td">전해 연마 (Electropolishing) / 무독성 파우더 코팅</td>
-          </tr>
-          <tr>
-            <th class="spec-th">국제 품질 인증 (Certifications)</th>
-            <td class="spec-td">ISO 9001:2015, ISO 14001, CE, FDA GRAS 통과</td>
-            <th class="spec-th">포장 규격 (Packaging)</th>
-            <td class="spec-td">개별 충격완화 에어캡 + 5겹 수출용 골판지 상자 (50pcs/Box)</td>
+          <tr v-for="(chunk, rowIdx) in specPairs" :key="rowIdx">
+            <template v-for="(spec, colIdx) in chunk" :key="colIdx">
+              <th class="spec-th">{{ spec.name }}</th>
+              <td class="spec-td">{{ spec.value }}</td>
+            </template>
+            <template v-if="chunk.length === 1">
+              <th class="spec-th">-</th>
+              <td class="spec-td">-</td>
+            </template>
           </tr>
         </tbody>
       </table>
@@ -37,17 +24,79 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
-  skuId: string;
+import { computed } from 'vue';
+
+const props = defineProps<{
+  skuId?: string;
+  specifications?: Array<{ name: string; value: string }>;
 }>();
+
+const defaultSpecs = [
+  { name: '원산지 국가 (Country of Origin)', value: '대한민국 (Republic of Korea)' },
+  { name: '품질 인증 규격 (Certifications)', value: 'ISO 9001:2015, CE, RoHS, FDA GRAS' },
+  { name: '가공 공법 (Processing Standard)', value: '정밀 CNC 정밀 가공 및 품질 전수 검사' },
+  { name: '포장 규격 (Export Packaging)', value: '수출용 5겹 강화 골판지 상자 및 방습 진공 밀봉' },
+];
+
+const specPairs = computed(() => {
+  const list = props.specifications && props.specifications.length > 0 ? props.specifications : defaultSpecs;
+  const pairs: Array<Array<{ name: string; value: string }>> = [];
+  for (let i = 0; i < list.length; i += 2) {
+    pairs.push(list.slice(i, i + 2));
+  }
+  return pairs;
+});
 </script>
 
 <style scoped>
-.specs-section { background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px; padding: 24px; margin-top: 12px; }
-.specs-head h2 { font-size: 18px; font-weight: 800; color: #1E293B; margin: 0 0 16px 0; }
-.specs-table-container { overflow-x: auto; }
-.specs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.spec-th { background: #F8FAFC; border: 1px solid #E2E8F0; padding: 10px 14px; text-align: left; width: 20%; color: #334155; font-weight: 700; }
-.spec-td { border: 1px solid #E2E8F0; padding: 10px 14px; color: #475569; width: 30%; }
+.specs-section {
+  background: #FFFFFF;
+  border: 1px solid #E5E7EB;
+  border-radius: 10px;
+  padding: 24px;
+  margin-top: 12px;
+}
+.specs-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.specs-head h2 {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1E293B;
+  margin: 0;
+}
+.sku-tag {
+  background: #F1F5F9;
+  color: #64748B;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.specs-table-container {
+  overflow-x: auto;
+}
+.specs-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.spec-th {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  padding: 10px 14px;
+  text-align: left;
+  width: 22%;
+  color: #334155;
+  font-weight: 700;
+}
+.spec-td {
+  border: 1px solid #E2E8F0;
+  padding: 10px 14px;
+  color: #475569;
+  width: 28%;
+}
 </style>
-

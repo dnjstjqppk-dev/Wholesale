@@ -4,7 +4,7 @@
     <div class="top-utility-bar">
       <div class="utility-container">
         <div class="util-left">
-          <span class="util-text">글로벌 B2B 도매 플랫폼 | Incoterms® 2020 & Trade Assurance 적용</span>
+          <span class="util-text">{{ t('platform_title', currentLocale) }}</span>
         </div>
         <div class="util-right">
           <div class="locale-switcher">
@@ -12,20 +12,24 @@
             <select v-model="selectedLocaleCurrency" class="mini-select" @change="changeLocale">
               <option value="ko/KRW">한국어 (KRW ₩)</option>
               <option value="en/USD">English (USD $)</option>
+              <option value="zh/CNY">中文 (CNY ¥)</option>
               <option value="zh/USD">中文 (USD $)</option>
+              <option value="ja/JPY">日本語 (JPY ¥)</option>
               <option value="ja/USD">日本語 (USD $)</option>
             </select>
           </div>
           <span class="divider">|</span>
           <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="util-link partner-link">
-            🏭 공급사 파트너 콘솔 (Seller Central)
+            🏭 {{ t('seller_central', currentLocale) }}
           </a>
           <span class="divider">|</span>
           <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="util-link admin-link">
-            🛡️ 플랫폼 운영 관리자 콘솔
+            🛡️ {{ t('admin_console', currentLocale) }}
           </a>
           <span class="divider">|</span>
-          <span class="util-link">고객센터 & 무역보증</span>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="util-link">
+            🔐 계정 전환 / 로그인
+          </router-link>
         </div>
       </div>
     </div>
@@ -35,7 +39,7 @@
       <div class="header-container">
         <!-- Logo -->
         <div class="brand-section">
-          <router-link to="/ko/KRW/" class="brand-logo">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/`" class="brand-logo">
             <span class="logo-accent">WHOLESALE</span><span class="logo-sub">.com</span>
           </router-link>
           <div class="assurance-tag">
@@ -48,45 +52,49 @@
         <div class="search-bar-wrapper">
           <div class="search-type-select">
             <select v-model="searchType">
-              <option value="products">상품 검색</option>
-              <option value="suppliers">인증 공급사</option>
-              <option value="rfq">RFQ 시장</option>
+              <option value="products">{{ t('search_products', currentLocale) }}</option>
+              <option value="suppliers">{{ t('search_suppliers', currentLocale) }}</option>
+              <option value="rfq">{{ t('search_rfq', currentLocale) }}</option>
             </select>
           </div>
           <input
             v-model="searchQuery"
             type="text"
-            placeholder="품목명, 규격, 재질, 가공 방식을 검색하세요 (예: SUS304 텀블러, 알루미늄 방열판)..."
+            :placeholder="t('search_placeholder', currentLocale)"
             @keyup.enter="handleSearch"
           />
-          <button class="camera-btn" title="이미지로 도매 품목 찾기" @click="showImageSearchModal = true">
+          <button class="camera-btn" title="AI 비전 이미지로 도매 품목 찾기" @click="showImageSearchModal = true">
             📷
           </button>
           <button class="search-submit-btn" @click="handleSearch">
-            <span class="search-icon">🔍</span> 검색
+            <span class="search-icon">🔍</span> {{ t('search_btn', currentLocale) }}
           </button>
         </div>
 
         <!-- Header Actions -->
         <div class="header-actions">
-          <router-link to="/ko/KRW/sourcing/rfq/new" class="rfq-cta-btn">
-            ✍️ RFQ 견적 요청
+          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="rfq-cta-btn">
+            ✍️ {{ t('rfq_cta', currentLocale) }}
           </router-link>
-          <router-link to="/ko/KRW/cart" class="nav-icon-link">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="nav-icon-link">
+            <span class="icon">💬</span>
+            <span class="label">1:1 메시지</span>
+          </router-link>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" class="nav-icon-link">
             <span class="icon">🛒</span>
-            <span class="label">도매 카트</span>
+            <span class="label">{{ t('cart', currentLocale) }}</span>
           </router-link>
-          <router-link to="/ko/KRW/orders" class="nav-icon-link">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="nav-icon-link">
             <span class="icon">📦</span>
-            <span class="label">발주·계약</span>
+            <span class="label">{{ t('orders', currentLocale) }}</span>
           </router-link>
-          <div class="user-profile-badge">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="user-profile-badge">
             <span class="user-avatar">🏢</span>
             <div class="user-text">
-              <span class="corp-name">Metro Wholesale</span>
-              <span class="role-tag">인증 구매기업</span>
+              <span class="corp-name">{{ currentUser.organization?.legal_name?.slice(0, 16) || 'Metro Wholesale' }}</span>
+              <span class="role-tag">{{ currentUser.role }}</span>
             </div>
-          </div>
+          </router-link>
         </div>
       </div>
     </header>
@@ -117,7 +125,7 @@
           </div>
           <div class="col">
             <h4>멀티 콘솔 독립 연동</h4>
-            <p><a href="https://wholesale.dnjstjqppk.workers.dev/">구매자 웹 콘솔 (Buyer)</a></p>
+            <p><router-link :to="`/${currentLocale}/${currentCurrency}/`">구매자 웹 콘솔 (Buyer)</router-link></p>
             <p><a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank">공급사 파트너 콘솔 (Partner)</a></p>
             <p><a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank">운영 관리자 콘솔 (Admin)</a></p>
             <p><a href="https://wholesale-api.dnjstjqppk.workers.dev/" target="_blank">공통 API 게이트웨이 (API)</a></p>
@@ -139,19 +147,54 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { ref, computed, watch, onMounted } from 'vue';
+import { useRouter, useRoute } from 'vue-router';
 import MegaFlyoutNav from './components/MegaFlyoutNav.vue';
 import ImageSearchModal from './components/ImageSearchModal.vue';
+import { t, SupportedLocale, SupportedCurrency } from './i18n';
+import { getCurrentUser } from './api';
 
 const router = useRouter();
+const route = useRoute();
+
 const searchQuery = ref('');
 const searchType = ref('products');
 const selectedLocaleCurrency = ref('ko/KRW');
 const showImageSearchModal = ref(false);
+const currentUser = ref(getCurrentUser());
+
+const currentLocale = computed<SupportedLocale>(() => {
+  const loc = (route.params.locale as string) || selectedLocaleCurrency.value.split('/')[0] || 'ko';
+  return ['ko', 'en', 'zh', 'ja'].includes(loc) ? (loc as SupportedLocale) : 'ko';
+});
+
+const currentCurrency = computed<SupportedCurrency>(() => {
+  const cur = (route.params.currency as string) || selectedLocaleCurrency.value.split('/')[1] || 'KRW';
+  return ['KRW', 'USD', 'CNY', 'JPY'].includes(cur) ? (cur as SupportedCurrency) : 'KRW';
+});
+
+watch(
+  () => [route.params.locale, route.params.currency],
+  ([loc, cur]) => {
+    if (loc && cur) {
+      selectedLocaleCurrency.value = `${loc}/${cur}`;
+    }
+  },
+  { immediate: true }
+);
+
+onMounted(() => {
+  window.addEventListener('auth-changed', () => {
+    currentUser.value = getCurrentUser();
+  });
+});
 
 function handleSearch() {
   const [lang, curr] = selectedLocaleCurrency.value.split('/');
+  if (searchType.value === 'rfq') {
+    router.push(`/${lang}/${curr}/sourcing/rfq/new?title=${encodeURIComponent(searchQuery.value)}`);
+    return;
+  }
   router.push(`/${lang}/${curr}/catalog?q=${encodeURIComponent(searchQuery.value)}&type=${searchType.value}`);
 }
 
@@ -162,12 +205,16 @@ function filterByCategory(catId: string) {
 
 function changeLocale() {
   const [lang, curr] = selectedLocaleCurrency.value.split('/');
-  router.push(`/${lang}/${curr}/catalog`);
+  const subPath = route.path.replace(/^\/(ko|en|zh|ja)\/(KRW|USD|CNY|JPY)/, '') || '/';
+  router.push({
+    path: `/${lang}/${curr}${subPath.startsWith('/') ? subPath : '/' + subPath}`,
+    query: route.query,
+  });
 }
 
-function applyImageSearch() {
+function applyImageSearch(query: string) {
   const [lang, curr] = selectedLocaleCurrency.value.split('/');
-  router.push(`/${lang}/${curr}/catalog?q=스테인리스&category=CAT-IND`);
+  router.push(`/${lang}/${curr}/catalog?q=${encodeURIComponent(query || '스테인리스')}`);
 }
 </script>
 
@@ -190,7 +237,7 @@ function applyImageSearch() {
 .logo-sub { color: #1F2937; font-size: 18px; }
 .assurance-tag { display: flex; align-items: center; gap: 4px; background: #FFF7ED; border: 1px solid #FDBA74; color: #C2410C; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 
-.search-bar-wrapper { flex: 1; max-width: 680px; display: flex; align-items: center; border: 2px solid #FF6600; border-radius: 24px; overflow: hidden; background: #FFF; }
+.search-bar-wrapper { flex: 1; max-width: 640px; display: flex; align-items: center; border: 2px solid #FF6600; border-radius: 24px; overflow: hidden; background: #FFF; }
 .search-type-select select { background: #F8FAFC; border: none; border-right: 1px solid #E2E8F0; padding: 10px 14px; font-size: 13px; font-weight: 600; color: #334155; outline: none; cursor: pointer; }
 .search-bar-wrapper input { flex: 1; border: none; padding: 10px 14px; font-size: 14px; outline: none; }
 .camera-btn { background: transparent; border: none; font-size: 16px; padding: 0 10px; cursor: pointer; opacity: 0.7; }
@@ -198,12 +245,12 @@ function applyImageSearch() {
 .search-submit-btn { background: #FF6600; color: #FFF; border: none; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
 .search-submit-btn:hover { background: #E65C00; }
 
-.header-actions { display: flex; align-items: center; gap: 18px; }
+.header-actions { display: flex; align-items: center; gap: 16px; }
 .rfq-cta-btn { background: #1E293B; color: #FFF; text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
 .rfq-cta-btn:hover { background: #0F172A; }
 .nav-icon-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: #475569; font-size: 11px; font-weight: 600; }
 .nav-icon-link .icon { font-size: 18px; }
-.user-profile-badge { display: flex; align-items: center; gap: 8px; border-left: 1px solid #E2E8F0; padding-left: 14px; }
+.user-profile-badge { display: flex; align-items: center; gap: 8px; border-left: 1px solid #E2E8F0; padding-left: 14px; text-decoration: none; }
 .user-avatar { font-size: 24px; background: #F1F5F9; border-radius: 50%; padding: 4px; }
 .user-text { display: flex; flex-direction: column; font-size: 12px; }
 .corp-name { font-weight: 700; color: #1E293B; }

@@ -40,4 +40,5 @@ dist-ssr/
 *.njsproj
 *.sln
 *.sw?
+full_user_prompt.txt
 

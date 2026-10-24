@@ -2,7 +2,7 @@
   <div class="partner-app">
     <!-- Top Global Switcher -->
     <div class="global-switcher-bar">
-      <span>WHOLESALE 공급사 파트너 콘솔 (Seller Central)</span>
+      <span>WHOLESALE 공급사 파트너 콘솔 (Alibaba.com Seller Central)</span>
       <div class="links">
         <a href="https://wholesale.dnjstjqppk.workers.dev/" target="_blank">🛒 구매자 웹 콘솔 바로가기</a>
         <span class="sep">|</span>
@@ -15,20 +15,23 @@
     <header class="app-header">
       <div class="header-left">
         <router-link to="/" class="brand">WHOLESALE <span>Partner</span></router-link>
-        <span class="verified-badge">✓ Verified Manufacturer (ISO 9001)</span>
+        <span class="verified-badge">✓ Verified Manufacturer (ISO 9001 / SGS Audited)</span>
       </div>
       <div class="header-right">
-        <span class="org-name">Precision Korea (글로벌정밀산업)</span>
-        <span class="role-pill">SUPPLIER_SALES</span>
+        <span class="org-name">{{ user.organization?.legal_name || 'Precision Korea Co., Ltd.' }}</span>
+        <span class="role-pill">{{ user.role }}</span>
       </div>
     </header>
 
     <div class="app-body">
       <aside class="sidebar">
         <nav class="nav-menu">
-          <router-link to="/" class="nav-item">📊 대시보드 요약</router-link>
-          <router-link to="/catalog" class="nav-item">🏷️ 도매 상품/구간단가 관리</router-link>
+          <router-link to="/" class="nav-item">📊 실시간 비즈니스 대시보드</router-link>
+          <router-link to="/verification" class="nav-item">🛡️ Verified 실사/인증 신청</router-link>
+          <router-link to="/catalog" class="nav-item">🏷️ 도매 상품 CRUD & 구간단가</router-link>
           <router-link to="/bulk-upload" class="nav-item">📁 CSV 대량 등록 (Dry-run)</router-link>
+          <router-link to="/inventory" class="nav-item">🏭 창고·재고 원장 관리</router-link>
+          <router-link to="/inquiries" class="nav-item">💬 바이어 1:1 인콰이어리</router-link>
           <router-link to="/rfq-market" class="nav-item">⚡ 공개 RFQ 입찰 시장</router-link>
           <router-link to="/fulfillment" class="nav-item">🚢 수주 생산/분할출고 관리</router-link>
           <router-link to="/settlement" class="nav-item">💰 정산 원장 및 출금 관리</router-link>
@@ -41,6 +44,13 @@
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { getCurrentUser } from './api';
+
+const user = ref(getCurrentUser());
+</script>
 
 <style scoped>
 .partner-app { display: flex; flex-direction: column; min-height: 100vh; background-color: #F6F8FB; }
@@ -56,9 +66,9 @@
 .header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; }
 .role-pill { background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
 .app-body { display: flex; flex: 1; }
-.sidebar { width: 240px; background: #FFF; border-right: 1px solid #D8E0EB; padding: 20px 0; }
+.sidebar { width: 250px; background: #FFF; border-right: 1px solid #D8E0EB; padding: 20px 0; }
 .nav-menu { display: flex; flex-direction: column; }
-.nav-item { padding: 12px 24px; color: #42526E; text-decoration: none; font-size: 14px; font-weight: 600; border-left: 3px solid transparent; }
+.nav-item { padding: 12px 20px; color: #42526E; text-decoration: none; font-size: 13px; font-weight: 600; border-left: 3px solid transparent; }
 .nav-item:hover { background: #F8FAFC; color: #172B4D; }
 .nav-item.router-link-exact-active { background: #FFEDD5; color: #C2410C; border-left-color: #C2410C; }
 .content-area { flex: 1; padding: 32px; box-sizing: border-box; max-width: 1200px; }
