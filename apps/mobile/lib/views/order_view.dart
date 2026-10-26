@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../models/order.dart';
 
@@ -25,8 +25,11 @@ class _OrdersScreenState extends State<OrdersScreen> {
     setState(() => _isLoading = true);
     try {
       final res = await _apiClient.get('/trade/orders');
-      if (res != null && res['items'] is List) {
-        final items = (res['items'] as List)
+      final list = (res != null && (res['orders'] ?? res['items']) is List)
+          ? ((res['orders'] ?? res['items']) as List)
+          : null;
+      if (list != null) {
+        final items = list
             .map((o) => Order.fromJson(o as Map<String, dynamic>))
             .toList();
         setState(() {
@@ -52,6 +55,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
     return RefreshIndicator(
       onRefresh: _fetchOrders,
+      color: const Color(0xFFC2410C),
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -98,19 +102,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('분할 배송: ${order.shippedQty} / ${order.totalQty} ${order.unit}',
-                              style: const TextStyle(fontSize: 12)),
+                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
                           TextButton(
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(widget.isSupplier ? '출고 등록 화면으로 이동' : '검수 및 배송추적 화면으로 이동'),
-                                ),
+                                SnackBar(content: Text('주문 ${order.orderNumber} 계약서 및 B/L 서류 열람')),
                               );
                             },
-                            child: Text(widget.isSupplier ? '출고 등록' : '검수 및 배송조회'),
-                          ),
+                            child: const Text('무역 서류 조회'),
+                          )
                         ],
-                      ),
+                      )
                     ],
                   ),
                 ),

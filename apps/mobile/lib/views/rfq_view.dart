@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../models/rfq.dart';
 
@@ -24,8 +24,11 @@ class _BuyerRFQScreenState extends State<BuyerRFQScreen> {
     setState(() => _isLoading = true);
     try {
       final res = await _apiClient.get('/sourcing/rfqs');
-      if (res != null && res['items'] is List) {
-        final items = (res['items'] as List)
+      final list = (res != null && (res['items'] ?? res['rfqs']) is List)
+          ? ((res['items'] ?? res['rfqs']) as List)
+          : null;
+      if (list != null) {
+        final items = list
             .map((r) => RFQ.fromJson(r as Map<String, dynamic>))
             .toList();
         setState(() {
@@ -50,6 +53,7 @@ class _BuyerRFQScreenState extends State<BuyerRFQScreen> {
           ? const Center(child: CircularProgressIndicator(color: Color(0xFFC2410C)))
           : RefreshIndicator(
               onRefresh: _fetchRFQs,
+              color: const Color(0xFFC2410C),
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
@@ -84,22 +88,121 @@ class _BuyerRFQScreenState extends State<BuyerRFQScreen> {
   }
 }
 
-class SupplierRFQMarketScreen extends StatelessWidget {
+class SupplierRFQMarketScreen extends StatefulWidget {
   const SupplierRFQMarketScreen({super.key});
 
   @override
+  State<SupplierRFQMarketScreen> createState() => _SupplierRFQMarketScreenState();
+}
+
+class _SupplierRFQMarketScreenState extends State<SupplierRFQMarketScreen> {
+  final ApiClient _apiClient = ApiClient();
+  List<RFQ> _rfqs = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchMarketRFQs();
+  }
+
+  Future<void> _fetchMarketRFQs() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await _apiClient.get('/sourcing/rfqs');
+      final list = (res != null && (res['items'] ?? res['rfqs']) is List)
+          ? ((res['items'] ?? res['rfqs']) as List)
+          : null;
+      if (list != null) {
+        final items = list
+            .map((r) => RFQ.fromJson(r as Map<String, dynamic>))
+            .toList();
+        setState(() {
+          _rfqs = items;
+          _isLoading = false;
+        });
+      } else {
+        setState(() {
+          _rfqs = [];
+          _isLoading = false;
+        });
+      }
+    } catch (_) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: const [
-        Card(
-          child: ListTile(
-            title: Text('[신규 입찰] 식품 포장용 크라프트 파우치 20,000개'),
-            subtitle: Text('도착국: KR · 납기: 30일 이내 · 목표단가 협의'),
-            trailing: Chip(label: Text('견적 작성', style: TextStyle(fontSize: 11))),
-          ),
-        ),
-      ],
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Color(0xFFC2410C)));
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchMarketRFQs,
+      color: const Color(0xFFC2410C),
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          if (_rfqs.isEmpty)
+            const Card(
+              child: Padding(
+                padding: EdgeInsets.all(24),
+                child: Text('입찰 가능한 공개 RFQ가 없습니다.', textAlign: TextAlign.center),
+              ),
+            )
+          else
+            ..._rfqs.map(
+              (rfq) => Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              rfq.title,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                            ),
+                          ),
+                          Chip(
+                            label: const Text('입찰 가능', style: TextStyle(fontSize: 11, color: Color(0xFF15803D))),
+                            backgroundColor: const Color(0xFFDCFCE7),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text('도착국: ${rfq.destinationCountry} · 희망 수량: ${rfq.requestedQty} ${rfq.unit}',
+                          style: const TextStyle(color: Color(0xFF475569))),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFC2410C),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            ),
+                            onPressed: () {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('RFQ [${rfq.title}] 견적서 제출 폼으로 이동')),
+                              );
+                            },
+                            child: const Text('견적 제출 (Submit Quote)'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
