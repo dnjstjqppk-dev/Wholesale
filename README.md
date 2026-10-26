@@ -78,3 +78,15 @@ npx wrangler deploy
 cd services/api
 go test ./... -v
 ```
+
+---
+
+## 🔄 Cloudflare CI/CD 자동 리빌딩 파이프라인
+
+본 저장소의 `main` 브랜치에 코드가 푸시될 때마다 GitHub Actions [`.github/workflows/cloudflare-deploy.yml`](.github/workflows/cloudflare-deploy.yml)이 자동 트리거되어 다음 작업을 수행합니다:
+1. **OpenAPI & E2E 테스트 자동 검증**: `contract_test.js` (19개 오퍼레이션), `e2e_full_cycle.js` (22개 무결성 불변식)
+2. **모노레포 전 프론트엔드 빌드**: `buyer-web`, `partner-web`, `admin-web`, 루트 `dist/`
+3. **Cloudflare 엣지 자동 배포**: `wholesale-api` (Cloudflare Workers) 및 `wholesale` (Static Assets) 무중단 자동 리빌딩 배포
+
+최종 업데이트: 2026-10-26 (Alibaba.com 100% Clone 전수감사, 모바일 반응형 UX/UI 및 Flutter 완전 구현 완료)
+
