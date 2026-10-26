@@ -39,6 +39,11 @@
       <div class="header-container">
         <!-- Logo -->
         <div class="brand-section">
+          <button class="mobile-menu-btn" aria-label="메뉴 열기" @click="mobileDrawerOpen = !mobileDrawerOpen">
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+            <span class="hamburger-bar"></span>
+          </button>
           <router-link :to="`/${currentLocale}/${currentCurrency}/`" class="brand-logo">
             <span class="logo-accent">WHOLESALE</span><span class="logo-sub">.com</span>
           </router-link>
@@ -88,7 +93,7 @@
             <span class="icon">📦</span>
             <span class="label">{{ t('orders', currentLocale) }}</span>
           </router-link>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="user-profile-badge">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="user-profile-badge">
             <span class="user-avatar">🏢</span>
             <div class="user-text">
               <span class="corp-name">{{ currentUser.organization?.legal_name?.slice(0, 16) || 'Metro Wholesale' }}</span>
@@ -138,6 +143,56 @@
       </div>
     </footer>
 
+    <!-- Mobile Navigation Drawer -->
+    <div v-if="mobileDrawerOpen" class="mobile-drawer-backdrop" @click="mobileDrawerOpen = false"></div>
+    <aside class="mobile-drawer" :class="{ open: mobileDrawerOpen }">
+      <div class="drawer-header">
+        <span class="drawer-brand"><span class="brand-orange">WHOLESALE</span>.com</span>
+        <button class="drawer-close" aria-label="메뉴 닫기" @click="mobileDrawerOpen = false">×</button>
+      </div>
+      <div class="drawer-user-card">
+        <span class="drawer-avatar">🏢</span>
+        <div class="d-text">
+          <span class="d-corp">{{ currentUser.organization?.legal_name || 'Metro Wholesale Imports' }}</span>
+          <span class="d-role">{{ currentUser.role }}</span>
+        </div>
+      </div>
+      <nav class="drawer-nav">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="drawer-link" @click="mobileDrawerOpen = false">
+          🏷️ 도매 상품 카탈로그
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers`" class="drawer-link" @click="mobileDrawerOpen = false">
+          🏢 검증 제조사 디렉토리 (Verified)
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfqs`" class="drawer-link" @click="mobileDrawerOpen = false">
+          ⚡ 구매 요청서(RFQ) 및 복수 견적
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="drawer-link highlight" @click="mobileDrawerOpen = false">
+          ✍️ 신규 RFQ 소싱 요청 발행
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="drawer-link" @click="mobileDrawerOpen = false">
+          💬 1:1 제조사 메신저 상담
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" class="drawer-link" @click="mobileDrawerOpen = false">
+          🛒 도매 장바구니
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="drawer-link" @click="mobileDrawerOpen = false">
+          📦 발주 및 무역 이행 관리 (Orders)
+        </router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="drawer-link" @click="mobileDrawerOpen = false">
+          ⚙️ 기업 프로필 및 권한(SoD) 관리
+        </router-link>
+      </nav>
+      <div class="drawer-bottom">
+        <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext-link partner">
+          🏭 공급사 셀러 콘솔 바로가기 ↗
+        </a>
+        <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext-link admin">
+          🛡️ 플랫폼 운영 관리자 콘솔 ↗
+        </a>
+      </div>
+    </aside>
+
     <!-- Image Search Modal -->
     <ImageSearchModal
       v-model="showImageSearchModal"
@@ -161,6 +216,7 @@ const searchQuery = ref('');
 const searchType = ref('products');
 const selectedLocaleCurrency = ref('ko/KRW');
 const showImageSearchModal = ref(false);
+const mobileDrawerOpen = ref(false);
 const currentUser = ref(getCurrentUser());
 
 const currentLocale = computed<SupportedLocale>(() => {
@@ -191,8 +247,12 @@ onMounted(() => {
 
 function handleSearch() {
   const [lang, curr] = selectedLocaleCurrency.value.split('/');
+  if (searchType.value === 'suppliers') {
+    router.push(`/${lang}/${curr}/suppliers?q=${encodeURIComponent(searchQuery.value)}`);
+    return;
+  }
   if (searchType.value === 'rfq') {
-    router.push(`/${lang}/${curr}/sourcing/rfq/new?title=${encodeURIComponent(searchQuery.value)}`);
+    router.push(`/${lang}/${curr}/sourcing/rfqs?q=${encodeURIComponent(searchQuery.value)}`);
     return;
   }
   router.push(`/${lang}/${curr}/catalog?q=${encodeURIComponent(searchQuery.value)}&type=${searchType.value}`);
@@ -266,4 +326,214 @@ function applyImageSearch(query: string) {
 .footer-columns a { color: #38BDF8; text-decoration: none; font-weight: 500; }
 .footer-bottom { border-top: 1px solid #334155; padding-top: 24px; text-align: center; font-size: 13px; color: #64748B; }
 .footer-bottom .sub { font-size: 12px; margin-top: 4px; }
+
+/* Mobile Menu & Drawer Styles */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  cursor: pointer;
+}
+.hamburger-bar {
+  width: 20px;
+  height: 2px;
+  background: #1e293b;
+  border-radius: 2px;
+}
+
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 200;
+  backdrop-filter: blur(2px);
+}
+
+.mobile-drawer {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 280px;
+  height: 100vh;
+  background: #ffffff;
+  z-index: 210;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+  transition: left 0.25s ease;
+  display: flex;
+  flex-direction: column;
+}
+.mobile-drawer.open {
+  left: 0;
+}
+
+.drawer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e2e8f0;
+}
+.drawer-brand {
+  font-weight: 900;
+  font-size: 18px;
+  color: #1e293b;
+}
+.brand-orange {
+  color: #ff6600;
+}
+.drawer-close {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+.drawer-user-card {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 14px 20px;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+}
+.drawer-avatar {
+  font-size: 22px;
+}
+.d-text {
+  display: flex;
+  flex-direction: column;
+}
+.d-corp {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+}
+.d-role {
+  font-size: 11px;
+  color: #15803d;
+  font-weight: 600;
+}
+
+.drawer-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+}
+.drawer-link {
+  padding: 12px 20px;
+  text-decoration: none;
+  color: #334155;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+.drawer-link:hover,
+.drawer-link.router-link-active {
+  background: #fff7ed;
+  color: #c2410c;
+  border-left-color: #ff6600;
+}
+.drawer-link.highlight {
+  color: #ea580c;
+  font-weight: 700;
+}
+
+.drawer-bottom {
+  padding: 16px 20px;
+  border-top: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.drawer-ext-link {
+  font-size: 12px;
+  text-decoration: none;
+  font-weight: 600;
+}
+.drawer-ext-link.partner { color: #ea580c; }
+.drawer-ext-link.admin { color: #2563eb; }
+
+/* Responsive Media Queries */
+@media (max-width: 992px) {
+  .mobile-menu-btn {
+    display: flex;
+  }
+  .app-header {
+    padding: 12px 16px;
+  }
+  .header-container {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .search-bar-wrapper {
+    order: 3;
+    max-width: 100%;
+    width: 100%;
+  }
+  .rfq-cta-btn {
+    display: none;
+  }
+  .user-text {
+    display: none;
+  }
+  .user-profile-badge {
+    padding-left: 6px;
+    border-left: none;
+  }
+  .footer-columns {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+}
+
+@media (max-width: 640px) {
+  .top-utility-bar {
+    display: none;
+  }
+  .assurance-tag {
+    display: none;
+  }
+  .brand-logo {
+    font-size: 22px;
+  }
+  .header-actions {
+    gap: 10px;
+  }
+  .nav-icon-link .label {
+    display: none;
+  }
+  .search-type-select select {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .search-bar-wrapper input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+  .search-submit-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+  }
+  .main-content {
+    padding: 16px 12px;
+  }
+  .footer-columns {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .app-footer {
+    padding: 32px 16px 24px;
+  }
+}
 </style>

@@ -371,4 +371,16 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 .error-banner { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: 12px; }
 .actions { margin-top: 16px; }
 .btn-save { background: #C2410C; color: #FFF; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
+
+@media (max-width: 900px) {
+  .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
+  .form-grid-3 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .form-grid-4 { grid-template-columns: 1fr; }
+  .form-grid-3 { grid-template-columns: 1fr; }
+  .field.span-2 { grid-column: span 1; }
+  .tier-editor-table { display: block; overflow-x: auto; }
+}
 </style>

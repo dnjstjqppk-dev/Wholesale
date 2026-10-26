@@ -124,5 +124,11 @@ h2 { margin: 0 0 8px 0; font-size: 20px; color: #172B4D; }
 .security-banner .icon { font-size: 18px; }
 .security-banner p { margin: 4px 0 0 0; }
 .btn-submit { background: #C2410C; color: #FFF; border: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; }
+
+@media (max-width: 600px) {
+  .rfq-card { padding: 16px; }
+  .form-row { flex-direction: column; gap: 12px; }
+  .security-banner { flex-direction: column; gap: 8px; }
+}
 </style>
 

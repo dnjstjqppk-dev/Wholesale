@@ -129,4 +129,11 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .bid-inputs input { width: 100%; padding: 8px 10px; border: 1px solid #D8E0EB; border-radius: 4px; box-sizing: border-box; }
 .btn-bid { background: #C2410C; color: #FFF; border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .history-note { font-size: 11px; color: #64748B; margin-top: 10px; }
+
+@media (max-width: 768px) {
+  .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .card-info { grid-template-columns: 1fr; gap: 8px; }
+  .bid-inputs { grid-template-columns: 1fr; gap: 10px; }
+  .btn-bid { width: 100%; padding: 12px; }
+}
 </style>

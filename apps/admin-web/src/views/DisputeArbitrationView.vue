@@ -144,4 +144,11 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
 .btn-arbitrate { background: #C2410C; color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .limit-note { font-size: 11px; color: #94A3B8; margin-top: 8px; }
 .resolved-note { color: #34D399; font-weight: 600; font-size: 13px; padding-top: 10px; }
+
+@media (max-width: 768px) {
+  .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .parties { grid-template-columns: 1fr; gap: 8px; }
+  .split-inputs { grid-template-columns: 1fr; gap: 10px; }
+  .btn-arbitrate { width: 100%; }
+}
 </style>

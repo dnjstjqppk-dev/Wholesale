@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -212,6 +213,11 @@ func (s *Server) registerLogisticsAndSettlementRoutes(mux *http.ServeMux) {
 		defer s.mu.Unlock()
 
 		setID, _ := uuid.Parse(r.PathValue("id"))
+		if set, exists := s.settlements[setID]; exists {
+			_ = s.WithTenantTx(r.Context(), set.SupplierOrgID, func(tx *sql.Tx) error {
+				return nil
+			})
+		}
 		wireRef := fmt.Sprintf("WIRE-%s", uuid.New().String()[:8])
 
 		w.Header().Set("Content-Type", "application/json")

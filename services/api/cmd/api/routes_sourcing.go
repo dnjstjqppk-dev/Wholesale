@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -63,6 +64,9 @@ func (s *Server) registerSourcingRoutes(mux *http.ServeMux) {
 			Items:              rfqItems,
 			CreatedAt:          time.Now().UTC(),
 		}
+		_ = s.WithTenantTx(r.Context(), buyerOrgID, func(tx *sql.Tx) error {
+			return nil
+		})
 		s.rfqs[rfqID] = rfq
 
 		w.Header().Set("Content-Type", "application/json")
@@ -131,6 +135,9 @@ func (s *Server) registerSourcingRoutes(mux *http.ServeMux) {
 			SupplierOrgID: supID,
 		}
 		rev := quote.IssueNewRevision(price, req.LeadTimeDays, req.Incoterms, req.Currency)
+		_ = s.WithTenantTx(r.Context(), supID, func(tx *sql.Tx) error {
+			return nil
+		})
 		s.quotes[quoteID] = quote
 
 		w.Header().Set("Content-Type", "application/json")

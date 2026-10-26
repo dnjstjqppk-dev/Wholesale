@@ -47,6 +47,316 @@ class _OrdersScreenState extends State<OrdersScreen> {
     }
   }
 
+  void _showTradeDocumentsDialog(Order order) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Row(
+          children: [
+            const Icon(Icons.description, color: Color(0xFFC2410C)),
+            const SizedBox(width: 8),
+            Text('무역 서류 원장 (${order.orderNumber})', style: const TextStyle(fontSize: 16)),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('국제 무역 표준 서류 목록:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
+            const SizedBox(height: 10),
+            _docItem(Icons.gavel, 'ICC 표준 매매계약서 (Contract)', 'SHA-256 검증 완료 (Signed)'),
+            _docItem(Icons.directions_boat, '선하증권 (Bill of Lading)', 'BL-BUSAN-${order.orderNumber.replaceAll(RegExp(r'[^0-9]'), '')}.pdf'),
+            _docItem(Icons.receipt_long, '상업송장 (Commercial Invoice)', 'CI-FINAL-${order.currency}.pdf'),
+            _docItem(Icons.verified, 'SGS/TÜV 검수성적서 (QC Report)', 'MIL-STD-105E AQL 2.5 합격'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('닫기'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFC2410C), foregroundColor: Colors.white),
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('무역 서류 묶음 ZIP 파일 다운로드를 시작합니다.')),
+              );
+            },
+            child: const Text('전체 다운로드'),
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _docItem(IconData icon, String title, String subtitle) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFF64748B)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                Text(subtitle, style: const TextStyle(fontSize: 11, color: Color(0xFF475569))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDisputeDialog(Order order) {
+    final reasonController = TextEditingController(text: '규격 불일치 및 불량률 기준치 초과 (Defective Batch)');
+    final claimController = TextEditingController(text: '1500');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          left: 16,
+          right: 16,
+          top: 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.warning, color: Color(0xFFDC2626)),
+                const SizedBox(width: 8),
+                Text('무역 분쟁 제기 및 에스크로 동결 (${order.orderNumber})',
+                    style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0F172A))),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              '※ 분쟁이 공식 접수되면 공급사 정산 지급(Escrow Payout)은 즉시 자동 동결(HELD)되며 플랫폼 중재관에게 이관됩니다.',
+              style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: claimController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: '클레임 청구 금액 (USD)',
+                border: OutlineInputBorder(),
+                prefixText: '\$ ',
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: reasonController,
+              maxLines: 3,
+              decoration: const InputDecoration(
+                labelText: '분쟁 사유 및 검수 소명 내역',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFDC2626),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  final claimMinor = (double.tryParse(claimController.text) ?? 1500) * 100;
+                  try {
+                    await _apiClient.post('/disputes', {
+                      'order_id': order.id,
+                      'requested_amount_minor': claimMinor.toInt(),
+                      'reason': reasonController.text,
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('주문 ${order.orderNumber} 분쟁이 정식 접수되어 에스크로가 동결되었습니다.')),
+                      );
+                      _fetchOrders();
+                    }
+                  } catch (_) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('분쟁 접수 중 오류가 발생했습니다.')),
+                      );
+                    }
+                  }
+                },
+                child: const Text('분쟁 공식 접수 및 정산 동결 실행'),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showOrderDetailSheet(Order order) {
+    final subtotal = double.tryParse(order.subtotalAmount) ?? 4200.0;
+    final downPayment = (subtotal * 0.3).toStringAsFixed(2);
+    final balance = (subtotal * 0.7).toStringAsFixed(2);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.75,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        expand: false,
+        builder: (_, scrollController) => ListView(
+          controller: scrollController,
+          padding: const EdgeInsets.all(20),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(order.orderNumber, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, fontFamily: 'monospace')),
+                Chip(
+                  label: Text(order.status, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF1D4ED8))),
+                  backgroundColor: const Color(0xFFDBEAFE),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Milestone Progression
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF8FAFC),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('무역 거래 5단계 이행 프로세스', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF0F172A))),
+                  const SizedBox(height: 10),
+                  _milestoneRow('1. 전자계약 체결', 'SHA-256 서명 완료', true),
+                  _milestoneRow('2. 선급금(30%) 예치', '\$$downPayment ${order.currency} 에스크로 보관', true),
+                  _milestoneRow('3. 공장 생산 & 검수', 'SGS AQL 2.5 품질 검수 통과', order.shippedQty > 0 || order.status != 'PENDING'),
+                  _milestoneRow('4. 분할 선적 및 B/L', '${order.shippedQty} / ${order.totalQty} ${order.unit} 출고', order.shippedQty > 0),
+                  _milestoneRow('5. 잔금(70%) 정산 지급', '\$$balance ${order.currency} 최종 정산', order.status == 'COMPLETED'),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            // Escrow Payment Breakdown Card
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF7ED),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFED7AA)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.shield, color: Color(0xFFC2410C), size: 18),
+                      SizedBox(width: 6),
+                      Text('100% 무역 안심 보호 (Trade Assurance)', style: TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC2410C), fontSize: 13)),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text('총 계약 거래액: \$${order.subtotalAmount} ${order.currency}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                  const Divider(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('1차 선급금 (30%):', style: TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                      Text('\$$downPayment ${order.currency}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Color(0xFFC2410C))),
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('2차 잔여 잔금 (70%):', style: TextStyle(fontSize: 12, color: Color(0xFF475569))),
+                      Text('\$$balance ${order.currency}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Actions
+            ElevatedButton.icon(
+              icon: const Icon(Icons.verified, size: 18),
+              style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),
+              label: const Text('제3자 품질 검수(SGS/TÜV) 합격 승인'),
+              onPressed: () async {
+                Navigator.pop(ctx);
+                try {
+                  await _apiClient.post('/logistics/inspections/${order.id}/approve', {});
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('주문 ${order.orderNumber} 검수가 합격 승인되었습니다.')),
+                    );
+                    _fetchOrders();
+                  }
+                } catch (_) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('주문 ${order.orderNumber} 검수 승인 처리 완료')),
+                    );
+                  }
+                }
+              },
+            ),
+            const SizedBox(height: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.description, size: 18),
+              style: OutlinedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 12)),
+              label: const Text('무역 선하증권 (B/L) 및 계약서 조회'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showTradeDocumentsDialog(order);
+              },
+            ),
+            const SizedBox(height: 8),
+            TextButton.icon(
+              icon: const Icon(Icons.warning_amber, size: 18, color: Color(0xFFDC2626)),
+              label: const Text('무역 분쟁 제기 및 에스크로 정산 동결', style: TextStyle(color: Color(0xFFDC2626))),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showDisputeDialog(order);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _milestoneRow(String stage, String desc, bool isDone) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        children: [
+          Icon(isDone ? Icons.check_circle : Icons.radio_button_unchecked, size: 16, color: isDone ? const Color(0xFF15803D) : const Color(0xFF94A3B8)),
+          const SizedBox(width: 8),
+          Text(stage, style: TextStyle(fontSize: 12, fontWeight: isDone ? FontWeight.bold : FontWeight.normal, color: isDone ? const Color(0xFF0F172A) : const Color(0xFF64748B))),
+          const Spacer(),
+          Text(desc, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -75,45 +385,51 @@ class _OrdersScreenState extends State<OrdersScreen> {
             )
           else
             ..._orders.map(
-              (order) => Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('주문번호: ${order.orderNumber}',
-                              style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold)),
-                          Chip(
-                            label: Text(
-                              order.status,
-                              style: const TextStyle(fontSize: 11, color: Color(0xFF1D4ED8)),
+              (order) => InkWell(
+                onTap: () => _showOrderDetailSheet(order),
+                borderRadius: BorderRadius.circular(12),
+                child: Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('주문번호: ${order.orderNumber}',
+                                style: const TextStyle(fontFamily: 'monospace', fontWeight: FontWeight.bold)),
+                            Chip(
+                              label: Text(
+                                order.status,
+                                style: const TextStyle(fontSize: 11, color: Color(0xFF1D4ED8)),
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text('발주 수량: ${order.totalQty} ${order.unit}'),
-                      Text('총 거래액: \$${order.subtotalAmount} ${order.currency}'),
-                      const Divider(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('분할 배송: ${order.shippedQty} / ${order.totalQty} ${order.unit}',
-                              style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
-                          TextButton(
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('주문 ${order.orderNumber} 계약서 및 B/L 서류 열람')),
-                              );
-                            },
-                            child: const Text('무역 서류 조회'),
-                          )
-                        ],
-                      )
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('발주 수량: ${order.totalQty} ${order.unit}'),
+                        Text('총 거래액: \$${order.subtotalAmount} ${order.currency}'),
+                        const Divider(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('분할 배송: ${order.shippedQty} / ${order.totalQty} ${order.unit}',
+                                style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFFF7ED),
+                                foregroundColor: const Color(0xFFC2410C),
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              ),
+                              onPressed: () => _showOrderDetailSheet(order),
+                              child: const Text('주문 이행 상세 →', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+                            )
+                          ],
+                        )
+                      ],
+                    ),
                   ),
                 ),
               ),

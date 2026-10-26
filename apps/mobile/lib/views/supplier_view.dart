@@ -38,6 +38,96 @@ class _SupplierDashboardScreenState extends State<SupplierDashboardScreen> {
     }
   }
 
+  void _showRestockSheet() {
+    final skuController = TextEditingController(text: 'SKU-SUS-500ML-01');
+    final whController = TextEditingController(text: '부산 강서 메인 물류센터 (Busan Hub)');
+    final qtyController = TextEditingController(text: '1000');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+          left: 20,
+          right: 20,
+          top: 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.inventory, color: Color(0xFFC2410C)),
+                SizedBox(width: 8),
+                Text('창고 재고 입고 및 수량 조정 (Restock)',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF0F172A))),
+              ],
+            ),
+            const SizedBox(height: 6),
+            const Text('보세창고 입고 검수 완료된 실물 수량을 원장에 즉시 반영합니다.',
+                style: TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+            const SizedBox(height: 16),
+            TextField(
+              controller: skuController,
+              decoration: const InputDecoration(
+                labelText: 'SKU 코드',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: whController,
+              decoration: const InputDecoration(
+                labelText: '보관 창고 위치 (Warehouse)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: qtyController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: '추가 입고 수량 (Quantity pcs)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 18),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF15803D),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  final addQty = int.tryParse(qtyController.text) ?? 1000;
+                  setState(() {
+                    _inventory.add({
+                      'sku_code': skuController.text,
+                      'warehouse_name': whController.text,
+                      'on_hand': addQty,
+                      'available': addQty,
+                      'unit': 'pcs',
+                    });
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('[${skuController.text}] ${addQty}pcs 가용 재고 원장이 갱신되었습니다.')),
+                  );
+                },
+                child: const Text('재고 원장 입고 승인 (Confirm Restock)', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -137,11 +227,21 @@ class _SupplierDashboardScreenState extends State<SupplierDashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.inventory_2, color: Color(0xFF173A5E)),
-                      SizedBox(width: 8),
-                      Text('실시간 창고 재고 원장 모니터링', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      const Row(
+                        children: [
+                          Icon(Icons.inventory_2, color: Color(0xFF173A5E)),
+                          SizedBox(width: 8),
+                          Text('실시간 창고 재고 원장 모니터링', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      TextButton.icon(
+                        icon: const Icon(Icons.add_box, size: 16),
+                        label: const Text('입고 등록', style: TextStyle(fontWeight: FontWeight.bold)),
+                        onPressed: _showRestockSheet,
+                      )
                     ],
                   ),
                   const Divider(),

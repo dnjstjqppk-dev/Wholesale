@@ -146,4 +146,10 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
 .tag-status.release_eligible { background: #DCFCE7; color: #15803D; }
 .tag-status.payout_dispatched { background: #DBEAFE; color: #1E40AF; }
 .tag-status.held { background: #FEF3C7; color: #B45309; }
+
+@media (max-width: 768px) {
+  .balance-cards { grid-template-columns: 1fr; gap: 12px; }
+  .records-box { padding: 16px; }
+  .settlement-table { display: block; overflow-x: auto; }
+}
 </style>

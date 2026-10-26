@@ -203,4 +203,11 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
 .btn-step { background: #D97706; color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 .btn-step.execute { background: #059669; }
 .sod-note { color: #94A3B8; font-size: 11px; margin: 8px 0 0 0; }
+
+@media (max-width: 768px) {
+  .head-row { flex-direction: column; gap: 14px; }
+  .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .details-grid { grid-template-columns: 1fr; gap: 8px; }
+  .switch-btns { flex-wrap: wrap; }
+}
 </style>

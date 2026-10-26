@@ -531,4 +531,31 @@ async function generateContract() {
   background: #CBD5E1;
   cursor: not-allowed;
 }
+
+@media (max-width: 960px) {
+  .checkout-layout {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 640px) {
+  .checkout-page {
+    padding: 16px 12px 40px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .form-grid .span-2 {
+    grid-column: span 1;
+  }
+  .form-card, .confirm-card {
+    padding: 16px;
+  }
+  .schedule-table th, .schedule-table td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}
 </style>

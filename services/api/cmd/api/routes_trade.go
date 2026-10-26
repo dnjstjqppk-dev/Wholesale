@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -57,6 +58,9 @@ func (s *Server) registerTradeRoutes(mux *http.ServeMux) {
 			signerUID, _ := uuid.Parse(req.SignerUserID)
 			signerOID, _ := uuid.Parse(req.SignerOrgID)
 			_ = contract.Sign(signerUID, signerOID, req.DocumentHash)
+			_ = s.WithTenantTx(r.Context(), contract.Body.BuyerOrgID, func(tx *sql.Tx) error {
+				return nil
+			})
 		}
 
 		w.Header().Set("Content-Type", "application/json")

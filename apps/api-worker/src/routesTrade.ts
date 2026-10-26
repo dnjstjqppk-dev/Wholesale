@@ -10,6 +10,9 @@ import {
   listings,
   carts,
   settlements,
+  tradeAssuranceClaims,
+  customsDeclarations,
+  factoryQualityAudits,
   logAudit,
   BUYER_ORG_ID,
   SUPPLIER_ORG_ID,
@@ -615,6 +618,33 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   }
 
   // POST /v1/logistics/inspections (Third-Party Quality Inspection)
+  const inspectionApproveMatch = url.pathname.match(/^\/v1\/logistics\/inspections\/([^\/]+)\/approve$/);
+  if (inspectionApproveMatch && request.method === 'POST') {
+    const orderId = inspectionApproveMatch[1];
+    const order = orders.get(orderId);
+    if (!order) {
+      return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
+    }
+
+    order.inspection_status = 'PASSED';
+    logAudit(
+      'INSPECTION_APPROVED',
+      ctx?.user?.id || 'user-buyer-001',
+      'BUYER_PURCHASER',
+      'TRADE_ORDER',
+      orderId,
+      `Pre-shipment inspection approved by buyer for Order ${order.order_number}`
+    );
+
+    return jsonResponse({
+      order_id: orderId,
+      inspection_agency: 'SGS Global Testing Services',
+      result: 'PASSED',
+      aql_standard: 'MIL-STD-105E AQL 2.5 Major / 4.0 Minor',
+      approved_at: new Date().toISOString(),
+    });
+  }
+
   if (url.pathname === '/v1/logistics/inspections' && request.method === 'POST') {
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
@@ -640,6 +670,114 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
       aql_standard: 'MIL-STD-105E AQL 2.5 Major / 4.0 Minor',
       approved_at: new Date().toISOString(),
     });
+  }
+
+  // ================= TRADE ASSURANCE CLAIMS =================
+  if (url.pathname === '/v1/trade/assurance/claims' && request.method === 'GET') {
+    const list = Array.from(tradeAssuranceClaims.values());
+    return jsonResponse({
+      claims: list,
+      total_count: list.length,
+    });
+  }
+
+  if (url.pathname === '/v1/trade/assurance/claims' && request.method === 'POST') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    const orderId = body.order_id || 'ord-20261018-001';
+    const order = orders.get(orderId);
+    const claimAmountMinor = parseInt(body.claim_amount_minor, 10) || 150000;
+    const category = body.claim_category || 'QUALITY_DISPUTE';
+
+    const claimId = `claim-${Date.now()}`;
+    const claim = {
+      id: claimId,
+      order_id: orderId,
+      buyer_organization_id: buyerOrgId,
+      supplier_organization_id: order?.supplier_organization_id || SUPPLIER_ORG_ID,
+      claim_amount_minor: claimAmountMinor,
+      guarantee_coverage_minor: order?.total_amount_minor || 420000,
+      claim_category: category,
+      arbitration_status: 'UNDER_REVIEW',
+      adjudicated_payout_minor: 0,
+      evidence_urls: body.evidence_urls || [],
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    tradeAssuranceClaims.set(claimId, claim);
+
+    logAudit(
+      'TRADE_ASSURANCE_CLAIM_FILED',
+      ctx?.user?.id || 'user-buyer-001',
+      'BUYER_PURCHASER',
+      'TRADE_ASSURANCE',
+      claimId,
+      `Trade Assurance guarantee claim filed for Order ${order?.order_number || orderId}: $${(claimAmountMinor / 100).toFixed(2)}`
+    );
+
+    return jsonResponse(claim, 201);
+  }
+
+  // ================= CUSTOMS MANIFESTS =================
+  if (url.pathname === '/v1/logistics/customs' && request.method === 'GET') {
+    const list = Array.from(customsDeclarations.values());
+    return jsonResponse({
+      manifests: list,
+      total_count: list.length,
+    });
+  }
+
+  if (url.pathname === '/v1/logistics/customs' && request.method === 'POST') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    const orderId = body.order_id || 'ord-20261018-001';
+    const declId = `customs-${Date.now()}`;
+    const manifest = {
+      id: declId,
+      shipment_id: body.shipment_id || crypto.randomUUID(),
+      order_id: orderId,
+      organization_id: ctx?.org?.id || SUPPLIER_ORG_ID,
+      declaration_number: body.declaration_number || `EXP-KR-2026-${Math.floor(10000 + Math.random() * 90000)}`,
+      port_of_loading: body.port_of_loading || 'Busan Port (KRPUS)',
+      port_of_discharge: body.port_of_discharge || 'Los Angeles (USLAX)',
+      hs_code: body.hs_code || '7323.93.0000',
+      customs_status: 'CLEARED',
+      duty_tax_amount_minor: parseInt(body.duty_tax_amount_minor, 10) || 27300,
+      customs_broker_name: body.customs_broker_name || 'Pantos Logistics Global',
+      export_license_number: body.export_license_number || 'EL-2026-KR-7711',
+      cleared_at: new Date().toISOString(),
+      created_at: new Date().toISOString(),
+    };
+    customsDeclarations.set(declId, manifest);
+
+    return jsonResponse(manifest, 201);
+  }
+
+  // ================= FACTORY QUALITY AUDITS =================
+  if (url.pathname === '/v1/catalog/audits' && request.method === 'GET') {
+    const list = Array.from(factoryQualityAudits.values());
+    return jsonResponse({
+      audits: list,
+      total_count: list.length,
+    });
+  }
+
+  if (url.pathname === '/v1/catalog/audits' && request.method === 'POST') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    const auditId = `audit-${Date.now()}`;
+    const audit = {
+      id: auditId,
+      supplier_organization_id: body.supplier_organization_id || SUPPLIER_ORG_ID,
+      auditor_agency: body.auditor_agency || 'SGS',
+      audit_standard: body.audit_standard || 'ISO9001',
+      overall_rating_score: parseFloat(body.overall_rating_score) || 4.90,
+      qc_status: body.qc_status || 'PASSED',
+      report_pdf_url: body.report_pdf_url || 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=800&q=80',
+      audit_date: new Date().toISOString().slice(0, 10),
+      expires_at: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+      created_at: new Date().toISOString(),
+    };
+    factoryQualityAudits.set(auditId, audit);
+
+    return jsonResponse(audit, 201);
   }
 
   return null;

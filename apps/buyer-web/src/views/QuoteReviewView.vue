@@ -152,5 +152,11 @@ async function handleAccept() {
 .user-info p { font-size: 13px; margin: 6px 0; color: #42526E; }
 .alert-sod { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 6px; padding: 10px; font-size: 11px; color: #92400E; margin: 16px 0; }
 .btn-accept { width: 100%; background: #C2410C; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+
+@media (max-width: 768px) {
+  .header-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .grid-layout { grid-template-columns: 1fr; gap: 16px; }
+  .info-grid { grid-template-columns: 1fr; gap: 8px; }
+}
 </style>
 

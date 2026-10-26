@@ -34,6 +34,179 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
     });
   }
 
+  // GET /v1/catalog/suppliers & /v1/suppliers (Verified Supplier Directory)
+  if ((url.pathname === '/v1/catalog/suppliers' || url.pathname === '/v1/suppliers') && request.method === 'GET') {
+    const q = (url.searchParams.get('q') || '').toLowerCase();
+    const category = url.searchParams.get('category');
+    const country = url.searchParams.get('country');
+    const verifiedOnly = url.searchParams.get('verified_only') === 'true';
+    const tradeAssurance = url.searchParams.get('trade_assurance') === 'true';
+    const cert = (url.searchParams.get('cert') || '').toLowerCase();
+    const minRating = Number(url.searchParams.get('min_rating') || 0);
+
+    const suppliersMaster = [
+      {
+        id: SUPPLIER_ORG_ID,
+        organization_id: SUPPLIER_ORG_ID,
+        company_name: 'Precision Korea Co., Ltd. (글로벌정밀산업)',
+        slogan: '글로벌 최고 수준의 정밀 프레스 및 스테인리스 가공 전문 제조사',
+        country: 'KR',
+        business_type: 'MANUFACTURER',
+        is_verified_supplier: true,
+        trade_assurance: true,
+        rating: 4.9,
+        reviews_count: 142,
+        response_rate: '99.2%',
+        years_in_business: 12,
+        total_revenue_usd: '$25M - $50M',
+        export_percentage: '85%',
+        factory_size: '28,000 m²',
+        production_lines: 8,
+        categories: ['CAT-IND', 'CAT-HOM'],
+        main_products: ['SUS 304 Vacuum Tumbler', '500-Ton Hydraulic Cold Forming Press', 'VMC-850 3-Axis CNC Parts', 'High-Pressure Industrial Ball Valve'],
+        certifications: ['ISO 9001:2015', 'CE Compliance', 'FDA Food Contact', 'RoHS Compliant'],
+        inspection_agency: 'SGS Global Testing Services',
+        banner_image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=200&q=80',
+      },
+      {
+        id: 'org-supp-ele-001',
+        organization_id: 'org-supp-ele-001',
+        company_name: 'Hanbit Nano Electronics Co., Ltd. (한빛나노전자)',
+        slogan: '초고속 질화갈륨(GaN) 전력 변환 및 차세대 IoT 스마트 디바이스 전문 제조',
+        country: 'KR',
+        business_type: 'MANUFACTURER',
+        is_verified_supplier: true,
+        trade_assurance: true,
+        rating: 4.8,
+        reviews_count: 98,
+        response_rate: '98.4%',
+        years_in_business: 8,
+        total_revenue_usd: '$10M - $25M',
+        export_percentage: '78%',
+        factory_size: '18,500 m²',
+        production_lines: 6,
+        categories: ['CAT-ELE'],
+        main_products: ['GaN 140W PD 3.1 Fast Charger', 'TWS ANC Dual Driver Earbuds', '1.43-inch Round AMOLED Display', '51.2V 100Ah LiFePO4 Battery Pack'],
+        certifications: ['CE Compliance', 'FCC Part 15', 'RoHS Compliant', 'ISO 14001:2015'],
+        inspection_agency: 'TÜV Rheinland Inspection Lab',
+        banner_image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=200&q=80',
+      },
+      {
+        id: 'org-supp-pkg-001',
+        organization_id: 'org-supp-pkg-001',
+        company_name: 'EcoPack Global Solutions (에코팩글로벌)',
+        slogan: '100% 생분해 크라프트 및 고기능 스마트 패키징 글로벌 솔루션',
+        country: 'KR',
+        business_type: 'MANUFACTURER',
+        is_verified_supplier: true,
+        trade_assurance: true,
+        rating: 4.8,
+        reviews_count: 85,
+        response_rate: '97.9%',
+        years_in_business: 10,
+        total_revenue_usd: '$15M - $30M',
+        export_percentage: '80%',
+        factory_size: '14,000 m²',
+        production_lines: 5,
+        categories: ['CAT-PKG'],
+        main_products: ['FSC Honeycomb Kraft Padded Mailers', 'Heavy-Duty Double Wall Corrugated Boxes', 'Cosmetic Frosted Amber Glass Dropper Bottle', 'Tamper Evident Security Hologram Label'],
+        certifications: ['FSC Certified', 'ISO 9001:2015', 'FDA Food Contact', 'ISO 14001:2015'],
+        inspection_agency: 'Bureau Veritas QC Lab',
+        banner_image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=1200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1530587191325-3db32d826c18?auto=format&fit=crop&w=200&q=80',
+      },
+      {
+        id: 'org-supp-hom-001',
+        organization_id: 'org-supp-hom-001',
+        company_name: 'Living Art Cast Kitchenware (리빙아트주철기물)',
+        slogan: '전통 에나멜 주철 쿡웨어 및 인체공학 스마트 가구 수출 전문 기업',
+        country: 'KR',
+        business_type: 'MANUFACTURER',
+        is_verified_supplier: true,
+        trade_assurance: true,
+        rating: 4.9,
+        reviews_count: 116,
+        response_rate: '99.0%',
+        years_in_business: 15,
+        total_revenue_usd: '$20M - $40M',
+        export_percentage: '88%',
+        factory_size: '22,000 m²',
+        production_lines: 7,
+        categories: ['CAT-HOM'],
+        main_products: ['Cast Iron Enameled Dutch Oven 5.5-Quart', 'Ergonomic Mesh High-Back Office Chair', 'Food-Grade Silicone Heat-Resistant Utensils', 'Smart Infrared Motion Sensor Waste Bin'],
+        certifications: ['FDA Food Contact', 'LFGB German Standard', 'ISO 9001:2015'],
+        inspection_agency: 'SGS Global Testing Services',
+        banner_image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1584269600464-37b1b58a9fe7?auto=format&fit=crop&w=200&q=80',
+      },
+      {
+        id: 'org-supp-chm-001',
+        organization_id: 'org-supp-chm-001',
+        company_name: 'Daehan Advanced Materials Corp. (대한첨단소재화학)',
+        slogan: '고순도 석유화학 수지 및 첨단 유기화학 기초 원자재 공급 선두주자',
+        country: 'KR',
+        business_type: 'MANUFACTURER',
+        is_verified_supplier: true,
+        trade_assurance: true,
+        rating: 4.7,
+        reviews_count: 74,
+        response_rate: '96.8%',
+        years_in_business: 18,
+        total_revenue_usd: '$50M - $100M',
+        export_percentage: '92%',
+        factory_size: '35,000 m²',
+        production_lines: 10,
+        categories: ['CAT-CHM'],
+        main_products: ['Virgin Polypropylene (PP) Homopolymer Granules', '99.9% Electronic Grade Isopropyl Alcohol (IPA)', 'Optically Clear UV Curing Epoxy Resin', 'Linear Alkylbenzene Sulfonic Acid (LABSA 96%)'],
+        certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'REACH Certified', 'RoHS Compliant'],
+        inspection_agency: 'Intertek Chemical Testing Group',
+        banner_image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=200&q=80',
+      },
+    ];
+
+    let filtered = suppliersMaster;
+
+    if (q) {
+      filtered = filtered.filter(s =>
+        s.company_name.toLowerCase().includes(q) ||
+        s.slogan.toLowerCase().includes(q) ||
+        s.main_products.some(p => p.toLowerCase().includes(q))
+      );
+    }
+
+    if (category && category !== 'ALL') {
+      filtered = filtered.filter(s => s.categories.includes(category));
+    }
+
+    if (country && country !== 'ALL') {
+      filtered = filtered.filter(s => s.country === country);
+    }
+
+    if (verifiedOnly) {
+      filtered = filtered.filter(s => s.is_verified_supplier);
+    }
+
+    if (tradeAssurance) {
+      filtered = filtered.filter(s => s.trade_assurance);
+    }
+
+    if (minRating > 0) {
+      filtered = filtered.filter(s => s.rating >= minRating);
+    }
+
+    if (cert) {
+      filtered = filtered.filter(s => s.certifications.some(c => c.toLowerCase().includes(cert)));
+    }
+
+    return jsonResponse({
+      items: filtered,
+      total_count: filtered.length,
+    });
+  }
+
   // POST /v1/catalog/image-search (AI Visual Feature Matcher)
   if (url.pathname === '/v1/catalog/image-search' && request.method === 'POST') {
     const body = (await request.json().catch(() => ({}))) as any;

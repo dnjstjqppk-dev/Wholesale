@@ -354,4 +354,22 @@ function onTierChanged(idx: number) {
 .btn-back:hover {
   background: #EA580C;
 }
+
+/* Mobile & Tablet Responsive Layout */
+@media (max-width: 992px) {
+  .pdp-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 640px) {
+  .bracket-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px;
+  }
+  .pdp-title {
+    font-size: 18px !important;
+  }
+}
 </style>

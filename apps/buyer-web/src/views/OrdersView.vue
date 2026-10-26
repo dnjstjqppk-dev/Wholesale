@@ -119,6 +119,14 @@
             ✓ 화물 최종 인수 확인 및 대금 지급 승인
           </button>
 
+          <!-- Order Detail & Timeline Tracking -->
+          <router-link
+            :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}`"
+            class="btn-action detail"
+          >
+            🔎 발주 상세 & 물류 추적
+          </router-link>
+
           <!-- Open Trade Dispute -->
           <router-link
             v-if="order.dispute_status !== 'RESOLVED'"
@@ -396,5 +404,32 @@ function openDocument(docType: string) {
   border-radius: 8px;
   padding: 60px 20px;
   text-align: center;
+}
+
+@media (max-width: 768px) {
+  .orders-page {
+    padding: 16px 12px 40px;
+  }
+  .card-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .state-badges {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .shipping-info-box {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .card-actions {
+    flex-direction: column;
+  }
+  .btn-action {
+    width: 100%;
+    text-align: center;
+    padding: 10px 14px;
+  }
 }
 </style>

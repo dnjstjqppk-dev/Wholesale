@@ -204,4 +204,11 @@ async function handleSignBuyer() {
 .sig-box { background: #F8FAFC; border: 1px solid #D8E0EB; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .signed-ok { color: #15803D; font-size: 13px; }
 .btn-sign { background: #EA580C; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
+
+@media (max-width: 640px) {
+  .card { padding: 16px; }
+  .contract-header { flex-direction: column; gap: 10px; align-items: flex-start; }
+  .signatures { grid-template-columns: 1fr; gap: 14px; }
+  .schedule-table th, .schedule-table td { padding: 6px 8px; font-size: 11px; }
+}
 </style>

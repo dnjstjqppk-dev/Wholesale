@@ -10,6 +10,7 @@ import {
   inquiries,
   inventoryBalances,
   supplierStorefronts,
+  kwaCampaigns,
   verifications,
   listings,
   settlements,
@@ -103,8 +104,17 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
     });
   }
 
-  // POST /v1/sourcing/rfqs/:id/quotes (Submit Quote & Supercede Previous Revision)
+  // GET & POST /v1/sourcing/rfqs/:id/quotes
   const rfqQuoteMatch = url.pathname.match(/^\/v1\/sourcing\/rfqs\/([^\/]+)\/quotes$/);
+  if (rfqQuoteMatch && request.method === 'GET') {
+    const rfqId = rfqQuoteMatch[1];
+    const rfqQuotes = Array.from(quotes.values()).filter(q => q.rfq_id === rfqId);
+    return jsonResponse({
+      rfq_id: rfqId,
+      items: rfqQuotes,
+      total_count: rfqQuotes.length,
+    });
+  }
   if (rfqQuoteMatch && request.method === 'POST') {
     const rfqId = rfqQuoteMatch[1];
     const rfq = rfqs.get(rfqId);
@@ -516,6 +526,141 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
       supplierStorefronts.set(supplierOrgId, data);
       return jsonResponse(data);
     }
+  }
+
+  // GET & POST /v1/partner/marketing (Keyword Advertising - KWA)
+  if (url.pathname === '/v1/partner/marketing') {
+    const supplierOrgId = ctx?.org?.id || SUPPLIER_ORG_ID;
+
+    if (request.method === 'GET') {
+      const campaigns = Array.from(kwaCampaigns.values()).filter(c => c.supplier_org_id === supplierOrgId);
+      const totalSpend = campaigns.reduce((acc, c) => acc + c.total_spend_usd, 0);
+      const totalImpressions = campaigns.reduce((acc, c) => acc + c.impressions, 0);
+      const totalClicks = campaigns.reduce((acc, c) => acc + c.clicks, 0);
+      const avgCpc = totalClicks > 0 ? (totalSpend / totalClicks) : 0;
+
+      return jsonResponse({
+        supplier_org_id: supplierOrgId,
+        summary: {
+          total_campaigns: campaigns.length,
+          active_campaigns: campaigns.filter(c => c.status === 'ACTIVE').length,
+          total_spend_usd: Number(totalSpend.toFixed(2)),
+          total_impressions: totalImpressions,
+          total_clicks: totalClicks,
+          average_cpc_usd: Number(avgCpc.toFixed(2)),
+          daily_budget_total_usd: campaigns.reduce((acc, c) => acc + c.daily_budget_usd, 0),
+        },
+        campaigns,
+      });
+    }
+
+    if (request.method === 'POST') {
+      const body = (await request.json().catch(() => ({}))) as any;
+      if (!body.keyword) {
+        return problemResponse(400, 'INVALID_BODY', 'Keyword is required', 'keyword must be provided');
+      }
+
+      const id = `kwa-${Date.now()}`;
+      const newCampaign = {
+        id,
+        supplier_org_id: supplierOrgId,
+        keyword: String(body.keyword).toLowerCase().trim(),
+        match_type: (body.match_type || 'BROAD') as 'EXACT' | 'BROAD',
+        max_cpc_usd: Number(body.max_cpc_usd || 1.50),
+        daily_budget_usd: Number(body.daily_budget_usd || 50.00),
+        status: (body.status || 'ACTIVE') as 'ACTIVE' | 'PAUSED',
+        impressions: 0,
+        clicks: 0,
+        total_spend_usd: 0,
+        created_at: new Date().toISOString(),
+      };
+
+      kwaCampaigns.set(id, newCampaign);
+
+      logAudit(
+        'KWA_CAMPAIGN_CREATED',
+        ctx?.user?.id || 'user-supplier-001',
+        'SUPPLIER_SALES',
+        'MARKETING_CAMPAIGN',
+        id,
+        `Created KWA campaign for '${newCampaign.keyword}' with max CPC $${newCampaign.max_cpc_usd}`
+      );
+
+      return jsonResponse(newCampaign, 201);
+    }
+  }
+
+  // PUT & DELETE /v1/partner/marketing/campaigns/:id
+  const kwaMatch = url.pathname.match(/^\/v1\/partner\/marketing\/campaigns\/([^\/]+)$/);
+  if (kwaMatch) {
+    const campId = kwaMatch[1];
+    const camp = kwaCampaigns.get(campId);
+    if (!camp) {
+      return problemResponse(404, 'NOT_FOUND', 'Campaign Not Found', `KWA campaign ${campId} does not exist`);
+    }
+
+    if (request.method === 'PUT') {
+      const body = (await request.json().catch(() => ({}))) as any;
+      if (body.status) camp.status = body.status;
+      if (body.max_cpc_usd) camp.max_cpc_usd = Number(body.max_cpc_usd);
+      if (body.daily_budget_usd) camp.daily_budget_usd = Number(body.daily_budget_usd);
+      if (body.match_type) camp.match_type = body.match_type;
+      kwaCampaigns.set(campId, camp);
+      return jsonResponse(camp);
+    }
+
+    if (request.method === 'DELETE') {
+      kwaCampaigns.delete(campId);
+      return jsonResponse({ success: true, deleted_id: campId });
+    }
+  }
+
+  // GET /v1/partner/analytics (Seller Performance & Traffic Intelligence)
+  if (url.pathname === '/v1/partner/analytics' && request.method === 'GET') {
+    const range = url.searchParams.get('range') || '30d';
+
+    const supplierOrgId = ctx?.org?.id || SUPPLIER_ORG_ID;
+    const supplierListings = Array.from(listings.values()).filter(l => l.organization_id === supplierOrgId);
+
+    const analyticsData = {
+      period: range,
+      summary: {
+        total_impressions: 48250,
+        total_clicks: 2940,
+        click_through_rate: '6.09%',
+        inquiries_count: 73,
+        inquiry_conversion_rate: '2.48%',
+        orders_count: 14,
+        gmv_usd: 84250.00,
+        repeat_buyer_rate: '35.7%',
+      },
+      traffic_sources: [
+        { channel: 'Global Organic Search', percentage: 46.5, visitors: 1367 },
+        { channel: 'Keyword Advertising (KWA)', percentage: 28.2, visitors: 829 },
+        { channel: 'Category Hierarchy Browsing', percentage: 15.3, visitors: 450 },
+        { channel: 'Direct Mini-site / Storefront', percentage: 10.0, visitors: 294 },
+      ],
+      top_performing_products: supplierListings.slice(0, 5).map(l => ({
+        id: l.id,
+        title: l.title,
+        impressions: Math.floor(8000 + Math.random() * 4000),
+        clicks: Math.floor(400 + Math.random() * 300),
+        inquiries: Math.floor(10 + Math.random() * 15),
+        orders: Math.floor(2 + Math.random() * 5),
+        conversion_rate: '3.1%',
+      })),
+      daily_metrics_timeline: [
+        { date: '2026-10-18', impressions: 1520, clicks: 92, inquiries: 3, orders: 1 },
+        { date: '2026-10-19', impressions: 1680, clicks: 105, inquiries: 4, orders: 0 },
+        { date: '2026-10-20', impressions: 1490, clicks: 88, inquiries: 2, orders: 1 },
+        { date: '2026-10-21', impressions: 1820, clicks: 114, inquiries: 5, orders: 2 },
+        { date: '2026-10-22', impressions: 1950, clicks: 126, inquiries: 6, orders: 1 },
+        { date: '2026-10-23', impressions: 2100, clicks: 138, inquiries: 7, orders: 2 },
+        { date: '2026-10-24', impressions: 1740, clicks: 99, inquiries: 3, orders: 1 },
+      ],
+    };
+
+    return jsonResponse(analyticsData);
   }
 
   return null;

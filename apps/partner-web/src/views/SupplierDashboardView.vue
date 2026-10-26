@@ -171,4 +171,16 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 .num { font-variant-numeric: tabular-nums; font-weight: 700; }
 .avail { color: #15803D; font-weight: 800; }
 .badge { background: #EFF6FF; color: #1D4ED8; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+
+@media (max-width: 1024px) {
+  .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+  .dash-two-col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .kpi-grid { grid-template-columns: 1fr; }
+  .verification-banner { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .dash-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .mini-table { display: block; overflow-x: auto; }
+}
 </style>

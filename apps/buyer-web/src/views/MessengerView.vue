@@ -235,5 +235,15 @@ onMounted(() => {
 .input-msg { flex: 1; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 14px; font-size: 13px; outline: none; }
 .input-msg:focus { border-color: #FF6600; }
 .btn-send { background: #FF6600; color: #FFF; border: none; padding: 0 22px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+
+@media (max-width: 768px) {
+  .messenger-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; }
+  .messenger-layout { grid-template-columns: 1fr; height: auto; }
+  .thread-sidebar { max-height: 280px; }
+  .chat-panel { min-height: 440px; }
+  .chat-head { padding: 12px 16px; }
+  .chat-messages { padding: 14px; }
+  .msg-bubble { max-width: 90%; }
+}
 </style>
 

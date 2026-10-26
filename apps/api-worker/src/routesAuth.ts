@@ -1,7 +1,7 @@
 /// <reference lib="dom" />
 // apps/api-worker/src/routesAuth.ts
 import { jsonResponse, problemResponse } from './response';
-import { users, organizations, BUYER_ORG_ID, SUPPLIER_ORG_ID, ADMIN_ORG_ID } from './store';
+import { users, organizations, BUYER_ORG_ID, SUPPLIER_ORG_ID, ADMIN_ORG_ID, buyerProfiles, logAudit } from './store';
 import { signJwt, getAuthContext } from './jwt';
 
 export async function handleAuth(request: Request, url: URL): Promise<Response | null> {
@@ -139,6 +139,156 @@ export async function handleAuth(request: Request, url: URL): Promise<Response |
         role: ctx.user.role,
       },
       organization: ctx.org,
+    });
+  }
+
+  // GET & PUT /v1/auth/profile (Corporate Profile, EIN/VAT, Sub-accounts, Addresses)
+  if (url.pathname === '/v1/auth/profile') {
+    const ctx = await getAuthContext(request, users, organizations);
+    const orgId = ctx?.org?.id || BUYER_ORG_ID;
+
+    if (request.method === 'GET') {
+      let profile = buyerProfiles.get(orgId);
+      if (!profile) {
+        profile = buyerProfiles.get(BUYER_ORG_ID)!;
+      }
+      return jsonResponse(profile);
+    }
+
+    if (request.method === 'PUT') {
+      const body = (await request.json().catch(() => ({}))) as any;
+      let profile = buyerProfiles.get(orgId) || buyerProfiles.get(BUYER_ORG_ID)!;
+
+      if (body.legal_name) profile.legal_name = body.legal_name;
+      if (body.business_number) profile.business_number = body.business_number;
+      if (body.ein_vat) profile.ein_vat = body.ein_vat;
+      if (body.contact_person) profile.contact_person = body.contact_person;
+      if (body.contact_email) profile.contact_email = body.contact_email;
+      if (body.contact_phone) profile.contact_phone = body.contact_phone;
+      if (body.annual_purchasing_volume_usd) profile.annual_purchasing_volume_usd = body.annual_purchasing_volume_usd;
+      if (body.primary_industry) profile.primary_industry = body.primary_industry;
+      if (body.tax_exemption_status) profile.tax_exemption_status = body.tax_exemption_status;
+
+      buyerProfiles.set(orgId, profile);
+
+      logAudit(
+        'BUYER_PROFILE_UPDATED',
+        ctx?.user?.id || 'user-buyer-001',
+        ctx?.user?.role || 'BUYER_PURCHASER',
+        'ORGANIZATION',
+        orgId,
+        `Updated corporate profile and tax status: ${profile.tax_exemption_status}`
+      );
+
+      return jsonResponse(profile);
+    }
+  }
+
+  // POST /v1/auth/profile/addresses
+  if (url.pathname === '/v1/auth/profile/addresses' && request.method === 'POST') {
+    const ctx = await getAuthContext(request, users, organizations);
+    const orgId = ctx?.org?.id || BUYER_ORG_ID;
+    const body = (await request.json().catch(() => ({}))) as any;
+
+    let profile = buyerProfiles.get(orgId) || buyerProfiles.get(BUYER_ORG_ID)!;
+    const newAddr = {
+      id: `addr-${Date.now()}`,
+      type: body.type || 'SHIPPING',
+      is_default: Boolean(body.is_default),
+      recipient_name: body.recipient_name || profile.contact_person,
+      phone: body.phone || profile.contact_phone,
+      country: body.country || 'US',
+      address_line1: body.address_line1 || '',
+      address_line2: body.address_line2 || '',
+      city: body.city || '',
+      state_province: body.state_province || '',
+      postal_code: body.postal_code || '',
+    };
+
+    if (newAddr.is_default) {
+      profile.addresses.forEach(a => {
+        if (a.type === newAddr.type) a.is_default = false;
+      });
+    }
+
+    profile.addresses.push(newAddr);
+    buyerProfiles.set(orgId, profile);
+
+    return jsonResponse(newAddr, 201);
+  }
+
+  // DELETE /v1/auth/profile/addresses/:id
+  const addrDelMatch = url.pathname.match(/^\/v1\/auth\/profile\/addresses\/([^\/]+)$/);
+  if (addrDelMatch && request.method === 'DELETE') {
+    const addrId = addrDelMatch[1];
+    const ctx = await getAuthContext(request, users, organizations);
+    const orgId = ctx?.org?.id || BUYER_ORG_ID;
+    let profile = buyerProfiles.get(orgId) || buyerProfiles.get(BUYER_ORG_ID)!;
+
+    profile.addresses = profile.addresses.filter(a => a.id !== addrId);
+    buyerProfiles.set(orgId, profile);
+    return jsonResponse({ success: true, deleted_id: addrId });
+  }
+
+  // POST /v1/auth/profile/sub-accounts
+  if (url.pathname === '/v1/auth/profile/sub-accounts' && request.method === 'POST') {
+    const ctx = await getAuthContext(request, users, organizations);
+    const orgId = ctx?.org?.id || BUYER_ORG_ID;
+    const body = (await request.json().catch(() => ({}))) as any;
+
+    let profile = buyerProfiles.get(orgId) || buyerProfiles.get(BUYER_ORG_ID)!;
+    const newSub = {
+      id: `user-sub-${Date.now()}`,
+      email: body.email || 'purchaser2@wholesale.internal',
+      full_name: body.full_name || 'Associate Purchaser',
+      role: body.role || 'BUYER_PURCHASER',
+      status: 'ACTIVE' as const,
+      spending_limit_usd: Number(body.spending_limit_usd || 5000),
+      can_approve: Boolean(body.can_approve),
+      created_at: new Date().toISOString(),
+    };
+
+    profile.sub_accounts.push(newSub);
+    buyerProfiles.set(orgId, profile);
+
+    return jsonResponse(newSub, 201);
+  }
+
+  // POST /v1/auth/switch-role (Convenience Testing / Demo Switcher)
+  if (url.pathname === '/v1/auth/switch-role' && request.method === 'POST') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    const targetRole = body.role || 'BUYER_APPROVER';
+
+    let targetEmail = 'buyer@wholesale.internal';
+    if (targetRole === 'BUYER_APPROVER') targetEmail = 'approver@wholesale.internal';
+    if (targetRole === 'BUYER_FINANCE') targetEmail = 'finance@wholesale.internal';
+
+    const user = users.get(targetEmail);
+    if (!user) {
+      return problemResponse(404, 'USER_NOT_FOUND', 'User Not Found', `Role user for ${targetRole} not found`);
+    }
+
+    const org = organizations.get(user.active_organization_id);
+    const token = await signJwt({
+      sub: user.id,
+      email: user.email,
+      full_name: user.full_name,
+      company_name: org?.legal_name || 'Metro Wholesale Imports LLC',
+      org_id: user.active_organization_id,
+      role: user.role,
+    });
+
+    return jsonResponse({
+      access_token: token,
+      token_type: 'Bearer',
+      expires_in: 86400 * 30,
+      user: {
+        id: user.id,
+        email: user.email,
+        full_name: user.full_name,
+        role: user.role,
+      },
+      organization: org,
     });
   }
 

@@ -334,5 +334,37 @@ onMounted(() => {
   text-align: center;
   border-radius: 8px;
 }
+
+@media (max-width: 992px) {
+  .showcase-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-store-banner {
+    padding: 24px 16px;
+  }
+  .store-company-name {
+    font-size: 20px;
+  }
+  .store-quick-meta {
+    flex-wrap: wrap;
+    gap: 8px 14px;
+  }
+  .tour-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+@media (max-width: 540px) {
+  .showcase-grid {
+    grid-template-columns: 1fr;
+  }
+  .section-card {
+    padding: 16px;
+  }
+}
 </style>
 

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../core/api_client.dart';
 import '../models/product.dart';
 
@@ -158,8 +158,7 @@ class _ProductCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFC2410C), foregroundColor: Colors.white),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('[${product.title}] 견적 및 발주 요청 화면으로 이동합니다.')));
+                  _showOrderBottomSheet(context, product);
                 },
                 child: const Text('도매 발주 / 견적 요청'),
               ),
@@ -167,6 +166,110 @@ class _ProductCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showOrderBottomSheet(BuildContext context, Product product) {
+    int qty = product.moq;
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            String unitPrice = product.priceTiers.isNotEmpty ? product.priceTiers.first.unitPrice : '10.00';
+            for (final tier in product.priceTiers) {
+              final min = tier.minQuantity;
+              final max = tier.maxQuantity;
+              if (qty >= min && (max == null || qty <= max)) {
+                unitPrice = tier.unitPrice;
+                break;
+              }
+            }
+            final total = (double.tryParse(unitPrice) ?? 0) * qty;
+
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 20,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(product.title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 4),
+                  Text('공급사: ${product.supplierName}', style: const TextStyle(fontSize: 12, color: Color(0xFF64748B))),
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('발주 수량 설정:', style: TextStyle(fontWeight: FontWeight.w600)),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.remove_circle_outline),
+                            onPressed: qty > product.moq
+                                ? () => setModalState(() => qty -= 10)
+                                : null,
+                          ),
+                          Text('$qty ${product.unit}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          IconButton(
+                            icon: const Icon(Icons.add_circle_outline),
+                            onPressed: () => setModalState(() => qty += 10),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('적용 구간 단가:'),
+                      Text('\$$unitPrice / ${product.unit}', style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFFC2410C))),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('총 견적 금액 (Total):', style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      Text('\$${total.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFC2410C),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('[${product.title}] $qty ${product.unit} 도매 발주가 접수되었습니다.'),
+                            backgroundColor: const Color(0xFF15803D),
+                          ),
+                        );
+                      },
+                      child: const Text('🛡️ Trade Assurance 안전 발주 확정'),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

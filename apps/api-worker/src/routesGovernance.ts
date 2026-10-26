@@ -14,6 +14,10 @@ import {
   reconciliations,
   logAudit,
   users,
+  CATEGORIES,
+  masterCategoryAttributes,
+  masterCustomsTariffs,
+  masterFxRates,
 } from './store';
 import { getAuthContext } from './jwt';
 
@@ -507,6 +511,125 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
       ledger_reversal_posted: true,
       message: '분쟁 공식 중재 판결 완료 및 복식원장 역분개 전표가 성공적으로 기표되었습니다.',
     });
+  }
+
+  // ================= ADMIN MASTER DATA (CATEGORIES, ATTRIBUTES, CUSTOMS, FX) =================
+  // GET /v1/admin/master-data
+  if (url.pathname === '/v1/admin/master-data' && request.method === 'GET') {
+    return jsonResponse({
+      categories: CATEGORIES,
+      category_attributes: masterCategoryAttributes,
+      customs_tariffs: masterCustomsTariffs,
+      fx_rates: masterFxRates,
+    });
+  }
+
+  // POST & PUT /v1/admin/master-data/categories
+  if (url.pathname === '/v1/admin/master-data/categories') {
+    if (request.method === 'POST') {
+      const body = (await request.json().catch(() => ({}))) as any;
+      const newCat = {
+        id: body.id || `CAT-${Date.now().toString().slice(-4)}`,
+        name: body.name || '신규 카테고리',
+        name_en: body.name_en || 'New Category',
+        icon: body.icon || '📦',
+        subcategories: body.subcategories || [],
+      };
+      CATEGORIES.push(newCat);
+
+      logAudit(
+        'MASTER_CATEGORY_CREATED',
+        ctx?.user?.id || 'user-admin-001',
+        'PLATFORM_ADMIN',
+        'CATEGORY',
+        newCat.id,
+        `Created standard category ${newCat.name}`
+      );
+
+      return jsonResponse(newCat, 201);
+    }
+  }
+
+  // POST /v1/admin/master-data/attributes
+  if (url.pathname === '/v1/admin/master-data/attributes' && request.method === 'POST') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    const newAttr = {
+      id: `attr-${Date.now()}`,
+      category_id: body.category_id || 'CAT-IND',
+      attribute_name: body.attribute_name || '새 속성',
+      data_type: body.data_type || 'STRING',
+      options: body.options || undefined,
+      is_required: Boolean(body.is_required),
+    };
+    masterCategoryAttributes.push(newAttr);
+
+    logAudit(
+      'CATEGORY_ATTRIBUTE_CREATED',
+      ctx?.user?.id || 'user-admin-001',
+      'PLATFORM_ADMIN',
+      'CATEGORY_ATTRIBUTE',
+      newAttr.id,
+      `Added attribute ${newAttr.attribute_name} to ${newAttr.category_id}`
+    );
+
+    return jsonResponse(newAttr, 201);
+  }
+
+  // POST & DELETE /v1/admin/master-data/tariffs
+  if (url.pathname === '/v1/admin/master-data/tariffs') {
+    if (request.method === 'POST') {
+      const body = (await request.json().catch(() => ({}))) as any;
+      const newTariff = {
+        id: `hs-${Date.now()}`,
+        hs_code: body.hs_code || '0000.00.0000',
+        description: body.description || '신규 품목',
+        duty_rate_percent: Number(body.duty_rate_percent || 0),
+        vat_rate_percent: Number(body.vat_rate_percent || 10.0),
+        export_restriction: body.export_restriction || 'NONE',
+      };
+      masterCustomsTariffs.push(newTariff);
+
+      logAudit(
+        'CUSTOMS_TARIFF_CREATED',
+        ctx?.user?.id || 'user-admin-001',
+        'PLATFORM_ADMIN',
+        'CUSTOMS_TARIFF',
+        newTariff.id,
+        `Added HS Code tariff ${newTariff.hs_code}`
+      );
+
+      return jsonResponse(newTariff, 201);
+    }
+  }
+
+  const tariffDelMatch = url.pathname.match(/^\/v1\/admin\/master-data\/tariffs\/([^\/]+)$/);
+  if (tariffDelMatch && request.method === 'DELETE') {
+    const tariffId = tariffDelMatch[1];
+    const idx = masterCustomsTariffs.findIndex(t => t.id === tariffId);
+    if (idx !== -1) {
+      masterCustomsTariffs.splice(idx, 1);
+    }
+    return jsonResponse({ success: true, deleted_id: tariffId });
+  }
+
+  // PUT /v1/admin/master-data/fx-rates
+  if (url.pathname === '/v1/admin/master-data/fx-rates' && request.method === 'PUT') {
+    const body = (await request.json().catch(() => ({}))) as any;
+    if (body.rates) {
+      Object.assign(masterFxRates.rates, body.rates);
+      masterFxRates.updated_at = new Date().toISOString();
+    }
+
+    logAudit(
+      'FX_RATES_UPDATED',
+      ctx?.user?.id || 'user-admin-001',
+      'PLATFORM_ADMIN',
+      'FX_RATES',
+      'GLOBAL',
+      `Admin updated real-time FX exchange rates table`
+    );
+
+    return jsonResponse(masterFxRates);
   }
 
   return null;

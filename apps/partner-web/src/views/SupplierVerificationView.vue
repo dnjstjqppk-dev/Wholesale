@@ -155,5 +155,13 @@ h2 { margin: 0; font-size: 20px; color: #172B4D; }
 .field label { font-size: 12px; font-weight: 700; color: #334155; }
 .field input, .field select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 9px 12px; font-size: 13px; }
 .btn-submit { background: #C2410C; color: #FFF; border: none; padding: 12px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
+
+@media (max-width: 640px) {
+  .v-top { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .v-metrics { flex-direction: column; gap: 6px; }
+  .form-grid { grid-template-columns: 1fr; }
+  .field.span-2 { grid-column: span 1; }
+  .status-section, .form-card { padding: 16px; }
+}
 </style>
 

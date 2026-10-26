@@ -8,12 +8,14 @@ import LedgerReconciliationView from '../views/LedgerReconciliationView.vue';
 import DisputeArbitrationView from '../views/DisputeArbitrationView.vue';
 import SettlementApprovalView from '../views/SettlementApprovalView.vue';
 import AuditLogView from '../views/AuditLogView.vue';
+import MasterDataView from '../views/MasterDataView.vue';
 
 const routes = [
   { path: '/', name: 'dashboard', component: AdminDashboardView },
   { path: '/verifications', name: 'verifications', component: VerificationAuditView },
   { path: '/verifications/review', name: 'verifications-review', component: VerificationReviewView },
   { path: '/moderation', name: 'moderation', component: CatalogModerationView },
+  { path: '/master-data', name: 'master-data', component: MasterDataView },
   { path: '/ledger-audit', name: 'ledger-audit', component: LedgerAuditView },
   { path: '/reconciliation', name: 'reconciliation', component: LedgerReconciliationView },
   { path: '/disputes', name: 'disputes', component: DisputeArbitrationView },

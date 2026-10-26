@@ -187,5 +187,17 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #FFF; }
 .log-time { color: #64748B; }
 .log-detail { font-size: 12px; color: #E2E8F0; margin-bottom: 4px; }
 .log-actor { font-size: 10px; color: #94A3B8; }
+
+@media (max-width: 1100px) {
+  .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+  .two-col-layout { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 680px) {
+  .dash-head { flex-direction: column; align-items: flex-start; gap: 10px; }
+  .health-bar { flex-direction: column; gap: 10px; }
+  .metrics-grid { grid-template-columns: 1fr; }
+  .panel-table { display: block; overflow-x: auto; }
+}
 </style>
 

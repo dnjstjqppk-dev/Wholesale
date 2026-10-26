@@ -260,4 +260,13 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 .empty-ship { color: #64748B; font-size: 12px; padding: 8px 0; }
 .history-row { display: flex; justify-content: space-between; padding: 10px 12px; background: #F8FAFC; border-radius: 6px; margin-bottom: 6px; font-size: 13px; border: 1px solid #E2E8F0; }
 .carrier, .date { color: #64748B; }
+
+@media (max-width: 768px) {
+  .head-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+  .box-head { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .form-grid-3 { grid-template-columns: 1fr; gap: 10px; }
+  .dispatch-bar { flex-direction: column; align-items: stretch; }
+  .btn-dispatch { margin-left: 0; width: 100%; text-align: center; }
+  .history-row { flex-direction: column; gap: 4px; }
+}
 </style>

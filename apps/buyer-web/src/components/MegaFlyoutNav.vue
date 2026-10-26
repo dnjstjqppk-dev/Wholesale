@@ -103,5 +103,46 @@ function onSelectCategory(catId: string) {
 .quick-link { text-decoration: none; font-size: 14px; font-weight: 600; color: #334155; }
 .quick-link:hover { color: #FF6600; }
 .quick-link.highlight { color: #C2410C; font-weight: 700; }
+
+@media (max-width: 992px) {
+  .cat-nav-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .cat-nav-container::-webkit-scrollbar {
+    display: none;
+  }
+  .mega-menu-trigger {
+    width: auto;
+    padding: 10px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .mega-flyout {
+    width: 92vw;
+    max-width: 380px;
+    left: 4px;
+    padding: 14px;
+  }
+  .mega-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    max-height: 65vh;
+    overflow-y: auto;
+  }
+  .quick-nav-links {
+    padding-left: 14px;
+    gap: 16px;
+    white-space: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex: 1;
+  }
+  .quick-link {
+    font-size: 13px;
+  }
+}
 </style>
 

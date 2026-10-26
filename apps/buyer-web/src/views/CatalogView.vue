@@ -286,4 +286,38 @@ onMounted(() => {
 .catalog-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; color: #475569; font-size: 14px; }
 .error-box .error-msg { color: #DC2626; font-weight: 700; margin-bottom: 12px; }
 .btn-retry { background: #1E293B; color: #FFF; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+/* Responsive Mobile & Tablet Layout */
+@media (max-width: 992px) {
+  .hero-banner {
+    flex-direction: column;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+  .banner-rfq-card {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .catalog-main-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .banner-title {
+    font-size: 20px;
+  }
+  .product-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .section-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
 </style>

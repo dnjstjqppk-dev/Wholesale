@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"sync"
 	"time"
 
@@ -182,5 +184,13 @@ func (s *Server) seedInitialData() {
 	}
 	j, _ := payment.CreateJournal(orderID, "ESCROW_SEED", "USD", entries)
 	s.journals = append(s.journals, j)
+}
+
+// WithTenantTx executes fn within tenant-isolated RLS transaction if database is connected.
+func (s *Server) WithTenantTx(ctx context.Context, tenantID uuid.UUID, fn func(tx *sql.Tx) error) error {
+	if s.dbMgr != nil && s.dbMgr.IsConnected() {
+		return s.dbMgr.ExecuteWithTenant(ctx, tenantID, fn)
+	}
+	return nil
 }
 

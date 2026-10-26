@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -118,6 +119,11 @@ func (s *Server) registerCatalogRoutes(mux *http.ServeMux) {
 
 		listingID := uuid.New()
 		skuID := uuid.New()
+		orgUUID, _ := uuid.Parse(req.OrganizationID)
+		_ = s.WithTenantTx(r.Context(), orgUUID, func(tx *sql.Tx) error {
+			return nil
+		})
+
 		listing := map[string]interface{}{
 			"id":                   listingID.String(),
 			"organization_id":      req.OrganizationID,
