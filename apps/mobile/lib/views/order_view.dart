@@ -68,6 +68,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
             _docItem(Icons.directions_boat, '선하증권 (Bill of Lading)', 'BL-BUSAN-${order.orderNumber.replaceAll(RegExp(r'[^0-9]'), '')}.pdf'),
             _docItem(Icons.receipt_long, '상업송장 (Commercial Invoice)', 'CI-FINAL-${order.currency}.pdf'),
             _docItem(Icons.verified, 'SGS/TÜV 검수성적서 (QC Report)', 'MIL-STD-105E AQL 2.5 합격'),
+            _docItem(Icons.local_shipping, '관세청 수출통관필증 (Customs Manifest)', 'EXP-KR-2026-${order.orderNumber.replaceAll(RegExp(r'[^0-9]'), '')} (HS: 7323.93 - 통관완료)'),
           ],
         ),
         actions: [

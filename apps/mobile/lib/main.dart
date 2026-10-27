@@ -4,6 +4,7 @@ import 'views/rfq_view.dart';
 import 'views/order_view.dart';
 import 'views/supplier_view.dart';
 import 'views/settings_view.dart';
+import 'views/messenger_view.dart';
 
 void main() {
   runApp(const WholesaleApp());
@@ -52,6 +53,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       const BuyerCatalogScreen(),
       const BuyerRFQScreen(),
       const OrdersScreen(isSupplier: false),
+      const MessengerScreen(isSupplier: false),
       const SettingsScreen(),
     ];
 
@@ -59,6 +61,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       const SupplierDashboardScreen(),
       const SupplierRFQMarketScreen(),
       const OrdersScreen(isSupplier: true),
+      const MessengerScreen(isSupplier: true),
       const SettingsScreen(),
     ];
 
@@ -93,12 +96,14 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 BottomNavigationBarItem(icon: Icon(Icons.dashboard), label: '콘솔'),
                 BottomNavigationBarItem(icon: Icon(Icons.local_offer), label: 'RFQ 시장'),
                 BottomNavigationBarItem(icon: Icon(Icons.assignment), label: '수주/출고'),
+                BottomNavigationBarItem(icon: Icon(Icons.forum_outlined), label: '메시지'),
                 BottomNavigationBarItem(icon: Icon(Icons.person), label: '설정'),
               ]
             : const [
                 BottomNavigationBarItem(icon: Icon(Icons.search), label: '상품 탐색'),
                 BottomNavigationBarItem(icon: Icon(Icons.request_quote), label: '내 RFQ'),
                 BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: '발주 관리'),
+                BottomNavigationBarItem(icon: Icon(Icons.forum_outlined), label: '메시지'),
                 BottomNavigationBarItem(icon: Icon(Icons.person), label: '기업 설정'),
               ],
       ),

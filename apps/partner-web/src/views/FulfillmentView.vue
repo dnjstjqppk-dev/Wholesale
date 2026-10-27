@@ -107,6 +107,61 @@
           <span class="date">{{ formatDate(s.shipped_at || s.date) }}</span>
         </div>
       </div>
+
+      <!-- Customs Declaration Manifest Submission Form & List -->
+      <div class="customs-manifest-section">
+        <div class="section-head-toggle" @click="showCustomsForm = !showCustomsForm">
+          <h4>🏛️ 관세청 수출신고필증 (Customs Manifest) 등록 및 교부 내역</h4>
+          <span class="toggle-icon">{{ showCustomsForm ? '▲ 접기' : '▼ 펼치기' }}</span>
+        </div>
+
+        <div v-if="showCustomsForm" class="customs-form-panel">
+          <div class="form-grid-3">
+            <div>
+              <label>수출신고번호</label>
+              <input v-model="customsDeclNo" type="text" placeholder="EXP-KR-2026-99120" />
+            </div>
+            <div>
+              <label>적재항 (Port of Loading)</label>
+              <input v-model="pol" type="text" placeholder="Busan Port (KRPUS)" />
+            </div>
+            <div>
+              <label>양하항 (Port of Discharge)</label>
+              <input v-model="pod" type="text" placeholder="Los Angeles (USLAX)" />
+            </div>
+            <div>
+              <label>HS Code (세번부호)</label>
+              <input v-model="hsCode" type="text" placeholder="7323.93.0000" />
+            </div>
+            <div>
+              <label>관세 및 세액 (USD Minor)</label>
+              <input v-model.number="dutyTaxMinor" type="number" placeholder="27300" />
+            </div>
+            <div>
+              <label>담당 관세사 (Customs Broker)</label>
+              <input v-model="customsBroker" type="text" placeholder="Pantos Logistics Global" />
+            </div>
+          </div>
+          <div class="customs-action-bar">
+            <button class="btn-customs-submit" :disabled="submittingCustoms" @click="handleCustomsSubmit">
+              {{ submittingCustoms ? '세관 신고 전송 중...' : '🏛️ 관세청 수출통관신고서 전송 (POST /v1/logistics/customs)' }}
+            </button>
+          </div>
+        </div>
+
+        <!-- Customs Manifest List -->
+        <div class="customs-history-table">
+          <div v-if="orderCustoms.length === 0" class="empty-ship">등록된 수출통관필증이 없습니다. 상단에서 등록하세요.</div>
+          <div v-for="(m, idx) in orderCustoms" :key="m.id || idx" class="customs-row">
+            <span class="decl-no"><strong>{{ m.declaration_number }}</strong></span>
+            <span>HS: <code>{{ m.hs_code }}</code></span>
+            <span>{{ m.port_of_loading }} → {{ m.port_of_discharge }}</span>
+            <span class="broker">{{ m.customs_broker_name }}</span>
+            <span class="tax-badge">${{ (m.duty_tax_amount_minor / 100).toFixed(2) }}</span>
+            <span class="status-pill cleared">{{ m.customs_status }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -122,6 +177,7 @@ const allOrders = ref<any[]>([]);
 const selectedOrderId = ref('');
 const activeOrder = ref<any>(null);
 const allShipments = ref<any[]>([]);
+const allCustoms = ref<any[]>([]);
 
 const dispatchQty = ref(300);
 const carrierName = ref('HMM Marine Logistics');
@@ -129,6 +185,15 @@ const blNumber = ref('MAEU-PUS-99002');
 const ciUrl = ref('https://docs.wholesale.internal/CI-2026-001.pdf');
 const plUrl = ref('https://docs.wholesale.internal/PL-2026-001.pdf');
 const coNumber = ref('KOR-FTA-CO-2026-8891');
+
+const showCustomsForm = ref(true);
+const customsDeclNo = ref('EXP-KR-2026-99120');
+const pol = ref('Busan Port (KRPUS)');
+const pod = ref('Los Angeles (USLAX)');
+const hsCode = ref('7323.93.0000');
+const dutyTaxMinor = ref(27300);
+const customsBroker = ref('Pantos Logistics Global');
+const submittingCustoms = ref(false);
 
 const remaining = computed(() => {
   if (!activeOrder.value) return 0;
@@ -143,6 +208,11 @@ const progressPercent = computed(() => {
 const orderShipments = computed(() => {
   if (!activeOrder.value) return [];
   return allShipments.value.filter(s => s.order_id === activeOrder.value.id);
+});
+
+const orderCustoms = computed(() => {
+  if (!activeOrder.value) return [];
+  return allCustoms.value.filter(m => m.order_id === activeOrder.value.id || !m.order_id);
 });
 
 function formatDate(d: string) {
@@ -162,12 +232,14 @@ async function loadOrdersAndShipments() {
   loading.value = true;
   error.value = '';
   try {
-    const [ordRes, shpRes] = await Promise.all([
+    const [ordRes, shpRes, cstRes] = await Promise.all([
       apiRequest('/trade/orders'),
       apiRequest('/logistics/shipments').catch(() => ({ shipments: [] })),
+      apiRequest('/logistics/customs').catch(() => ({ manifests: [] })),
     ]);
     allOrders.value = ordRes.orders || [];
     allShipments.value = shpRes.shipments || [];
+    allCustoms.value = cstRes.manifests || [];
     if (allOrders.value.length > 0) {
       activeOrder.value = allOrders.value[0];
       selectedOrderId.value = activeOrder.value.id;
@@ -183,6 +255,31 @@ async function loadOrdersAndShipments() {
 onMounted(() => {
   loadOrdersAndShipments();
 });
+
+async function handleCustomsSubmit() {
+  if (!activeOrder.value) return;
+  submittingCustoms.value = true;
+  try {
+    const res = await apiRequest('/logistics/customs', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_id: activeOrder.value.id,
+        declaration_number: customsDeclNo.value,
+        port_of_loading: pol.value,
+        port_of_discharge: pod.value,
+        hs_code: hsCode.value,
+        duty_tax_amount_minor: dutyTaxMinor.value,
+        customs_broker_name: customsBroker.value,
+      }),
+    });
+    allCustoms.value.push(res);
+    alert(`[관세청 통관필증 등록 완료]\n수출신고번호: ${res.declaration_number}\n통관상태: ${res.customs_status}`);
+  } catch (err: any) {
+    alert(`통관 등록 실패: ${err.message}`);
+  } finally {
+    submittingCustoms.value = false;
+  }
+}
 
 async function handleDispatch() {
   if (!activeOrder.value || dispatchQty.value <= 0) return;
@@ -261,6 +358,93 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 .history-row { display: flex; justify-content: space-between; padding: 10px 12px; background: #F8FAFC; border-radius: 6px; margin-bottom: 6px; font-size: 13px; border: 1px solid #E2E8F0; }
 .carrier, .date { color: #64748B; }
 
+/* Customs Manifest Section */
+.customs-manifest-section {
+  background: #FFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 18px;
+  margin-top: 20px;
+}
+.section-head-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 12px;
+}
+.section-head-toggle h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #172B4D;
+}
+.toggle-icon {
+  font-size: 12px;
+  color: #64748B;
+  font-weight: 700;
+}
+.customs-form-panel {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 14px;
+  margin-bottom: 14px;
+}
+.customs-action-bar {
+  display: flex;
+  justify-content: flex-end;
+}
+.btn-customs-submit {
+  background: #0284C7;
+  color: #FFF;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-customs-submit:disabled {
+  opacity: 0.6;
+}
+.customs-history-table {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.customs-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.decl-no {
+  font-family: monospace;
+  color: #1E293B;
+}
+.broker {
+  color: #475569;
+}
+.tax-badge {
+  color: #15803D;
+  font-weight: 700;
+}
+.status-pill {
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+.status-pill.cleared {
+  background: #DCFCE7;
+  color: #15803D;
+}
+
 @media (max-width: 768px) {
   .head-row { flex-direction: column; align-items: flex-start; gap: 12px; }
   .box-head { flex-direction: column; align-items: flex-start; gap: 8px; }
@@ -268,5 +452,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
   .dispatch-bar { flex-direction: column; align-items: stretch; }
   .btn-dispatch { margin-left: 0; width: 100%; text-align: center; }
   .history-row { flex-direction: column; gap: 4px; }
+  .customs-row { flex-direction: column; align-items: flex-start; gap: 4px; }
+  .btn-customs-submit { width: 100%; text-align: center; }
 }
 </style>

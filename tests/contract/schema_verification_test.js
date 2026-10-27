@@ -73,6 +73,53 @@ function runSchemaVerification() {
   }
   console.log(`  ✓ Row-Level Security (RLS) verified on all core tenant-scoped tables.`);
 
+  // 7. Verify Supplementary B2B Schemas (003 & 004)
+  const schema3Path = path.resolve('db/migrations/003_b2b_supplementary_schemas.sql');
+  const schema4Path = path.resolve('db/migrations/004_supplementary_rls.sql');
+  if (fs.existsSync(schema3Path) && fs.existsSync(schema4Path)) {
+    const sql3 = fs.readFileSync(schema3Path, 'utf8');
+    const sql4 = fs.readFileSync(schema4Path, 'utf8');
+    const supTables = [
+      'buyer_corporate_tax_credentials',
+      'sub_account_spending_limits',
+      'kwa_campaigns',
+      'kwa_click_events',
+      'supplier_storefront_configs',
+      'customs_tariffs_export_controls'
+    ];
+    for (const st of supTables) {
+      if (!sql3.includes(st)) {
+        throw new Error(`Missing supplementary table: ${st} in 003_b2b_supplementary_schemas.sql`);
+      }
+      if (!sql4.includes(`ALTER TABLE ${st} ENABLE ROW LEVEL SECURITY;`)) {
+        throw new Error(`Missing supplementary RLS policy on: ${st} in 004_supplementary_rls.sql`);
+      }
+    }
+    console.log(`  ✓ Supplementary B2B Schemas & RLS verified: ${supTables.length} tables (Tax credentials, SoD, KWA, Storefront, Tariffs).`);
+  }
+
+  // 8. Verify Trade Assurance, Customs & Factory Audits (005 & 006)
+  const schema5Path = path.resolve('db/migrations/005_b2b_trade_assurance_and_customs.sql');
+  const schema6Path = path.resolve('db/migrations/006_trade_assurance_customs_rls.sql');
+  if (fs.existsSync(schema5Path) && fs.existsSync(schema6Path)) {
+    const sql5 = fs.readFileSync(schema5Path, 'utf8');
+    const sql6 = fs.readFileSync(schema6Path, 'utf8');
+    const taTables = [
+      'trade_assurance_claims',
+      'customs_declaration_manifests',
+      'factory_quality_audits'
+    ];
+    for (const tt of taTables) {
+      if (!sql5.includes(tt)) {
+        throw new Error(`Missing table: ${tt} in 005_b2b_trade_assurance_and_customs.sql`);
+      }
+      if (!sql6.includes(`ALTER TABLE ${tt} ENABLE ROW LEVEL SECURITY;`)) {
+        throw new Error(`Missing RLS policy on: ${tt} in 006_trade_assurance_customs_rls.sql`);
+      }
+    }
+    console.log(`  ✓ Trade Assurance, Customs & Factory Audits RLS verified: ${taTables.length} tables.`);
+  }
+
   console.log('[SCHEMA VERIFICATION] ALL POSTGRESQL 17+ SCHEMA INVARIANTS PASSED (100% OK).\n');
 }
 

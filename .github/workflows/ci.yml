@@ -16,8 +16,8 @@ jobs:
 
       - name: Verify Zero-Mock Policy
         run: |
-          echo "Scanning for mockCatalog occurrences..."
-          if git grep -i "mockCatalog"; then
+          echo "Scanning for mockCatalog occurrences in source code..."
+          if git grep -i "mockCatalog" -- ':!.github'; then
             echo "ERROR: Mock catalog files or references detected! Zero-Mock violation."
             exit 1
           fi
