@@ -99,7 +99,7 @@ const categories = [
 .sidebar-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; margin-bottom: 16px; }
 .sidebar-head h3 { margin: 0; font-size: 15px; font-weight: 700; color: #1E293B; }
 .btn-reset { background: transparent; border: none; font-size: 12px; color: #64748B; cursor: pointer; text-decoration: underline; }
-.btn-reset:hover { color: #FF6600; }
+.btn-reset:hover { color: #D64000; }
 .filter-group { margin-bottom: 24px; }
 .group-title { font-size: 13px; font-weight: 700; color: #334155; margin: 0 0 10px 0; }
 .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; margin-bottom: 8px; cursor: pointer; }
@@ -107,10 +107,10 @@ const categories = [
 .shield-badge { font-size: 12px; }
 .moq-pills { display: flex; gap: 6px; }
 .moq-pills button { flex: 1; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 0; font-size: 12px; color: #475569; cursor: pointer; }
-.moq-pills button.active { background: #FF6600; color: #FFFFFF; border-color: #FF6600; font-weight: 700; }
+.moq-pills button.active { background: #D64000; color: #FFFFFF; border-color: #D64000; font-weight: 700; }
 .cat-radio-list { display: flex; flex-direction: column; gap: 8px; }
 .radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; }
-.radio-label:hover { color: #FF6600; }
+.radio-label:hover { color: #D64000; }
 .select-box { width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; color: #334155; outline: none; background: #FFF; }
 </style>
 

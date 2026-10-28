@@ -135,14 +135,34 @@ export function t(key: string, locale: SupportedLocale = 'ko'): string {
   return dict[key] || TRANSLATIONS.ko[key] || key;
 }
 
+export async function loadFxRates(): Promise<void> {
+  try {
+    // Dynamic import to avoid circular dependency with api.ts
+    const { apiRequest } = await import('../api');
+    const res: any = await apiRequest('/fx/rates');
+    const rates = res?.rates || res?.FX_RATES?.rates || res;
+    if (rates && typeof rates === 'object') {
+      for (const k of Object.keys(rates)) {
+        const v = Number(rates[k]);
+        if (!isNaN(v) && v > 0 && (k in FX_RATES)) {
+          (FX_RATES as any)[k] = v;
+        }
+      }
+    }
+  } catch {
+    // Keep static fallback rates
+  }
+}
 export function formatCurrency(
   usdAmount: number | string,
-  targetCurrency: SupportedCurrency = 'USD'
+  targetCurrency: SupportedCurrency = 'USD',
+  fxRates?: Partial<Record<SupportedCurrency, number>>
 ): string {
   const num = typeof usdAmount === 'string' ? parseFloat(usdAmount) : usdAmount;
   if (isNaN(num)) return '$0.00';
 
-  const rate = FX_RATES[targetCurrency] || 1.0;
+  const rates = fxRates || FX_RATES;
+  const rate = rates[targetCurrency] || FX_RATES[targetCurrency] || 1.0;
   const converted = num * rate;
 
   if (targetCurrency === 'KRW') {

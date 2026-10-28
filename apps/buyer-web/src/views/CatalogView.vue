@@ -254,7 +254,7 @@ onMounted(() => {
 .catalog-page { display: flex; flex-direction: column; gap: 24px; }
 .hero-banner { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 12px; padding: 32px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; gap: 32px; }
 .banner-content { max-width: 660px; }
-.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid #FF6600; color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
+.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid #D64000; color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
 .banner-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; line-height: 1.3; }
 .banner-desc { font-size: 14px; color: #CBD5E1; margin: 0 0 18px 0; }
 .banner-highlights { display: flex; gap: 16px; font-size: 12px; color: #38BDF8; font-weight: 600; }
@@ -267,7 +267,7 @@ onMounted(() => {
 .rfq-mini-form { display: flex; flex-direction: column; gap: 8px; }
 .rfq-mini-form input, .rfq-mini-form select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
 .qty-row { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
-.btn-quick-rfq { background: #FF6600; color: #FFF; border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
+.btn-quick-rfq { background: #D64000; color: #FFF; border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
 
 .active-query-bar { display: flex; justify-content: space-between; align-items: center; background: #FFF7ED; border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: #9A3412; }
 .btn-clear-q { background: #FFF; border: 1px solid #FB923C; color: #C2410C; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
@@ -276,7 +276,7 @@ onMounted(() => {
 .products-section { display: flex; flex-direction: column; gap: 16px; }
 .section-toolbar { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
 .toolbar-left h2 { margin: 0; font-size: 16px; font-weight: 800; color: #1E293B; }
-.toolbar-left .count { color: #FF6600; }
+.toolbar-left .count { color: #D64000; }
 .sub-hint { font-size: 12px; color: #64748B; }
 .toolbar-right { display: flex; align-items: center; gap: 8px; }
 .sort-label { font-size: 12px; color: #64748B; font-weight: 600; }

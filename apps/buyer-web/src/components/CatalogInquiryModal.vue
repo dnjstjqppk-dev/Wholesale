@@ -108,8 +108,8 @@ async function onSubmit() {
 .form-row { margin-bottom: 16px; }
 .form-row label { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; }
 .inquiry-input, .inquiry-textarea { width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 13px; outline: none; box-sizing: border-box; }
-.inquiry-input:focus, .inquiry-textarea:focus { border-color: #FF6600; }
+.inquiry-input:focus, .inquiry-textarea:focus { border-color: #D64000; }
 .form-actions { display: flex; gap: 12px; margin-top: 24px; }
-.btn-submit-inquiry { flex: 1; background: #FF6600; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn-submit-inquiry { flex: 1; background: #D64000; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
 .btn-cancel { padding: 12px 20px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; color: #475569; }
 </style>

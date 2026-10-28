@@ -180,7 +180,7 @@ function onTierChanged(idx: number) {
   text-decoration: none;
 }
 .breadcrumb a:hover {
-  color: #EA580C;
+  color: #CC3D00;
 }
 .breadcrumb .sep {
   color: #CBD5E1;
@@ -222,7 +222,7 @@ function onTierChanged(idx: number) {
   text-decoration: none;
 }
 .sup-name:hover {
-  color: #EA580C;
+  color: #CC3D00;
 }
 .sup-years {
   color: #64748B;
@@ -294,7 +294,7 @@ function onTierChanged(idx: number) {
   position: relative;
 }
 .bracket-col.highlighted {
-  border-color: #EA580C;
+  border-color: #CC3D00;
   background: #FFF7ED;
 }
 .bracket-qty {
@@ -309,13 +309,13 @@ function onTierChanged(idx: number) {
   font-variant-numeric: tabular-nums;
 }
 .bracket-col.highlighted .bracket-price {
-  color: #EA580C;
+  color: #CC3D00;
 }
 .active-badge {
   position: absolute;
   top: -10px;
   right: 12px;
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   font-size: 10px;
   font-weight: 800;
@@ -352,7 +352,7 @@ function onTierChanged(idx: number) {
   font-size: 13px;
 }
 .btn-back:hover {
-  background: #EA580C;
+  background: #CC3D00;
 }
 
 /* Mobile & Tablet Responsive Layout */

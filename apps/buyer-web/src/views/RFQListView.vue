@@ -304,7 +304,7 @@ onMounted(() => {
 }
 
 .btn-post-rfq {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   padding: 10px 20px;
   border-radius: 6px;
@@ -474,7 +474,7 @@ onMounted(() => {
 
 .quote-count {
   font-size: 12px;
-  color: #ff6600;
+  color: #d64000;
   font-weight: 600;
 }
 

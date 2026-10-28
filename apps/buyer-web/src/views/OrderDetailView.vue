@@ -628,7 +628,7 @@ onMounted(() => {
 }
 
 .breadcrumb a {
-  color: #ff6600;
+  color: #d64000;
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
@@ -703,7 +703,7 @@ onMounted(() => {
 }
 
 .badge-ta {
-  background: #ea580c;
+  background: #cc3d00;
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -724,7 +724,7 @@ onMounted(() => {
 .total-amount {
   font-size: 26px;
   font-weight: 800;
-  color: #ff6600;
+  color: #d64000;
 }
 
 .timeline-card {
@@ -765,7 +765,7 @@ onMounted(() => {
 
 .timeline-step.current {
   background: #fff7ed;
-  border-color: #ff6600;
+  border-color: #d64000;
 }
 
 .step-num {
@@ -787,7 +787,7 @@ onMounted(() => {
 }
 
 .timeline-step.current .step-num {
-  background: #ff6600;
+  background: #d64000;
 }
 
 .step-info {
@@ -904,7 +904,7 @@ onMounted(() => {
 }
 
 .actions-console {
-  border-top: 4px solid #ff6600;
+  border-top: 4px solid #d64000;
 }
 
 .action-block {
@@ -934,7 +934,7 @@ onMounted(() => {
 }
 
 .btn-full.primary {
-  background: #ff6600;
+  background: #d64000;
   color: white;
 }
 
@@ -985,7 +985,7 @@ onMounted(() => {
 }
 
 .tracking-event.active .event-dot {
-  background: #ff6600;
+  background: #d64000;
   box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
 }
 

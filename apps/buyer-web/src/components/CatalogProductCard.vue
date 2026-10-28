@@ -131,7 +131,7 @@ async function addToCart(item: any) {
 }
 .b2b-product-card:hover {
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
-  border-color: #FF6600;
+  border-color: #D64000;
 }
 .card-thumb {
   height: 180px;
@@ -175,7 +175,7 @@ async function addToCart(item: any) {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   font-size: 10px;
   font-weight: 800;
@@ -230,7 +230,7 @@ async function addToCart(item: any) {
   height: 38px;
 }
 .product-title:hover {
-  color: #FF6600;
+  color: #D64000;
 }
 .tier-matrix-table {
   background: #F8FAFC;
@@ -257,7 +257,7 @@ async function addToCart(item: any) {
 }
 .tier-val {
   font-weight: 700;
-  color: #EA580C;
+  color: #CC3D00;
 }
 .product-meta {
   display: flex;
@@ -294,7 +294,7 @@ async function addToCart(item: any) {
 .btn-cart {
   background: #FFF7ED;
   border: 1px solid #FDBA74;
-  color: #EA580C;
+  color: #CC3D00;
 }
 .btn-start-order {
   background: #FF6A00;

@@ -641,9 +641,9 @@ onMounted(() => {
 }
 
 .btn-switch.active {
-  background: #ff6600;
+  background: #d64000;
   color: white;
-  border-color: #ff6600;
+  border-color: #d64000;
   font-weight: 600;
 }
 
@@ -770,7 +770,7 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   border: none;
   padding: 8px 16px;
@@ -881,7 +881,7 @@ onMounted(() => {
 }
 
 .address-card.is-default {
-  border-color: #ff6600;
+  border-color: #d64000;
   background: #fffbf7;
 }
 

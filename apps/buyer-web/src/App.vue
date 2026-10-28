@@ -206,7 +206,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import MegaFlyoutNav from './components/MegaFlyoutNav.vue';
 import ImageSearchModal from './components/ImageSearchModal.vue';
-import { t, SupportedLocale, SupportedCurrency } from './i18n';
+import { t, SupportedLocale, SupportedCurrency, loadFxRates } from './i18n';
 import { getCurrentUser } from './api';
 
 const router = useRouter();
@@ -243,6 +243,8 @@ onMounted(() => {
   window.addEventListener('auth-changed', () => {
     currentUser.value = getCurrentUser();
   });
+  // Load real-time FX rates from API (falls back to static rates on failure)
+  loadFxRates();
 });
 
 function handleSearch() {
@@ -286,23 +288,23 @@ function applyImageSearch(query: string) {
 .mini-select { background: transparent; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px; padding: 2px 6px; color: #334155; }
 .divider { color: #CBD5E1; }
 .util-link { color: #64748B; text-decoration: none; font-weight: 500; cursor: pointer; }
-.partner-link { color: #EA580C; font-weight: 600; }
+.partner-link { color: #CC3D00; font-weight: 600; }
 .admin-link { color: #2563EB; font-weight: 600; }
 
 .app-header { background-color: #FFFFFF; border-bottom: 1px solid #E5E7EB; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
 .header-container { max-width: 1360px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
 .brand-section { display: flex; align-items: center; gap: 12px; }
 .brand-logo { font-size: 26px; font-weight: 900; text-decoration: none; letter-spacing: -0.5px; }
-.logo-accent { color: #FF6600; }
+.logo-accent { color: #D64000; }
 .logo-sub { color: #1F2937; font-size: 18px; }
 .assurance-tag { display: flex; align-items: center; gap: 4px; background: #FFF7ED; border: 1px solid #FDBA74; color: #C2410C; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 
-.search-bar-wrapper { flex: 1; max-width: 640px; display: flex; align-items: center; border: 2px solid #FF6600; border-radius: 24px; overflow: hidden; background: #FFF; }
+.search-bar-wrapper { flex: 1; max-width: 640px; display: flex; align-items: center; border: 2px solid #D64000; border-radius: 24px; overflow: hidden; background: #FFF; }
 .search-type-select select { background: #F8FAFC; border: none; border-right: 1px solid #E2E8F0; padding: 10px 14px; font-size: 13px; font-weight: 600; color: #334155; outline: none; cursor: pointer; }
 .search-bar-wrapper input { flex: 1; border: none; padding: 10px 14px; font-size: 14px; outline: none; }
 .camera-btn { background: transparent; border: none; font-size: 16px; padding: 0 10px; cursor: pointer; opacity: 0.7; }
 .camera-btn:hover { opacity: 1; }
-.search-submit-btn { background: #FF6600; color: #FFF; border: none; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
+.search-submit-btn { background: #D64000; color: #FFF; border: none; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
 .search-submit-btn:hover { background: #E65C00; }
 
 .header-actions { display: flex; align-items: center; gap: 16px; }
@@ -382,7 +384,7 @@ function applyImageSearch(query: string) {
   color: #1e293b;
 }
 .brand-orange {
-  color: #ff6600;
+  color: #d64000;
 }
 .drawer-close {
   background: transparent;
@@ -441,10 +443,10 @@ function applyImageSearch(query: string) {
 .drawer-link.router-link-active {
   background: #fff7ed;
   color: #c2410c;
-  border-left-color: #ff6600;
+  border-left-color: #d64000;
 }
 .drawer-link.highlight {
-  color: #ea580c;
+  color: #cc3d00;
   font-weight: 700;
 }
 
@@ -461,7 +463,7 @@ function applyImageSearch(query: string) {
   text-decoration: none;
   font-weight: 600;
 }
-.drawer-ext-link.partner { color: #ea580c; }
+.drawer-ext-link.partner { color: #cc3d00; }
 .drawer-ext-link.admin { color: #2563eb; }
 
 /* Responsive Media Queries */

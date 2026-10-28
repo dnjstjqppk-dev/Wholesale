@@ -272,7 +272,7 @@ onMounted(() => {
 
 .btn-save {
   padding: 8px 18px;
-  background: #ff6600;
+  background: #d64000;
   color: white;
   border: none;
   border-radius: 6px;

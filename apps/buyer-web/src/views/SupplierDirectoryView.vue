@@ -363,7 +363,7 @@ onMounted(async () => {
 }
 
 .btn-search {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -507,9 +507,9 @@ onMounted(async () => {
 }
 
 .btn-icon.active {
-  background: #ff6600;
+  background: #d64000;
   color: white;
-  border-color: #ff6600;
+  border-color: #d64000;
 }
 
 .supplier-grid {
@@ -558,7 +558,7 @@ onMounted(async () => {
 }
 
 .badge-ta {
-  background: #ea580c;
+  background: #cc3d00;
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -585,7 +585,7 @@ onMounted(async () => {
 }
 
 .company-name a:hover {
-  color: #ff6600;
+  color: #d64000;
 }
 
 .company-slogan {
@@ -684,7 +684,7 @@ onMounted(async () => {
   flex: 1;
   text-align: center;
   padding: 8px;
-  background: #ff6600;
+  background: #d64000;
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;

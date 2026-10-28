@@ -268,7 +268,7 @@ function proceedToCheckout() {
 }
 .badge-ta {
   background: #FFF7ED;
-  color: #EA580C;
+  color: #CC3D00;
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -310,7 +310,7 @@ function proceedToCheckout() {
   color: #475569;
 }
 .tier-hint strong {
-  color: #EA580C;
+  color: #CC3D00;
 }
 
 .qty-controls {
@@ -409,10 +409,10 @@ function proceedToCheckout() {
   background: #FFF7ED;
   padding: 8px 10px;
   border-radius: 6px;
-  border-left: 3px solid #EA580C;
+  border-left: 3px solid #CC3D00;
 }
 .summary-row .orange {
-  color: #EA580C;
+  color: #CC3D00;
   font-weight: 800;
 }
 .trade-assurance-banner {

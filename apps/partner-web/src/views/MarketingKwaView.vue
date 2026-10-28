@@ -271,7 +271,7 @@ onMounted(() => {
 }
 
 .btn-create-campaign {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   padding: 10px 20px;
   border-radius: 6px;
@@ -503,7 +503,7 @@ onMounted(() => {
 }
 
 .btn-submit {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   border: none;
   padding: 8px 16px;

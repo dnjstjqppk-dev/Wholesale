@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'views/home_view.dart';
 import 'views/catalog_view.dart';
 import 'views/rfq_view.dart';
 import 'views/order_view.dart';
@@ -19,14 +20,14 @@ class WholesaleApp extends StatelessWidget {
       title: 'Wholesale B2B',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF6F8FB),
-        primaryColor: const Color(0xFF173A5E),
+        primaryColor: const Color(0xFFD64000),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF173A5E),
-          primary: const Color(0xFF173A5E),
-          secondary: const Color(0xFFC2410C),
+          seedColor: const Color(0xFFD64000),
+          primary: const Color(0xFFD64000),
+          secondary: const Color(0xFF1A73E8),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF173A5E),
+          backgroundColor: Color(0xFFD64000),
           foregroundColor: Colors.white,
           elevation: 0,
         ),
@@ -50,6 +51,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     final buyerTabs = [
+      const HomeScreen(),
       const BuyerCatalogScreen(),
       const BuyerRFQScreen(),
       const OrdersScreen(isSupplier: false),
@@ -100,6 +102,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
                 BottomNavigationBarItem(icon: Icon(Icons.person), label: '설정'),
               ]
             : const [
+                BottomNavigationBarItem(icon: Icon(Icons.home), label: '홈'),
                 BottomNavigationBarItem(icon: Icon(Icons.search), label: '상품 탐색'),
                 BottomNavigationBarItem(icon: Icon(Icons.request_quote), label: '내 RFQ'),
                 BottomNavigationBarItem(icon: Icon(Icons.shopping_bag), label: '발주 관리'),

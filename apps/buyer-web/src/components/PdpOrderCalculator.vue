@@ -413,7 +413,7 @@ onMounted(() => {
 }
 .total-price {
   font-size: 18px;
-  color: #EA580C;
+  color: #CC3D00;
 }
 
 /* Landed Cost Widget */
@@ -495,7 +495,7 @@ onMounted(() => {
 .btn-add-cart {
   background: #FFF7ED;
   border: 1px solid #FED7AA;
-  color: #EA580C;
+  color: #CC3D00;
   padding: 12px;
   border-radius: 6px;
   font-size: 13px;
@@ -503,7 +503,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-start-trade-order {
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   border: none;
   padding: 12px;

@@ -293,7 +293,7 @@ onMounted(() => {
 }
 .showcase-card:hover {
   transform: translateY(-2px);
-  border-color: #EA580C;
+  border-color: #CC3D00;
 }
 .thumb-wrap {
   height: 160px;
@@ -319,7 +319,7 @@ onMounted(() => {
 .card-desc .price {
   font-size: 15px;
   font-weight: 800;
-  color: #EA580C;
+  color: #CC3D00;
 }
 .card-desc .moq {
   font-size: 10px;

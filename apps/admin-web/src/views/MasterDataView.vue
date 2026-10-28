@@ -510,8 +510,8 @@ onMounted(() => {
 }
 
 .tab-btn.active {
-  color: #ff6600;
-  border-bottom-color: #ff6600;
+  color: #d64000;
+  border-bottom-color: #d64000;
 }
 
 .panel-head {
@@ -528,7 +528,7 @@ onMounted(() => {
 }
 
 .btn-primary {
-  background: #ff6600;
+  background: #d64000;
   color: white;
   border: none;
   padding: 8px 16px;

@@ -515,7 +515,7 @@ onMounted(() => {
   font-weight: bold;
 }
 .cat-item:hover .cat-link {
-  color: #EA580C;
+  color: #CC3D00;
 }
 
 /* Hero Banner */
@@ -533,7 +533,7 @@ onMounted(() => {
   display: inline-block;
   background: rgba(234, 88, 12, 0.2);
   color: #FB923C;
-  border: 1px solid #EA580C;
+  border: 1px solid #CC3D00;
   padding: 4px 12px;
   border-radius: 9999px;
   font-size: 12px;
@@ -671,7 +671,7 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 .badge-fast {
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   font-size: 10px;
   font-weight: 700;
@@ -707,7 +707,7 @@ onMounted(() => {
   gap: 8px;
 }
 .btn-fast-rfq {
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   border: none;
   padding: 10px;
@@ -756,7 +756,7 @@ onMounted(() => {
   margin: 4px 0 0;
 }
 .more-link {
-  color: #EA580C;
+  color: #CC3D00;
   font-weight: 700;
   font-size: 13px;
   text-decoration: none;
@@ -779,7 +779,7 @@ onMounted(() => {
 .product-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-  border-color: #EA580C;
+  border-color: #CC3D00;
 }
 .card-media {
   position: relative;
@@ -808,7 +808,7 @@ onMounted(() => {
   z-index: 2;
 }
 .rank-1 { background: #DC2626; }
-.rank-2 { background: #EA580C; }
+.rank-2 { background: #CC3D00; }
 .rank-3 { background: #F59E0B; }
 .ta-badge {
   position: absolute;
@@ -844,7 +844,7 @@ onMounted(() => {
 .price-tier-row .price {
   font-size: 15px;
   font-weight: 800;
-  color: #EA580C;
+  color: #CC3D00;
 }
 .price-tier-row .unit {
   font-size: 11px;
@@ -919,7 +919,7 @@ onMounted(() => {
 }
 .btn-sm {
   font-size: 12px;
-  color: #EA580C;
+  color: #CC3D00;
   text-decoration: none;
   font-weight: 700;
 }
@@ -956,7 +956,7 @@ onMounted(() => {
 .mini-price {
   font-size: 12px;
   font-weight: 700;
-  color: #EA580C;
+  color: #CC3D00;
   margin-top: 2px;
 }
 .mini-moq {
@@ -1034,7 +1034,7 @@ onMounted(() => {
 }
 .btn-inquiry {
   background: #FFF7ED;
-  color: #EA580C;
+  color: #CC3D00;
   border: 1px solid #FED7AA;
   padding: 8px 16px;
   border-radius: 6px;
@@ -1056,7 +1056,7 @@ onMounted(() => {
   flex-direction: column;
 }
 .sup-p-card:hover {
-  border-color: #EA580C;
+  border-color: #CC3D00;
 }
 .sup-p-card img {
   width: 100%;
@@ -1073,7 +1073,7 @@ onMounted(() => {
 }
 .sup-p-card .p-price {
   font-size: 12px;
-  color: #EA580C;
+  color: #CC3D00;
   padding: 0 6px 6px;
 }
 
@@ -1097,9 +1097,9 @@ onMounted(() => {
   gap: 6px;
 }
 .cat-tab-btn.active {
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
-  border-color: #EA580C;
+  border-color: #CC3D00;
 }
 .shelf-product-grid {
   display: grid;

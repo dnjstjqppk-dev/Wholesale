@@ -322,7 +322,7 @@ function openDocument(docType: string) {
 .total-price {
   font-size: 18px;
   font-weight: 800;
-  color: #EA580C;
+  color: #CC3D00;
 }
 
 .state-badges {
@@ -392,7 +392,7 @@ function openDocument(docType: string) {
 }
 .btn-action.approve { background: #3B82F6; color: #FFF; }
 .btn-action.contract { background: #0F172A; color: #FFF; }
-.btn-action.pay { background: #EA580C; color: #FFF; }
+.btn-action.pay { background: #CC3D00; color: #FFF; }
 .btn-action.pay-balance { background: #16A34A; color: #FFF; }
 .btn-action.inspect { background: #0284C7; color: #FFF; }
 .btn-action.confirm-delivery { background: #059669; color: #FFF; }

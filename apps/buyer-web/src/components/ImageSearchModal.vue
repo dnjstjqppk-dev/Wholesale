@@ -150,7 +150,7 @@ function onApply() {
 .close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #64748B; }
 .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
 .drop-zone { display: block; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 24px 20px; text-align: center; cursor: pointer; background: #F8FAFC; transition: border-color 0.2s; }
-.drop-zone:hover { border-color: #FF6600; background: #FFF7ED; }
+.drop-zone:hover { border-color: #D64000; background: #FFF7ED; }
 .hidden-file-input { display: none; }
 .preview-img { max-height: 140px; border-radius: 6px; margin-bottom: 8px; object-fit: contain; }
 .upload-icon { font-size: 32px; display: block; margin-bottom: 8px; }
@@ -165,9 +165,9 @@ function onApply() {
 .success-msg { color: #166534; font-size: 13px; margin: 0 0 10px 0; }
 .matched-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
 .matched-item { display: flex; align-items: center; gap: 8px; background: #FFF; padding: 8px; border-radius: 6px; border: 1px solid #DCFCE7; cursor: pointer; }
-.matched-item:hover { border-color: #FF6600; }
+.matched-item:hover { border-color: #D64000; }
 .matched-thumb { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
 .m-title { font-size: 12px; font-weight: 700; color: #0F172A; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
 .m-meta { font-size: 11px; color: #475569; }
-.btn-search-sim { width: 100%; background: #FF6600; color: #FFF; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.btn-search-sim { width: 100%; background: #D64000; color: #FFF; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 </style>

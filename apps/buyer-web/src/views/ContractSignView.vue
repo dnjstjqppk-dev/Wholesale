@@ -186,7 +186,7 @@ async function handleSignBuyer() {
 .card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 10px; padding: 32px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
 .contract-header { border-bottom: 2px solid #172B4D; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
 .contract-header h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.sub-order { font-size: 12px; color: #EA580C; font-weight: 700; }
+.sub-order { font-size: 12px; color: #CC3D00; font-weight: 700; }
 .contract-no { font-size: 13px; color: #334155; font-weight: 700; background: #F1F5F9; padding: 6px 12px; border-radius: 6px; }
 .section { margin-bottom: 24px; font-size: 14px; }
 .section h4 { margin: 0 0 8px 0; font-size: 14px; color: #172B4D; }
@@ -203,7 +203,7 @@ async function handleSignBuyer() {
 .signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid #E2E8F0; padding-top: 24px; margin-top: 24px; }
 .sig-box { background: #F8FAFC; border: 1px solid #D8E0EB; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .signed-ok { color: #15803D; font-size: 13px; }
-.btn-sign { background: #EA580C; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
+.btn-sign { background: #CC3D00; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
 
 @media (max-width: 640px) {
   .card { padding: 16px; }

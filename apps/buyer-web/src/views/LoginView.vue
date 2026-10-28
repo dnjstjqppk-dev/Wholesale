@@ -148,14 +148,14 @@ async function handleRegister() {
 .auth-card { background: #FFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
 .auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; background: #F1F5F9; padding: 4px; border-radius: 8px; }
 .auth-tabs button { border: none; background: transparent; padding: 10px; font-weight: 700; font-size: 13px; color: #64748B; border-radius: 6px; cursor: pointer; }
-.auth-tabs button.active { background: #FFF; color: #FF6600; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.auth-tabs button.active { background: #FFF; color: #D64000; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 
 .quick-switch-box { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
 .quick-switch-box h4 { margin: 0 0 4px 0; font-size: 13px; color: #C2410C; }
 .quick-switch-box p { margin: 0 0 10px 0; font-size: 11px; color: #9A3412; }
 .role-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .btn-role { background: #FFF; border: 1px solid #FB923C; color: #C2410C; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.btn-role.approver { background: #EA580C; color: #FFF; border-color: #EA580C; }
+.btn-role.approver { background: #CC3D00; color: #FFF; border-color: #CC3D00; }
 
 .auth-form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
@@ -163,6 +163,6 @@ async function handleRegister() {
 .field label { font-size: 12px; font-weight: 700; color: #334155; }
 .field input, .field select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 13px; }
 .err-msg { color: #DC2626; font-size: 12px; margin: 0; font-weight: 600; }
-.btn-submit { background: #FF6600; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; }
+.btn-submit { background: #D64000; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; }
 </style>
 

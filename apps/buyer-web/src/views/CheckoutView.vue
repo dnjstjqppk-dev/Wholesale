@@ -332,7 +332,7 @@ async function generateContract() {
 .step-num {
   width: 24px;
   height: 24px;
-  background: #EA580C;
+  background: #CC3D00;
   color: #FFF;
   border-radius: 50%;
   display: flex;
@@ -407,7 +407,7 @@ async function generateContract() {
   color: #1E293B;
 }
 .schedule-table .amount.orange {
-  color: #EA580C;
+  color: #CC3D00;
 }
 
 /* Sidebar Confirmation Card */
@@ -490,7 +490,7 @@ async function generateContract() {
   font-weight: 700;
 }
 .val-dp {
-  color: #EA580C;
+  color: #CC3D00;
   font-size: 15px;
   font-weight: 800;
 }

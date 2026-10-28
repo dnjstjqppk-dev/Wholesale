@@ -46,6 +46,27 @@ jobs:
           path: dist/
           retention-days: 1
 
+  verify-mobile:
+    name: Verify Flutter Mobile App
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: stable
+
+      - name: Flutter Analyze
+        working-directory: apps/mobile
+        run: flutter analyze --no-fatal-infos
+
+      - name: Flutter Test
+        working-directory: apps/mobile
+        run: flutter test
+        continue-on-error: true
   deploy-cloudflare:
     name: Deploy to Cloudflare Workers & Assets
     needs: verify-and-build

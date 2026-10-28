@@ -44,19 +44,19 @@
       <div class="fac-grid">
         <div class="fac-item">
           <span class="k">공장 부지 면적:</span>
-          <span class="v">15,000 m² (제조 1~3 공장)</span>
+          <span class="v">{{ product?.factory_floor_area || '15,000 m²' }} (제조 1~3 공장)</span>
         </div>
         <div class="fac-item">
           <span class="k">생산 라인 수:</span>
-          <span class="v">8개 자동화 가공 라인</span>
+          <span class="v">{{ product?.production_lines || '8개' }} 자동화 가공 라인</span>
         </div>
         <div class="fac-item">
           <span class="k">품질 검수원 (QC):</span>
-          <span class="v">14명 상주 (ISO 9001:2015)</span>
+          <span class="v">{{ product?.qc_headcount || '14명' }} 상주 (ISO 9001:2015)</span>
         </div>
         <div class="fac-item">
           <span class="k">연간 수출 실적:</span>
-          <span class="v">USD $12,500,000+</span>
+          <span class="v">USD ${{ product?.annual_export_volume || '12,500,000+' }}</span>
         </div>
         <div class="fac-item">
           <span class="k">인콰이어리 응답률:</span>
@@ -288,7 +288,7 @@ const currentImage = computed(() => {
   background: #FFF;
 }
 .thumb-box.active {
-  border-color: #EA580C;
+  border-color: #CC3D00;
 }
 .thumb-img {
   width: 100%;
@@ -357,7 +357,7 @@ const currentImage = computed(() => {
   padding-top: 12px;
 }
 .btn-visit-storefront {
-  color: #EA580C;
+  color: #CC3D00;
   font-weight: 700;
   font-size: 12px;
   text-decoration: none;
