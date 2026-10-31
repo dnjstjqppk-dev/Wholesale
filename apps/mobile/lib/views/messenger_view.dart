@@ -172,7 +172,53 @@ class _MessengerScreenState extends State<MessengerScreen> {
                                 ),
                               ),
                             ] else ...[
-                              Text(msg['content']?.toString() ?? '', style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A))),
+                              Text(
+                                msg['translated_text']?.toString() ?? msg['content']?.toString() ?? '',
+                                style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                              ),
+                              const SizedBox(height: 4),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  InkWell(
+                                    onTap: () async {
+                                      if (msg['translated_text'] != null) {
+                                        setSheetState(() {
+                                          msg.remove('translated_text');
+                                        });
+                                        return;
+                                      }
+                                      try {
+                                        final res = await _apiClient.post('/inquiries/translate', {
+                                          'text': msg['content'] ?? '',
+                                          'target_lang': 'ko',
+                                        });
+                                        if (res != null && res['translated_text'] != null) {
+                                          setSheetState(() {
+                                            msg['translated_text'] = res['translated_text'];
+                                          });
+                                        }
+                                      } catch (_) {}
+                                    },
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFF1F5F9),
+                                        borderRadius: BorderRadius.circular(4),
+                                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                                      ),
+                                      child: Text(
+                                        msg['translated_text'] != null ? '🌐 원본 보기' : '🌐 AI 번역',
+                                        style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ),
+                                  if (msg['translated_text'] != null) ...[
+                                    const SizedBox(width: 4),
+                                    const Text('✓ AI 번역됨', style: TextStyle(fontSize: 9, color: Color(0xFF15803D), fontWeight: FontWeight.bold)),
+                                  ],
+                                ],
+                              ),
                             ],
                           ],
                         ),

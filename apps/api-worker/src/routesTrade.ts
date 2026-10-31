@@ -466,50 +466,155 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
     return jsonResponse(newSample, 201);
   }
 
-  // POST /v1/logistics/quote (Freight & Landed Cost Calculation)
+  // POST /v1/logistics/quote (Incoterms & CBM / Weight Freight & Landed Cost Engine)
   if (url.pathname === '/v1/logistics/quote' && request.method === 'POST') {
     const body = (await request.json().catch(() => ({}))) as any;
     const destCountry = body.destination_country || 'US';
+    const incoterms = (body.incoterms || 'FOB').toUpperCase(); // EXW, FOB, CIF, CFR, DDP, DAP
     const method = body.shipping_method || 'SEA_FCL'; // SEA_FCL, SEA_LCL, AIR, EXPRESS
-    const qty = parseInt(body.quantity || 1000, 10);
+    const qty = Math.max(1, parseInt(body.quantity || 1000, 10));
     const unitPrice = parseFloat(body.unit_price || 4.20);
-    const goodsValue = qty * unitPrice;
+    const goodsValue = Number((qty * unitPrice).toFixed(2));
 
-    let freightUsd = 0;
+    // Volume & Weight Calculation
+    const unitCbm = parseFloat(body.unit_cbm || 0.005); // default 0.005 CBM/pc
+    const unitWeightKg = parseFloat(body.unit_weight_kg || 0.45); // default 0.45 kg/pc
+    const totalCbm = Number((body.cbm ? parseFloat(body.cbm) : (qty * unitCbm)).toFixed(3));
+    const totalGrossWeightKg = Number((body.gross_weight_kg ? parseFloat(body.gross_weight_kg) : (qty * unitWeightKg)).toFixed(1));
+
+    // Volumetric Chargeable Weight (Air: 1 CBM = 167 kg, Sea LCL: 1 CBM = 1000 kg W/M)
+    const airChargeableWeightKg = Math.max(totalGrossWeightKg, totalCbm * 167);
+    const seaChargeableCbm = Math.max(totalCbm, totalGrossWeightKg / 1000);
+
+    let baseFreightUsd = 0;
     let days = 14;
+    let originInlandUsd = 0;
+    let destinationInlandUsd = 0;
+    let portThcUsd = 0;
+
+    // 1. Inland & Handling based on Incoterms
+    if (incoterms === 'EXW') {
+      originInlandUsd = Math.max(120, totalCbm * 35);
+      portThcUsd = 95.0;
+      destinationInlandUsd = Math.max(150, totalCbm * 45);
+    } else if (incoterms === 'FOB' || incoterms === 'CFR' || incoterms === 'CIF') {
+      originInlandUsd = 0; // Seller responsibility under FOB/CFR/CIF
+      portThcUsd = method.startsWith('SEA') ? 95.0 : 45.0;
+      destinationInlandUsd = Math.max(150, totalCbm * 45);
+    } else if (incoterms === 'DDP') {
+      originInlandUsd = 0;
+      portThcUsd = 0;
+      destinationInlandUsd = 0;
+    } else if (incoterms === 'DAP') {
+      originInlandUsd = 0;
+      portThcUsd = 0;
+      destinationInlandUsd = 0;
+    }
+
+    // 2. International Freight
     if (method === 'SEA_FCL') {
-      freightUsd = 1850.0;
-      days = 21;
+      const containerCount = Math.max(1, Math.ceil(totalCbm / 28));
+      baseFreightUsd = containerCount * (destCountry === 'US' ? 1850.0 : 1650.0);
+      days = destCountry === 'US' ? 18 : 24;
     } else if (method === 'SEA_LCL') {
-      freightUsd = Math.max(350, qty * 0.45);
-      days = 25;
+      baseFreightUsd = Math.max(250, Number((seaChargeableCbm * (destCountry === 'US' ? 68.0 : 62.0)).toFixed(2)));
+      days = destCountry === 'US' ? 22 : 28;
     } else if (method === 'AIR') {
-      freightUsd = Math.max(450, qty * 1.80);
+      baseFreightUsd = Math.max(350, Number((airChargeableWeightKg * 4.80).toFixed(2)));
       days = 5;
     } else {
-      freightUsd = Math.max(120, qty * 2.50);
+      baseFreightUsd = Math.max(95, Number((airChargeableWeightKg * 8.50).toFixed(2)));
       days = 3;
     }
 
+    // 3. Insurance (ICC Clause A Marine Cargo All Risks)
     const insuranceUsd = Number((goodsValue * 0.003).toFixed(2));
-    const dutyRate = destCountry === 'US' ? 0.035 : 0.045;
-    const customsDutyUsd = Number(((goodsValue + freightUsd) * dutyRate).toFixed(2));
-    const totalLandedCost = Number((goodsValue + freightUsd + insuranceUsd + customsDutyUsd).toFixed(2));
+
+    // 4. Customs Duty & VAT based on Destination
+    const dutyRates: Record<string, number> = { US: 0.035, KR: 0.080, JP: 0.040, DE: 0.055, CN: 0.075 };
+    const vatRates: Record<string, number> = { US: 0.0, KR: 0.10, JP: 0.10, DE: 0.19, CN: 0.13 };
+    const dutyRate = dutyRates[destCountry] ?? 0.045;
+    const vatRate = vatRates[destCountry] ?? 0.0;
+
+    let customsDutyUsd = 0;
+    let vatTaxUsd = 0;
+    let freightBuyerBears = baseFreightUsd;
+
+    if (incoterms === 'DDP') {
+      freightBuyerBears = 0;
+      customsDutyUsd = 0;
+      vatTaxUsd = 0;
+    } else {
+      const cifValue = goodsValue + baseFreightUsd + insuranceUsd;
+      customsDutyUsd = Number((cifValue * dutyRate).toFixed(2));
+      vatTaxUsd = Number(((cifValue + customsDutyUsd) * vatRate).toFixed(2));
+    }
+
+    const totalLandedCost = Number((
+      goodsValue +
+      freightBuyerBears +
+      originInlandUsd +
+      portThcUsd +
+      insuranceUsd +
+      customsDutyUsd +
+      vatTaxUsd +
+      destinationInlandUsd
+    ).toFixed(2));
 
     return jsonResponse({
       destination_country: destCountry,
+      incoterms: incoterms,
       shipping_method: method,
       transit_days: days,
+      cargo_spec: {
+        total_cbm: totalCbm,
+        gross_weight_kg: totalGrossWeightKg,
+        chargeable_weight_kg: Number(airChargeableWeightKg.toFixed(1)),
+        is_fcl_recommended: totalCbm >= 15.0,
+      },
       cost_breakdown: {
         goods_subtotal: goodsValue.toFixed(2),
-        freight_estimate: freightUsd.toFixed(2),
+        incoterms_rule: incoterms,
+        origin_inland_freight: originInlandUsd.toFixed(2),
+        port_terminal_thc: portThcUsd.toFixed(2),
+        freight_estimate: freightBuyerBears.toFixed(2),
         marine_insurance: insuranceUsd.toFixed(2),
         customs_duty: customsDutyUsd.toFixed(2),
         duty_rate: `${(dutyRate * 100).toFixed(1)}%`,
+        import_vat: vatTaxUsd.toFixed(2),
+        vat_rate: `${(vatRate * 100).toFixed(1)}%`,
+        destination_inland_delivery: destinationInlandUsd.toFixed(2),
         total_landed_cost: totalLandedCost.toFixed(2),
         unit_landed_cost: (totalLandedCost / qty).toFixed(2),
         currency: 'USD',
       },
+    });
+  }
+
+  // GET /v1/logistics/tracking/:tracking_no (Milestone Container Tracking)
+  const trackingMatch = url.pathname.match(/^\/v1\/logistics\/tracking\/([^\/]+)$/);
+  if (trackingMatch && request.method === 'GET') {
+    const trackingNo = trackingMatch[1];
+    return jsonResponse({
+      tracking_no: trackingNo,
+      carrier: 'HMM Global Marine Logistics',
+      vessel_name: 'HMM NURI V.004E',
+      container_no: `HMMU${trackingNo.slice(0, 7).toUpperCase()}`,
+      bill_of_lading: `B/L-KRBUS-${trackingNo.slice(-6).toUpperCase()}`,
+      incoterms: 'FOB Busan',
+      status: 'AT_SEA',
+      origin_port: { name: 'Port of Busan, KR', code: 'KRPUS', departure_at: '2026-10-25T08:00:00Z' },
+      destination_port: { name: 'Port of Los Angeles, US', code: 'USLAX', estimated_arrival: '2026-11-12T14:00:00Z' },
+      gps_coordinates: { latitude: 33.7490, longitude: -140.2350, speed_knots: 19.4 },
+      milestones: [
+        { code: 'BOOKED', title: '선복 예약 확정 (Booking Confirmed)', time: '2026-10-22T04:30:00Z', completed: true },
+        { code: 'GATE_IN', title: '부산신항 터미널 컨테이너 반입 (Gate In)', time: '2026-10-24T11:15:00Z', completed: true },
+        { code: 'DEPARTED', title: '부산항 본선 선적 및 출항 (Vessel Departure)', time: '2026-10-25T08:00:00Z', completed: true },
+        { code: 'AT_SEA', title: '태평양 횡단 운항 중 (Trans-Pacific Transit)', time: new Date().toISOString(), completed: true },
+        { code: 'ARRIVED', title: 'LA 항만 도착 예정 (Estimated Discharge)', time: '2026-11-12T14:00:00Z', completed: false },
+        { code: 'CUSTOMS', title: '미국 세관 수입 통관 심사 (Customs Clearance)', time: '2026-11-13T10:00:00Z', completed: false },
+        { code: 'DELIVERED', title: '바이어 지정 보세창고 배송 완료 (Final Delivery)', time: '2026-11-15T16:00:00Z', completed: false },
+      ],
     });
   }
 

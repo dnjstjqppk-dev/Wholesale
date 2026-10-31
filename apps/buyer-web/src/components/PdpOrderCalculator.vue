@@ -135,6 +135,16 @@
       <div v-if="showLandedCost" class="widget-body">
         <div class="landed-form-grid">
           <div>
+            <label>무역 인도조건 (Incoterms)</label>
+            <select v-model="selectedIncoterms" @change="calculateLandedCost">
+              <option value="FOB">FOB (본선인도조건 - 부산항)</option>
+              <option value="CIF">CIF (운임보험료포함 - 도착항)</option>
+              <option value="DDP">DDP (관세지급인도 - 문앞배송)</option>
+              <option value="EXW">EXW (공장인도조건 - 제조사출고)</option>
+              <option value="CFR">CFR (운임포함인도 - 도착항)</option>
+            </select>
+          </div>
+          <div>
             <label>도착국가 (Destination)</label>
             <select v-model="shippingDestination" @change="calculateLandedCost">
               <option value="US">미국 (United States)</option>
@@ -155,20 +165,33 @@
         </div>
 
         <div v-if="landedCostData" class="landed-results">
+          <div class="cargo-specs-bar">
+            <span>📦 화물 용적: <strong>{{ landedCargoSpec?.total_cbm || '0.50' }} CBM</strong></span>
+            <span>⚖️ 총 중량: <strong>{{ landedCargoSpec?.gross_weight_kg || '45.0' }} kg</strong></span>
+            <span v-if="landedCargoSpec?.is_fcl_recommended" class="fcl-rec-pill">💡 FCL 컨테이너 추천</span>
+          </div>
           <div class="res-row">
-            <span>해상/항공 추정 운임:</span>
+            <span>해상/항공 추정 운임 ({{ selectedIncoterms }}):</span>
             <strong>{{ formatMoney(landedCostData.freight_estimate) }}</strong>
+          </div>
+          <div v-if="Number(landedCostData.origin_inland_freight) > 0" class="res-row">
+            <span>공장-선적항 내륙운임:</span>
+            <strong>{{ formatMoney(landedCostData.origin_inland_freight) }}</strong>
           </div>
           <div class="res-row">
             <span>적하보험료 (0.3%):</span>
             <strong>{{ formatMoney(landedCostData.marine_insurance) }}</strong>
           </div>
           <div class="res-row">
-            <span>예상 관세 ({{ landedCostData.duty_rate }}):</span>
+            <span>예상 수입관세 ({{ landedCostData.duty_rate }}):</span>
             <strong>{{ formatMoney(landedCostData.customs_duty) }}</strong>
           </div>
+          <div v-if="Number(landedCostData.import_vat) > 0" class="res-row">
+            <span>수입 부가세 ({{ landedCostData.vat_rate }}):</span>
+            <strong>{{ formatMoney(landedCostData.import_vat) }}</strong>
+          </div>
           <div class="res-row total-landed">
-            <span>개당 예상 착하원가:</span>
+            <span>개당 예상 착하원가 (Landed Cost):</span>
             <strong class="unit-landed">{{ formatMoney(landedCostData.unit_landed_cost) }} / {{ product?.unit }}</strong>
           </div>
         </div>
@@ -222,9 +245,11 @@ const addingCart = ref(false);
 const requestingSample = ref(false);
 
 const showLandedCost = ref(false);
+const selectedIncoterms = ref('FOB');
 const shippingDestination = ref('US');
 const shippingMethod = ref('SEA_LCL');
 const landedCostData = ref<any>(null);
+const landedCargoSpec = ref<any>(null);
 
 // Multi-SKU Variants Setup
 const productVariants = computed(() => {
@@ -376,11 +401,15 @@ async function calculateLandedCost() {
       body: JSON.stringify({
         destination_country: shippingDestination.value,
         shipping_method: shippingMethod.value,
+        incoterms: selectedIncoterms.value,
         quantity: effectiveOrderQty.value || 100,
         unit_price: activeUnitPrice.value,
+        unit_cbm: props.product?.unit_cbm || 0.005,
+        unit_weight_kg: props.product?.unit_weight_kg || 0.45,
       }),
     });
     landedCostData.value = res.cost_breakdown;
+    landedCargoSpec.value = res.cargo_spec;
   } catch (err) {
     console.warn('Landed cost calculation error:', err);
   }
@@ -427,6 +456,7 @@ function handleInstantOrder() {
       quantity: String(effectiveOrderQty.value),
       unit_price: activeUnitPrice.value,
       mode: orderMode.value,
+      incoterms: selectedIncoterms.value,
     },
   });
 }
@@ -840,5 +870,25 @@ onMounted(() => {
   font-size: 12px;
   font-weight: 700;
   cursor: pointer;
+}
+.cargo-specs-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #FFF7ED;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #FFEDD5;
+  font-size: 11px;
+  color: #9A3412;
+  margin-bottom: 8px;
+  align-items: center;
+}
+.fcl-rec-pill {
+  background: #DCFCE7;
+  color: #15803D;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
 }
 </style>

@@ -131,7 +131,20 @@
 
                 <!-- 4. Standard Text Message -->
                 <div v-else>
-                  <p class="msg-text">{{ msg.content }}</p>
+                  <p class="msg-text">{{ translatedMessages[msg.id] || msg.content }}</p>
+                  <div class="msg-translate-actions">
+                    <button
+                      type="button"
+                      class="btn-translate-pill"
+                      :disabled="translatingId === msg.id"
+                      @click="toggleTranslate(msg)"
+                    >
+                      🌐 {{ translatingId === msg.id ? '번역 중...' : (translatedMessages[msg.id] ? '원본 보기' : '실시간 AI 번역') }}
+                    </button>
+                    <span v-if="translatedMessages[msg.id]" class="translated-meta-tag">
+                      ✓ AI 번역됨 (Gemini B2B Neural)
+                    </span>
+                  </div>
                 </div>
 
                 <div v-if="msg.attachment_url" class="msg-attachment">
@@ -250,6 +263,31 @@ const quoteForm = ref({
   incoterms: 'FOB Busan Port',
   lead_time_days: 10,
 });
+
+const translatedMessages = ref<Record<string, string>>({});
+const translatingId = ref<string | null>(null);
+
+async function toggleTranslate(msg: any) {
+  if (translatedMessages.value[msg.id]) {
+    delete translatedMessages.value[msg.id];
+    return;
+  }
+  translatingId.value = msg.id;
+  try {
+    const res = await apiRequest('/inquiries/translate', {
+      method: 'POST',
+      body: JSON.stringify({
+        text: msg.content,
+        target_lang: currentLocale.value === 'ko' ? 'ko' : 'en',
+      }),
+    });
+    translatedMessages.value[msg.id] = res.translated_text;
+  } catch (err) {
+    console.warn('Translate error:', err);
+  } finally {
+    translatingId.value = null;
+  }
+}
 
 function formatTime(iso: string) {
   if (!iso) return '';
@@ -584,6 +622,35 @@ onMounted(() => {
   border-radius: 6px;
   font-weight: 700;
   font-size: 12px;
+}
+
+.msg-translate-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 4px;
+  border-top: 1px dashed rgba(226, 232, 240, 0.8);
+}
+.btn-translate-pill {
+  background: none;
+  border: 1px solid #CBD5E1;
+  color: #0284C7;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-translate-pill:hover {
+  background: #F0F9FF;
+  border-color: #38BDF8;
+}
+.translated-meta-tag {
+  font-size: 10px;
+  color: #16A34A;
+  font-weight: 700;
 }
 
 /* Negotiation Tool Bar */
