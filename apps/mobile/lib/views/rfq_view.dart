@@ -116,7 +116,7 @@ class _BuyerRFQScreenState extends State<BuyerRFQScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: destinationCountry,
+                value: destinationCountry,
                 decoration: const InputDecoration(
                   labelText: '도착지 국가 (Destination Country)',
                   border: OutlineInputBorder(),
@@ -323,7 +323,7 @@ class _SupplierRFQMarketScreenState extends State<SupplierRFQMarketScreen> {
               ),
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
-                initialValue: incoterms,
+                value: incoterms,
                 decoration: const InputDecoration(
                   labelText: '무역 인도 조건 (Incoterms® 2020)',
                   border: OutlineInputBorder(),

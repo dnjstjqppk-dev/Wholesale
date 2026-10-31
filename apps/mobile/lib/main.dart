@@ -76,7 +76,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
               Text(_isSupplierRole ? '공급사' : '구매사', style: const TextStyle(fontSize: 12)),
               Switch(
                 value: _isSupplierRole,
-                activeThumbColor: const Color(0xFFC2410C),
+                activeColor: const Color(0xFFC2410C),
                 onChanged: (val) => setState(() {
                   _isSupplierRole = val;
                   _currentIndex = 0;
