@@ -112,6 +112,162 @@ class _OrdersScreenState extends State<OrdersScreen> {
     );
   }
 
+  Future<void> _showEscrowPaymentDialog(Order order) async {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogCtx) {
+        return FutureBuilder<dynamic>(
+          future: _apiClient.get('/payments/virtual-account/${order.id}'),
+          builder: (ctx, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const AlertDialog(
+                content: SizedBox(
+                  height: 120,
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        CircularProgressIndicator(color: Color(0xFFC2410C)),
+                        SizedBox(height: 12),
+                        Text('에스크로 신탁 가상계좌 발급 조회 중...'),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
+
+            if (snapshot.hasError || snapshot.data == null) {
+              return AlertDialog(
+                title: const Text('가상계좌 조회 안내'),
+                content: Text('가상계좌 정보를 조회할 수 없습니다.\n(${snapshot.error ?? "API 미응답"})'),
+                actions: [
+                  TextButton(onPressed: () => Navigator.pop(dialogCtx), child: const Text('닫기')),
+                ],
+              );
+            }
+
+            final resData = snapshot.data as Map<String, dynamic>;
+            final va = (resData['virtual_account'] ?? {}) as Map<String, dynamic>;
+            final status = va['status']?.toString() ?? 'ISSUED';
+            final isPaid = status == 'PAID' || status == 'ESCROW_HELD';
+
+            return AlertDialog(
+              title: const Row(
+                children: [
+                  Icon(Icons.account_balance, color: Color(0xFFC2410C)),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'B2B 에스크로 안심 결제 센터',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEFF6FF),
+                        border: Border.all(color: const Color(0xFFBFDBFE)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                va['bank_name']?.toString() ?? '신한은행 B2B 무역 에스크로',
+                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Color(0xFF1E40AF)),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: isPaid ? const Color(0xFFDCFCE7) : const Color(0xFFFEF3C7),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  isPaid ? '입금/예치완료' : '입금대기',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                    color: isPaid ? const Color(0xFF15803D) : const Color(0xFFB45309),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          const Text('입금 전용 가상계좌번호:', style: TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                          SelectableText(
+                            va['account_number']?.toString() ?? '562-901-202610-8891',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, fontFamily: 'monospace', color: Color(0xFF0F172A)),
+                          ),
+                          const SizedBox(height: 4),
+                          Text('예금주: ${va['account_holder'] ?? "(주)홀세일 에스크로 신탁"}', style: const TextStyle(fontSize: 12)),
+                          Text('예치 금액: ₩${va['amount_krw']?.toString() ?? "5,600,000"} KRW (\$${va['amount_usd']?.toString() ?? "4,200"} USD)', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                          Text('만료 일시: ${va['expires_at'] ?? "2026-11-05 23:59:59"}', style: const TextStyle(fontSize: 11, color: Color(0xFF64748B))),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      '※ 입금 즉시 제3자 신탁 에스크로 계좌로 안전하게 보관되며, 선적 및 검수 확인 전까지 대금이 공급사에 정산되지 않습니다.',
+                      style: TextStyle(fontSize: 11, color: Color(0xFF64748B)),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogCtx),
+                  child: const Text('닫기'),
+                ),
+                if (!isPaid)
+                  ElevatedButton.icon(
+                    icon: const Icon(Icons.flash_on, size: 16),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      foregroundColor: Colors.white,
+                    ),
+                    label: const Text('실시간 입금 통보 (시뮬레이터)'),
+                    onPressed: () async {
+                      try {
+                        await _apiClient.post('/payments/virtual-account/${order.id}/simulate-deposit', {
+                          'amount_krw': va['amount_krw'] ?? 5600000,
+                        });
+                        if (dialogCtx.mounted) Navigator.pop(dialogCtx);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('[입금 확인] 에스크로 신탁 계좌로 입금이 정상 확인되었습니다.')),
+                          );
+                          _fetchOrders();
+                        }
+                      } catch (err) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('입금 처리 실패: $err')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showDisputeDialog(Order order) {
     final reasonController = TextEditingController(text: '규격 불일치 및 불량률 기준치 초과 (Defective Batch)');
     final claimController = TextEditingController(text: '1500');
@@ -295,6 +451,20 @@ class _OrdersScreenState extends State<OrdersScreen> {
             ),
             const SizedBox(height: 20),
             // Actions
+            ElevatedButton.icon(
+              icon: const Icon(Icons.account_balance, size: 18),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFC2410C),
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              label: const Text('🏛️ B2B 에스크로 가상계좌 결제 및 예치'),
+              onPressed: () {
+                Navigator.pop(ctx);
+                _showEscrowPaymentDialog(order);
+              },
+            ),
+            const SizedBox(height: 8),
             ElevatedButton.icon(
               icon: const Icon(Icons.verified, size: 18),
               style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0284C7), foregroundColor: Colors.white, padding: const EdgeInsets.symmetric(vertical: 12)),

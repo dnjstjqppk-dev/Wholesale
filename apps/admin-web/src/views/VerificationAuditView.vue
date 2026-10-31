@@ -26,6 +26,23 @@
           <span class="status-badge" :class="req.status.toLowerCase()">{{ req.status }}</span>
         </div>
 
+        <!-- Korean NTS (국세청) & Global D-U-N-S Status Bar -->
+        <div class="nts-badge-box">
+          <span class="nts-title">🏛️ 국세청(NTS) 법인실사 & D-U-N-S:</span>
+          <span v-if="req.nts_status" class="nts-status-tag" :class="req.nts_status.is_valid ? 'valid' : 'invalid'">
+            ✓ {{ req.nts_status.tax_status_kr }} ({{ req.nts_status.tax_type }})
+          </span>
+          <span v-else class="nts-status-tag unverified">
+            ⏳ 국세청 미조회 (검증 대기)
+          </span>
+          <span v-if="req.nts_status?.duns_number" class="duns-tag">
+            🌐 D-U-N-S®: {{ req.nts_status.duns_number }}
+          </span>
+          <button type="button" class="btn-nts-verify" :disabled="verifyingId === req.id" @click="verifyWithNTS(req)">
+            {{ verifyingId === req.id ? '검증 중...' : '🔍 실시간 국세청 MOD-10 검증' }}
+          </button>
+        </div>
+
         <div class="v-metrics">
           <span>🏭 공장 부지 면적: <strong>{{ req.facilities_sqm?.toLocaleString() }} m²</strong></span>
           <span>⚙️ 생산 라인 수: <strong>{{ req.production_lines }}개</strong></span>
@@ -80,6 +97,7 @@ import { apiRequest } from '../api';
 
 const loading = ref(true);
 const submitting = ref(false);
+const verifyingId = ref<string | null>(null);
 const error = ref('');
 const requests = ref<any[]>([]);
 const modalDoc = ref<{ title: string; url: string } | null>(null);
@@ -97,6 +115,21 @@ async function loadVerifications() {
   try {
     const res = await apiRequest('/admin/verifications');
     requests.value = res.verifications || [];
+
+    // Pre-check or lookup status for all requests
+    for (const req of requests.value) {
+      if (req.business_number) {
+        try {
+          const clean = req.business_number.replace(/\D/g, '');
+          const statusRes = await apiRequest(`/verification/status/${clean}`);
+          if (statusRes && statusRes.data) {
+            req.nts_status = statusRes.data;
+          }
+        } catch {
+          // If not pre-cached, it will remain unverified until user clicks
+        }
+      }
+    }
   } catch (err: any) {
     error.value = err.message || '심사 목록을 불러오는 중 오류가 발생했습니다.';
   } finally {
@@ -107,6 +140,25 @@ async function loadVerifications() {
 onMounted(() => {
   loadVerifications();
 });
+
+async function verifyWithNTS(req: any) {
+  verifyingId.value = req.id;
+  try {
+    const res = await apiRequest('/verification/business-tax-id', {
+      method: 'POST',
+      body: JSON.stringify({
+        business_number: req.business_number,
+        company_name: req.company_name,
+      }),
+    });
+    req.nts_status = res.data;
+    alert(`[국세청(NTS) 공식 MOD-10 진위 인증 성공]\n기업명: ${res.data.company_name}\n과세유형: ${res.data.tax_type}\n상태: ${res.data.tax_status_kr}\nD-U-N-S: ${res.data.duns_number}`);
+  } catch (err: any) {
+    alert(`국세청 검증 실패: ${err.message}`);
+  } finally {
+    verifyingId.value = null;
+  }
+}
 
 async function approve(req: any) {
   submitting.value = true;
@@ -162,6 +214,63 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
 .status-badge.approved { background: #065F46; color: #A7F3D0; }
 .status-badge.pending { background: #854D0E; color: #FEF08A; }
 .status-badge.rejected { background: #7F1D1D; color: #FECACA; }
+.nts-badge-box {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #0F172A;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  flex-wrap: wrap;
+}
+.nts-title {
+  color: #94A3B8;
+  font-weight: 700;
+}
+.nts-status-tag {
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+.nts-status-tag.valid {
+  background: #065F46;
+  color: #A7F3D0;
+}
+.nts-status-tag.invalid {
+  background: #7F1D1D;
+  color: #FECACA;
+}
+.nts-status-tag.unverified {
+  background: #334155;
+  color: #CBD5E1;
+}
+.duns-tag {
+  color: #38BDF8;
+  font-family: monospace;
+  font-weight: 700;
+}
+.btn-nts-verify {
+  margin-left: auto;
+  background: #0284C7;
+  color: #FFF;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-nts-verify:hover:not(:disabled) {
+  background: #0369A1;
+}
+.btn-nts-verify:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
 .v-metrics { display: flex; gap: 18px; font-size: 12px; color: #CBD5E1; margin-bottom: 14px; flex-wrap: wrap; }
 .doc-links { display: flex; gap: 10px; margin-bottom: 16px; }
 .doc-btn { background: #0B132B; border: 1px solid #3A506B; color: #38BDF8; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }

@@ -791,4 +791,101 @@ export const factoryQualityAudits = new Map<string, any>([
   }]
 ]);
 
+// ================= COMMERCIALIZATION INFRASTRUCTURE STORES =================
+// 1. B2B Escrow Virtual Accounts & Payment Intents
+export const virtualAccounts = new Map<string, any>([
+  ['ord-20261018-001', {
+    account_id: 'va-20261018-001',
+    order_id: 'ord-20261018-001',
+    bank_name: '신한은행 (Shinhan Bank)',
+    bank_code: '088',
+    account_number: '562-910023-88192',
+    account_holder: '주식회사 홀세일무역 (무역에스크로신탁)',
+    currency: 'USD',
+    downpayment_minor: 126000, // $1,260.00
+    balance_minor: 294000,     // $2,940.00
+    total_amount_minor: 420000,// $4,200.00
+    status: 'ACTIVE',
+    downpayment_paid: false,
+    balance_paid: false,
+    expires_at: new Date(Date.now() + 7 * 86400000).toISOString(),
+    created_at: new Date().toISOString(),
+  }]
+]);
+
+export const paymentIntents = new Map<string, any>();
+
+// 2. Cloud Storage Uploaded Trade Documents
+export const uploadedDocuments = new Map<string, any>([
+  ['doc-001', {
+    id: 'doc-001',
+    order_id: 'ord-20261018-001',
+    organization_id: BUYER_ORG_ID,
+    file_name: 'ICC_Standard_B2B_Sales_Contract_2026.pdf',
+    file_size_bytes: 1420800,
+    mime_type: 'application/pdf',
+    category: 'CONTRACT',
+    sha256_hash: 'c67469723725e6e0d3c03848b1d619997f7bb7fae3230c33a92a2a0ff9f1406e',
+    storage_url: 'https://storage.wholesale.internal/contracts/ICC_Standard_Contract_signed.pdf',
+    uploaded_at: '2026-10-18T10:15:00Z',
+  }]
+]);
+
+// 3. Real-Time In-App & Push Notifications
+export const notifications = [
+  {
+    id: 'notif-001',
+    recipient_org_id: BUYER_ORG_ID,
+    type: 'CONTRACT_READY',
+    title: '전자무역 매매계약서 서명 완료',
+    message: '공급사 Precision Korea Co., Ltd.와의 계약이 SHA-256 서명 완료되었습니다.',
+    link: '/ko/KRW/orders/ord-20261018-001',
+    is_read: false,
+    created_at: new Date(Date.now() - 3600000).toISOString(),
+  },
+  {
+    id: 'notif-002',
+    recipient_org_id: BUYER_ORG_ID,
+    type: 'CUSTOMS_CLEARED',
+    title: '부산항 통관 완료 (EXP-KR-2026-99201)',
+    message: '관세사 Pantos Logistics의 수출신고가 수리되어 본선 적재 대기 중입니다.',
+    link: '/ko/KRW/orders/ord-20261018-001',
+    is_read: false,
+    created_at: new Date(Date.now() - 7200000).toISOString(),
+  }
+];
+
+// 4. Korean NTS (국세청) & Global D-U-N-S Verified Corporate Registry
+export const verifiedTaxRegistries = new Map<string, any>([
+  ['1234567890', {
+    tax_id: '1234567890',
+    formatted_tax_id: '123-45-67890',
+    company_name: 'Precision Korea Co., Ltd. (글로벌정밀산업)',
+    representative_name: '김정밀',
+    tax_type: '일반과세자 (부가가치세 일반과세자)',
+    tax_status: 'ACTIVE_NORMAL_TAX_PAYER',
+    tax_status_kr: '계속사업자 (정상영업)',
+    establishment_date: '2014-03-15',
+    duns_number: '68-912-4401',
+    is_valid: true,
+    verification_hash: '0x8849bf10e72c83d6a992bb190412356789012345',
+    verified_at: '2026-10-01T00:00:00Z',
+  }],
+  ['9876543210', {
+    tax_id: '9876543210',
+    formatted_tax_id: '987-65-43210',
+    company_name: 'Metro Wholesale Imports LLC',
+    representative_name: 'David R. Miller',
+    tax_type: '외국법인 국내사업장 (수입무역)',
+    tax_status: 'ACTIVE_NORMAL_TAX_PAYER',
+    tax_status_kr: '계속사업자 (정상영업)',
+    establishment_date: '2019-07-22',
+    duns_number: '11-893-7729',
+    is_valid: true,
+    verification_hash: '0x99201ba47f201088a29904bb7765432109876543',
+    verified_at: '2026-10-01T00:00:00Z',
+  }]
+]);
+
+
 

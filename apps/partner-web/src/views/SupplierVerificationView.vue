@@ -36,7 +36,23 @@
         </div>
         <div class="field">
           <label>사업자등록번호 (Business Registration No.)</label>
-          <input v-model="form.business_number" type="text" required />
+          <div class="biz-input-row">
+            <input v-model="form.business_number" type="text" placeholder="123-45-67890" required />
+            <button type="button" class="btn-nts-verify" :disabled="verifyingNts" @click="verifyWithNTS">
+              {{ verifyingNts ? '조회 중...' : '🔍 국세청 실시간 진위 확인' }}
+            </button>
+          </div>
+          <div v-if="ntsResult" class="nts-badge-box" :class="{ valid: ntsResult.is_valid, invalid: !ntsResult.is_valid }">
+            <span class="nts-stat">
+              {{ ntsResult.is_valid ? '✓ [국세청 홈택스 인증 완료]' : '✕ [인증 실패]' }}
+              {{ ntsResult.data?.tax_status_kr || ntsResult.message }}
+            </span>
+            <div v-if="ntsResult.is_valid" class="nts-meta">
+              <span>과세유형: <strong>{{ ntsResult.data?.tax_type }}</strong></span>
+              <span>D-U-N-S: <strong>{{ ntsResult.data?.duns_number }}</strong></span>
+              <span>인증해시: <code>{{ ntsResult.data?.verification_hash?.slice(0, 18) }}...</code></span>
+            </div>
+          </div>
         </div>
         <div class="field">
           <label>공급사 유형 (Business Type)</label>
@@ -86,6 +102,32 @@ import { apiRequest, getCurrentUser } from '../api';
 const verifications = ref<any[]>([]);
 const submitting = ref(false);
 const certsInput = ref('ISO 9001:2015, ISO 14001, CE Machinery Directive, RoHS 2.0');
+
+const verifyingNts = ref(false);
+const ntsResult = ref<any>(null);
+
+async function verifyWithNTS() {
+  if (!form.value.business_number) return;
+  verifyingNts.value = true;
+  ntsResult.value = null;
+  try {
+    const res = await apiRequest('/verification/business-tax-id', {
+      method: 'POST',
+      body: JSON.stringify({
+        tax_id: form.value.business_number,
+        company_name: form.value.company_name,
+      }),
+    });
+    ntsResult.value = res;
+  } catch (err: any) {
+    ntsResult.value = {
+      is_valid: false,
+      message: err.message || '국세청 조회 실패',
+    };
+  } finally {
+    verifyingNts.value = false;
+  }
+}
 
 const form = ref({
   company_name: 'Precision Korea Co., Ltd. (글로벌정밀산업)',
@@ -154,6 +196,16 @@ h2 { margin: 0; font-size: 20px; color: #172B4D; }
 .field.span-2 { grid-column: span 2; }
 .field label { font-size: 12px; font-weight: 700; color: #334155; }
 .field input, .field select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 9px 12px; font-size: 13px; }
+.biz-input-row { display: flex; gap: 8px; }
+.biz-input-row input { flex: 1; }
+.btn-nts-verify { background: #0284C7; color: #FFF; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn-nts-verify:disabled { opacity: 0.6; }
+.nts-badge-box { border-radius: 6px; padding: 10px 12px; font-size: 12px; margin-top: 4px; }
+.nts-badge-box.valid { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
+.nts-badge-box.invalid { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+.nts-stat { font-weight: 800; display: block; margin-bottom: 4px; }
+.nts-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; }
+.nts-meta code { background: #DCFCE7; padding: 1px 4px; border-radius: 3px; }
 .btn-submit { background: #C2410C; color: #FFF; border: none; padding: 12px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
 
 @media (max-width: 640px) {

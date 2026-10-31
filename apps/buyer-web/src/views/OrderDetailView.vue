@@ -130,7 +130,12 @@
 
           <!-- Document Center -->
           <div class="card-box">
-            <h4>무역 공식 증빙 서류 (Document Center)</h4>
+            <div class="box-head-row">
+              <h4>무역 공식 증빙 서류 (Document Center)</h4>
+              <button class="btn-upload-doc" @click="showUploadModal = true">
+                ☁️ 클라우드 R2/S3 서류 업로드
+              </button>
+            </div>
             <div class="doc-list">
               <div class="doc-item">
                 <span class="doc-icon">📄</span>
@@ -163,6 +168,16 @@
                   <span class="doc-sub">SGS-AQL-2.5-PASS.pdf</span>
                 </div>
                 <button class="btn-download" @click="downloadDoc('Inspection Report')">다운로드</button>
+              </div>
+
+              <!-- Dynamically Uploaded Documents from Cloud Storage -->
+              <div v-for="d in uploadedDocumentsList" :key="d.id" class="doc-item dynamic">
+                <span class="doc-icon">📎</span>
+                <div class="doc-info">
+                  <span class="doc-title">{{ d.file_name }}</span>
+                  <span class="doc-sub">R2 Vault: {{ d.sha256_hash?.slice(0, 16) }}... ({{ (d.file_size_bytes / 1024).toFixed(1) }} KB)</span>
+                </div>
+                <button class="btn-download" @click="downloadDoc(d.file_name)">다운로드</button>
               </div>
             </div>
           </div>
@@ -242,9 +257,9 @@
               <button
                 class="btn-full primary"
                 :disabled="processingPayment"
-                @click="payDownpayment"
+                @click="openPaymentModal('DOWNPAYMENT_30')"
               >
-                {{ processingPayment ? '결제 처리 중...' : `선급금 30% ($${((order.downpayment_minor || 126000) / 100).toLocaleString()}) 결제` }}
+                {{ processingPayment ? '결제 처리 중...' : `선급금 30% ($${((order.downpayment_minor || 126000) / 100).toLocaleString()}) 결제 / 가상계좌 발급` }}
               </button>
             </div>
 
@@ -266,9 +281,9 @@
               <button
                 class="btn-full primary"
                 :disabled="processingPayment"
-                @click="payBalance"
+                @click="openPaymentModal('BALANCE_70')"
               >
-                {{ processingPayment ? '결제 처리 중...' : `잔금 70% ($${((order.balance_minor || 294000) / 100).toLocaleString()}) 결제 승인` }}
+                {{ processingPayment ? '결제 처리 중...' : `잔금 70% ($${((order.balance_minor || 294000) / 100).toLocaleString()}) 결제 / 가상계좌 입금` }}
               </button>
             </div>
 
@@ -392,6 +407,183 @@
         </div>
       </div>
     </div>
+
+    <!-- Live B2B Escrow Payment Modal (Virtual Account / Corporate Card / SWIFT Wire) -->
+    <div v-if="showPaymentModal" class="claim-modal-backdrop" @click.self="showPaymentModal = false">
+      <div class="claim-modal payment-modal">
+        <div class="modal-head">
+          <div class="head-left">
+            <span class="cert-icon">💳</span>
+            <div>
+              <h3>무역 에스크로 안전 결제 (B2B Escrow Checkout)</h3>
+              <p>주문: {{ order?.order_number }} | 결제 단계: <strong>{{ paymentStage === 'DOWNPAYMENT_30' ? '1차 선급금 (30%)' : '2차 잔금 (70%)' }}</strong></p>
+            </div>
+          </div>
+          <button class="btn-close" @click="showPaymentModal = false">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Payment Amount Highlight -->
+          <div class="pay-amount-banner">
+            <span class="p-lbl">에스크로 예치 청구 금액:</span>
+            <span class="p-val">${{ ((paymentStage === 'DOWNPAYMENT_30' ? (order?.downpayment_minor || 126000) : (order?.balance_minor || 294000)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }} {{ order?.currency || 'USD' }}</span>
+          </div>
+
+          <!-- Payment Method Tabs -->
+          <div class="pay-tabs">
+            <button
+              class="pay-tab"
+              :class="{ active: selectedPaymentTab === 'VIRTUAL_ACCOUNT' }"
+              @click="selectedPaymentTab = 'VIRTUAL_ACCOUNT'"
+            >
+              🏛️ 신탁 가상계좌 (B2B Wire)
+            </button>
+            <button
+              class="pay-tab"
+              :class="{ active: selectedPaymentTab === 'CARD' }"
+              @click="selectedPaymentTab = 'CARD'"
+            >
+              💳 기업 법인카드 (Toss / Stripe)
+            </button>
+            <button
+              class="pay-tab"
+              :class="{ active: selectedPaymentTab === 'SWIFT' }"
+              @click="selectedPaymentTab = 'SWIFT'"
+            >
+              🌐 해외 전신환 (SWIFT)
+            </button>
+          </div>
+
+          <!-- TAB 1: B2B Escrow Virtual Account -->
+          <div v-if="selectedPaymentTab === 'VIRTUAL_ACCOUNT'" class="pay-tab-content">
+            <div class="va-details-box">
+              <div class="va-row">
+                <span class="va-lbl">입금 은행:</span>
+                <span class="va-val font-bold text-sky-700">{{ virtualAccount?.bank_name || '신한은행 (Shinhan Bank B2B Escrow)' }}</span>
+              </div>
+              <div class="va-row">
+                <span class="va-lbl">가상 계좌번호:</span>
+                <span class="va-val font-mono font-bold text-lg text-orange-600">{{ virtualAccount?.account_number || '562-910023-88192' }}</span>
+              </div>
+              <div class="va-row">
+                <span class="va-lbl">예금주 (신탁사):</span>
+                <span class="va-val font-bold">{{ virtualAccount?.account_holder || '주식회사 홀세일무역 (무역에스크로신탁)' }}</span>
+              </div>
+              <div class="va-row">
+                <span class="va-lbl">입금 마감기한:</span>
+                <span class="va-val">{{ formatDate(virtualAccount?.expires_at) }} 23:59 (7일간 유효)</span>
+              </div>
+            </div>
+            <div class="bank-sim-box">
+              <p class="sim-note">※ 실제 은행 펌뱅킹망으로부터 입금 통보(Webhook)를 수신하면 상태가 즉시 실시간 전환됩니다.</p>
+              <button
+                class="btn-simulate-wire"
+                :disabled="simulatingDeposit"
+                @click="simulateBankDeposit"
+              >
+                {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '⚡ 은행 입금 통보 시뮬레이터 (Bank Webhook Test)' }}
+              </button>
+            </div>
+          </div>
+
+          <!-- TAB 2: Corporate Card (Toss Payments / Stripe) -->
+          <div v-if="selectedPaymentTab === 'CARD'" class="pay-tab-content">
+            <div class="form-group">
+              <label>기업 법인카드 번호</label>
+              <input v-model="cardForm.cardNumber" type="text" class="form-input font-mono" placeholder="5409-XXXX-XXXX-XXXX" />
+            </div>
+            <div class="form-row-2">
+              <div class="form-group">
+                <label>유효기간 (MM/YY)</label>
+                <input v-model="cardForm.expiry" type="text" class="form-input font-mono" placeholder="12/28" />
+              </div>
+              <div class="form-group">
+                <label>CVC (3자리)</label>
+                <input v-model="cardForm.cvc" type="password" maxlength="3" class="form-input font-mono" placeholder="•••" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>법인 사업자등록번호 앞 5자리 (본인인증)</label>
+              <input v-model="cardForm.bizAuthNumber" type="text" maxlength="5" class="form-input font-mono" placeholder="12345" />
+            </div>
+            <button
+              class="btn-submit-pay"
+              :disabled="confirmingCard"
+              @click="confirmCardPayment"
+            >
+              {{ confirmingCard ? 'PG사 결제 승인 중...' : '💳 기업 법인카드 에스크로 결제 승인' }}
+            </button>
+          </div>
+
+          <!-- TAB 3: SWIFT International Wire -->
+          <div v-if="selectedPaymentTab === 'SWIFT'" class="pay-tab-content">
+            <div class="swift-box">
+              <p><strong>Beneficiary Bank:</strong> Shinhan Bank Seoul HQ</p>
+              <p><strong>SWIFT / BIC Code:</strong> <code>SHBKKRSEXXX</code></p>
+              <p><strong>Beneficiary Account:</strong> <code>USD-ESCROW-88192-KR</code></p>
+              <p><strong>Payment Reference (Mandatory):</strong> <code>{{ order?.order_number }}</code></p>
+              <p class="swift-alert">⚠️ 국제 송금 시 필히 무역 발주번호(<code>{{ order?.order_number }}</code>)를 전문에 기재해야 자동 매칭됩니다.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          <button class="btn-secondary" @click="showPaymentModal = false">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cloud R2/S3 Trade Document Uploader Modal -->
+    <div v-if="showUploadModal" class="claim-modal-backdrop" @click.self="showUploadModal = false">
+      <div class="claim-modal">
+        <div class="modal-head">
+          <div class="head-left">
+            <span class="cert-icon">☁️</span>
+            <div>
+              <h3>클라우드 R2/S3 무역 공식 서류 업로드</h3>
+              <p>주문번호: {{ order?.order_number }} | 영구 클라우드 스토리지 보관 및 SHA-256 검증</p>
+            </div>
+          </div>
+          <button class="btn-close" @click="showUploadModal = false">✕</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>서류 구분 (Document Category):</label>
+            <select v-model="uploadCategory" class="form-select">
+              <option value="COMMERCIAL_INVOICE">상업 송장 (Commercial Invoice)</option>
+              <option value="PACKING_LIST">포장 명세서 (Packing List)</option>
+              <option value="BILL_OF_LADING">선하증권 (Ocean / Air B/L)</option>
+              <option value="INSPECTION_REPORT">SGS/TÜV 품질 검수 성적서 (QC Report)</option>
+              <option value="CUSTOMS_DECLARATION">수출입 통관신고필증 (Customs Manifest)</option>
+              <option value="CAD_SPECIFICATION">제품 공학 도면 (CAD / 3D Spec)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>파일명 (File Name):</label>
+            <input v-model="uploadFileName" type="text" class="form-input" />
+          </div>
+
+          <div class="upload-dropzone">
+            <span class="dz-icon">📄</span>
+            <p class="dz-title">파일을 드래그하거나 선택하세요</p>
+            <span class="dz-sub">PDF, PNG, JPG, CAD 도면 (최대 50MB, 암호화 저장)</span>
+          </div>
+        </div>
+
+        <div class="modal-foot">
+          <button class="btn-secondary" @click="showUploadModal = false">취소</button>
+          <button
+            class="btn-submit-claim"
+            :disabled="uploadingDoc || !uploadFileName"
+            @click="handleFileUpload"
+          >
+            {{ uploadingDoc ? '클라우드 업로드 중...' : '☁️ 클라우드 스토리지 전송 및 원장 등록' }}
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -418,6 +610,27 @@ const claimCategory = ref('QUALITY_DISPUTE');
 const claimAmount = ref(1500);
 const claimReason = ref('MIL-STD-105E AQL 2.5 불량률 초과 및 계약 재질 오차');
 const submittingClaim = ref(false);
+
+// Commercial Escrow Payment State
+const showPaymentModal = ref(false);
+const paymentStage = ref<'DOWNPAYMENT_30' | 'BALANCE_70'>('DOWNPAYMENT_30');
+const selectedPaymentTab = ref<'VIRTUAL_ACCOUNT' | 'CARD' | 'SWIFT'>('VIRTUAL_ACCOUNT');
+const virtualAccount = ref<any>(null);
+const simulatingDeposit = ref(false);
+const confirmingCard = ref(false);
+const cardForm = ref({
+  cardNumber: '5409-4821-9920-1184',
+  expiry: '12/28',
+  cvc: '882',
+  bizAuthNumber: '12345',
+});
+
+// Cloud Object Storage Uploader State
+const showUploadModal = ref(false);
+const uploadCategory = ref('COMMERCIAL_INVOICE');
+const uploadFileName = ref('Commercial_Invoice_Final_Signed.pdf');
+const uploadingDoc = ref(false);
+const uploadedDocumentsList = ref<any[]>([]);
 
 const toastMessage = ref('');
 const toastType = ref<'success' | 'error'>('success');
@@ -473,7 +686,7 @@ async function fetchOrderDetail() {
     const data = await apiRequest(`/trade/orders/${orderId.value}`);
     order.value = data;
 
-    // Concurrently fetch customs manifest and trade assurance claims
+    // Concurrently fetch customs manifest, trade assurance claims, virtual accounts, and uploaded docs
     try {
       const customsRes = await apiRequest('/logistics/customs');
       if (customsRes && customsRes.manifests && customsRes.manifests.length > 0) {
@@ -487,10 +700,98 @@ async function fetchOrderDetail() {
         activeClaim.value = claimRes.claims.find((c: any) => c.order_id === orderId.value) || null;
       }
     } catch (_) {}
+
+    try {
+      const vaRes = await apiRequest(`/payments/virtual-account/${orderId.value}`);
+      if (vaRes && vaRes.account_number) {
+        virtualAccount.value = vaRes;
+      }
+    } catch (_) {}
+
+    try {
+      const docRes = await apiRequest(`/storage/documents?order_id=${orderId.value}`);
+      if (docRes && docRes.documents) {
+        uploadedDocumentsList.value = docRes.documents;
+      }
+    } catch (_) {}
   } catch (err: any) {
     showToast(`발주 상세 조회 실패: ${err.message}`, 'error');
   } finally {
     loading.value = false;
+  }
+}
+
+function openPaymentModal(stage: 'DOWNPAYMENT_30' | 'BALANCE_70') {
+  paymentStage.value = stage;
+  showPaymentModal.value = true;
+  if (!virtualAccount.value) {
+    apiRequest(`/payments/virtual-account/${orderId.value}`)
+      .then(res => { virtualAccount.value = res; })
+      .catch(() => {});
+  }
+}
+
+async function simulateBankDeposit() {
+  if (!order.value) return;
+  simulatingDeposit.value = true;
+  try {
+    const res = await apiRequest(`/payments/virtual-account/${order.value.id}/simulate-deposit`, {
+      method: 'POST',
+      body: JSON.stringify({ stage: paymentStage.value }),
+    });
+    showToast(res.message || '가상계좌 입금이 은행망으로부터 확인되었습니다.', 'success');
+    showPaymentModal.value = false;
+    fetchOrderDetail();
+  } catch (err: any) {
+    showToast(`입금 처리 오류: ${err.message}`, 'error');
+  } finally {
+    simulatingDeposit.value = false;
+  }
+}
+
+async function confirmCardPayment() {
+  if (!order.value) return;
+  confirmingCard.value = true;
+  try {
+    const res = await apiRequest('/payments/confirm', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_id: order.value.id,
+        stage: paymentStage.value,
+        payment_method: 'CORPORATE_CARD',
+      }),
+    });
+    showToast(`기업 카드 결제 승인 완료! (승인번호: ${res.transaction_id})`, 'success');
+    showPaymentModal.value = false;
+    fetchOrderDetail();
+  } catch (err: any) {
+    showToast(`카드 결제 승인 오류: ${err.message}`, 'error');
+  } finally {
+    confirmingCard.value = false;
+  }
+}
+
+async function handleFileUpload() {
+  if (!order.value || !uploadFileName.value) return;
+  uploadingDoc.value = true;
+  try {
+    const res = await apiRequest('/storage/upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_id: order.value.id,
+        file_name: uploadFileName.value,
+        category: uploadCategory.value,
+        mime_type: 'application/pdf',
+        file_size_bytes: 842000,
+      }),
+    });
+    uploadedDocumentsList.value.push(res);
+    showUploadModal.value = false;
+    showToast(`무역 서류 '${res.file_name}'이 클라우드 R2 스토리지에 무결성 검증 완료 후 업로드되었습니다.`, 'success');
+  } catch (err: any) {
+    showToast(`문서 업로드 실패: ${err.message}`, 'error');
+  } finally {
+    uploadingDoc.value = false;
   }
 }
 
@@ -1204,6 +1505,177 @@ onMounted(() => {
 .btn-submit-claim:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Commercial Escrow Payment Modal & Tabs */
+.btn-upload-doc {
+  background: #F0FDF4;
+  color: #15803D;
+  border: 1px solid #BBF7D0;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.doc-item.dynamic {
+  background: #F8FAFC;
+  border-left: 3px solid #0284C7;
+}
+.pay-amount-banner {
+  background: #FFF7ED;
+  border: 1px solid #FED7AA;
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.p-lbl {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9A3412;
+}
+.p-val {
+  font-size: 20px;
+  font-weight: 800;
+  color: #C2410C;
+}
+.pay-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #E2E8F0;
+  padding-bottom: 8px;
+}
+.pay-tab {
+  background: #F1F5F9;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.pay-tab.active {
+  background: #C2410C;
+  color: #FFF;
+  border-color: #C2410C;
+}
+.va-details-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.va-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+.va-lbl {
+  color: #64748B;
+}
+.va-val {
+  color: #0F172A;
+}
+.bank-sim-box {
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 8px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+.sim-note {
+  font-size: 11px;
+  color: #166534;
+  margin: 0 0 10px 0;
+}
+.btn-simulate-wire {
+  width: 100%;
+  background: #15803D;
+  color: #FFF;
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-simulate-wire:disabled {
+  opacity: 0.6;
+}
+.form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.btn-submit-pay {
+  width: 100%;
+  background: #C2410C;
+  color: #FFF;
+  border: none;
+  border-radius: 6px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.btn-submit-pay:disabled {
+  opacity: 0.6;
+}
+.swift-box {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 16px;
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.swift-box code {
+  background: #E2E8F0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #0F172A;
+}
+.swift-alert {
+  color: #C2410C;
+  font-size: 11px;
+  margin-top: 6px;
+}
+.upload-dropzone {
+  border: 2px dashed #CBD5E1;
+  border-radius: 8px;
+  padding: 30px;
+  text-align: center;
+  background: #F8FAFC;
+  margin-top: 10px;
+}
+.dz-icon {
+  font-size: 32px;
+  display: block;
+  margin-bottom: 6px;
+}
+.dz-title {
+  margin: 0 0 4px;
+  font-weight: 700;
+  color: #0F172A;
+  font-size: 13px;
+}
+.dz-sub {
+  color: #64748B;
+  font-size: 11px;
 }
 
 /* Mobile & Tablet Responsive Layout */

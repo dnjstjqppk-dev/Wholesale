@@ -93,6 +93,32 @@
             <span class="icon">📦</span>
             <span class="label">{{ t('orders', currentLocale) }}</span>
           </router-link>
+
+          <!-- Real-Time Notification Bell & Popover -->
+          <div class="notification-wrapper">
+            <button class="nav-icon-link notif-btn" title="실시간 무역 통보" @click="notifDrawerOpen = !notifDrawerOpen">
+              <span class="icon">🔔</span>
+              <span v-if="unreadNotifsCount > 0" class="badge-count">{{ unreadNotifsCount }}</span>
+              <span class="label">알림</span>
+            </button>
+            <div v-if="notifDrawerOpen" class="notif-popover">
+              <div class="notif-pop-head">
+                <h4>실시간 무역 통보 센터 (Live Notifications)</h4>
+                <button class="btn-text-sm" @click="markAllNotifsRead">모두 읽음</button>
+              </div>
+              <div v-if="liveNotifs.length === 0" class="notif-empty">새로운 알림이 없습니다.</div>
+              <div v-else class="notif-pop-list">
+                <div v-for="n in liveNotifs" :key="n.id" class="notif-item" :class="{ unread: !n.is_read }">
+                  <div class="notif-top">
+                    <span class="n-title">{{ n.title }}</span>
+                    <span class="n-time">{{ formatTime(n.created_at) }}</span>
+                  </div>
+                  <p class="n-msg">{{ n.message }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="user-profile-badge">
             <span class="user-avatar">🏢</span>
             <div class="user-text">
@@ -207,7 +233,7 @@ import { useRouter, useRoute } from 'vue-router';
 import MegaFlyoutNav from './components/MegaFlyoutNav.vue';
 import ImageSearchModal from './components/ImageSearchModal.vue';
 import { t, SupportedLocale, SupportedCurrency, loadFxRates } from './i18n';
-import { getCurrentUser } from './api';
+import { getCurrentUser, apiRequest } from './api';
 
 const router = useRouter();
 const route = useRoute();
@@ -218,6 +244,37 @@ const selectedLocaleCurrency = ref('ko/KRW');
 const showImageSearchModal = ref(false);
 const mobileDrawerOpen = ref(false);
 const currentUser = ref(getCurrentUser());
+
+const notifDrawerOpen = ref(false);
+const liveNotifs = ref<any[]>([]);
+
+const unreadNotifsCount = computed(() => {
+  return liveNotifs.value.filter(n => !n.is_read).length;
+});
+
+async function fetchNotifications() {
+  try {
+    const res = await apiRequest('/notifications');
+    if (res && res.notifications) {
+      liveNotifs.value = res.notifications;
+    }
+  } catch (_) {}
+}
+
+async function markAllNotifsRead() {
+  for (const n of liveNotifs.value) {
+    if (!n.is_read) {
+      n.is_read = true;
+      apiRequest(`/notifications/${n.id}/read`, { method: 'PUT' }).catch(() => {});
+    }
+  }
+}
+
+function formatTime(iso: string) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`;
+}
 
 const currentLocale = computed<SupportedLocale>(() => {
   const loc = (route.params.locale as string) || selectedLocaleCurrency.value.split('/')[0] || 'ko';
@@ -245,6 +302,9 @@ onMounted(() => {
   });
   // Load real-time FX rates from API (falls back to static rates on failure)
   loadFxRates();
+  // Fetch real-time trade notifications
+  fetchNotifications();
+  setInterval(fetchNotifications, 15000);
 });
 
 function handleSearch() {
@@ -497,6 +557,100 @@ function applyImageSearch(query: string) {
     grid-template-columns: repeat(2, 1fr);
     gap: 28px;
   }
+}
+
+/* Notification Popover & Bell */
+.notification-wrapper {
+  position: relative;
+}
+.notif-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  position: relative;
+}
+.badge-count {
+  position: absolute;
+  top: -4px;
+  right: 2px;
+  background: #DC2626;
+  color: #FFF;
+  font-size: 10px;
+  font-weight: 800;
+  border-radius: 9999px;
+  padding: 1px 5px;
+  line-height: 1;
+}
+.notif-popover {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  width: 340px;
+  background: #FFF;
+  border-radius: 8px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  border: 1px solid #E2E8F0;
+  z-index: 1000;
+  overflow: hidden;
+}
+.notif-pop-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #E2E8F0;
+}
+.notif-pop-head h4 {
+  margin: 0;
+  font-size: 12px;
+  color: #0F172A;
+  font-weight: 700;
+}
+.btn-text-sm {
+  background: none;
+  border: none;
+  font-size: 11px;
+  color: #0284C7;
+  cursor: pointer;
+  font-weight: 600;
+}
+.notif-empty {
+  padding: 24px;
+  text-align: center;
+  font-size: 12px;
+  color: #64748B;
+}
+.notif-pop-list {
+  max-height: 320px;
+  overflow-y: auto;
+}
+.notif-item {
+  padding: 10px 14px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 12px;
+}
+.notif-item.unread {
+  background: #F0FDF4;
+}
+.notif-top {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.n-title {
+  font-weight: 700;
+  color: #0F172A;
+}
+.n-time {
+  font-size: 10px;
+  color: #94A3B8;
+}
+.n-msg {
+  margin: 0;
+  color: #475569;
+  font-size: 11px;
+  line-height: 1.4;
 }
 
 @media (max-width: 640px) {

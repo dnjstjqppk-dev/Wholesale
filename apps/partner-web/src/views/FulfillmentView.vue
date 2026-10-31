@@ -72,11 +72,21 @@
             <input v-model="blNumber" type="text" placeholder="예: MAEU-PUS-99002" />
           </div>
           <div>
-            <label>상업송장 (Commercial Invoice URL)</label>
+            <div class="label-with-action">
+              <label>상업송장 (Commercial Invoice URL)</label>
+              <button type="button" class="btn-xs-upload" :disabled="uploadingCi" @click="uploadTradeDoc('COMMERCIAL_INVOICE')">
+                {{ uploadingCi ? '업로드 중...' : '☁️ R2 업로드' }}
+              </button>
+            </div>
             <input v-model="ciUrl" type="text" />
           </div>
           <div>
-            <label>포장명세서 (Packing List URL)</label>
+            <div class="label-with-action">
+              <label>포장명세서 (Packing List URL)</label>
+              <button type="button" class="btn-xs-upload" :disabled="uploadingPl" @click="uploadTradeDoc('PACKING_LIST')">
+                {{ uploadingPl ? '업로드 중...' : '☁️ R2 업로드' }}
+              </button>
+            </div>
             <input v-model="plUrl" type="text" />
           </div>
           <div>
@@ -185,6 +195,41 @@ const blNumber = ref('MAEU-PUS-99002');
 const ciUrl = ref('https://docs.wholesale.internal/CI-2026-001.pdf');
 const plUrl = ref('https://docs.wholesale.internal/PL-2026-001.pdf');
 const coNumber = ref('KOR-FTA-CO-2026-8891');
+const uploadingCi = ref(false);
+const uploadingPl = ref(false);
+
+async function uploadTradeDoc(category: 'COMMERCIAL_INVOICE' | 'PACKING_LIST') {
+  if (!activeOrder.value) return;
+  if (category === 'COMMERCIAL_INVOICE') uploadingCi.value = true;
+  else uploadingPl.value = true;
+
+  try {
+    const fileName = category === 'COMMERCIAL_INVOICE'
+      ? `CI-${activeOrder.value.order_number}.pdf`
+      : `PL-${activeOrder.value.order_number}.pdf`;
+    const res = await apiRequest('/storage/upload', {
+      method: 'POST',
+      body: JSON.stringify({
+        order_id: activeOrder.value.id,
+        file_name: fileName,
+        category,
+        mime_type: 'application/pdf',
+        file_size_bytes: 524000,
+      }),
+    });
+    if (category === 'COMMERCIAL_INVOICE') {
+      ciUrl.value = res.storage_url;
+    } else {
+      plUrl.value = res.storage_url;
+    }
+    alert(`[클라우드 R2 스토리지 업로드 완료]\n파일명: ${res.file_name}\n저장소 URL: ${res.storage_url}\n무결성 해시: ${res.sha256_hash}`);
+  } catch (err: any) {
+    alert(`업로드 실패: ${err.message}`);
+  } finally {
+    if (category === 'COMMERCIAL_INVOICE') uploadingCi.value = false;
+    else uploadingPl.value = false;
+  }
+}
 
 const showCustomsForm = ref(true);
 const customsDeclNo = ref('EXP-KR-2026-99120');
@@ -390,6 +435,33 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
   border-radius: 6px;
   padding: 14px;
   margin-bottom: 14px;
+}
+.label-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.label-with-action label {
+  margin-bottom: 0;
+}
+.btn-xs-upload {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-xs-upload:hover:not(:disabled) {
+  background: #DBEAFE;
+}
+.btn-xs-upload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 .customs-action-bar {
   display: flex;
