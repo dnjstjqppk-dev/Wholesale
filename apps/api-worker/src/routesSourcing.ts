@@ -373,12 +373,15 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
       const newMsg = {
         id: `msg-${Date.now()}`,
-        sender_id: ctx?.user?.id || 'user-supplier-001',
-        sender_name: ctx?.user?.full_name || 'Precision Korea Sales Manager',
-        sender_role: ctx?.user?.role || 'SUPPLIER_SALES',
+        sender_id: body.sender_id || ctx?.user?.id || 'user-supplier-001',
+        sender_name: body.sender_name || ctx?.user?.full_name || 'Precision Korea Sales Manager',
+        sender_role: body.sender_role || ctx?.user?.role || 'SUPPLIER_SALES',
+        message_type: body.message_type || (body.quote_card ? 'QUOTE_OFFER' : body.contract_card ? 'CONTRACT_SIGN' : body.payment_card ? 'PAYMENT_REQUEST' : 'TEXT'),
         content: body.content,
         attachment_url: body.attachment_url,
         quote_card: body.quote_card,
+        contract_card: body.contract_card,
+        payment_card: body.payment_card,
         sent_at: new Date().toISOString(),
       };
 

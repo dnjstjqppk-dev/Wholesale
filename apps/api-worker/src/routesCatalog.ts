@@ -383,9 +383,25 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
       const customization = url.searchParams.get('customization');
       const moqMax = url.searchParams.get('moq_max');
       const incoterm = url.searchParams.get('incoterm');
+      const material = url.searchParams.get('material');
+      const certification = url.searchParams.get('certification');
+      const leadTimeMax = url.searchParams.get('lead_time_max');
       const sort = url.searchParams.get('sort');
 
-      let items = Array.from(listings.values());
+      let allListings = Array.from(listings.values());
+
+      // Ensure every listing has multi-SKU variants if not present
+      for (const item of allListings) {
+        if (!item.variants || item.variants.length === 0) {
+          item.variants = [
+            { id: `${item.id}-v1`, name: '기본 표준형 (Standard Spec)', sku: `${item.sku_id}-STD`, stock: 5000, options: { spec: 'Standard', grade: 'Grade A' } },
+            { id: `${item.id}-v2`, name: '고급 강화형 (Pro Heavy-Duty)', sku: `${item.sku_id}-PRO`, stock: 3500, options: { spec: 'Reinforced', grade: 'Grade S' } },
+            { id: `${item.id}-v3`, name: '맞춤형 수출팩 (Export Custom Pack)', sku: `${item.sku_id}-EXP`, stock: 2000, options: { spec: 'Custom Export', grade: 'Custom' } },
+          ];
+        }
+      }
+
+      let items = allListings;
 
       // Category filter
       if (cat && cat !== 'ALL') {
@@ -395,15 +411,66 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         items = items.filter(i => i.sub_category === subCat || i.category_name?.includes(subCat));
       }
 
-      // Keyword query
+      // Keyword query with B2B synonym expansion
       if (q) {
-        const query = q.toLowerCase();
+        const rawQ = q.toLowerCase().trim();
+        const synonyms: Record<string, string[]> = {
+          '볼트': ['bolt', 'screw', 'fastener'],
+          'bolt': ['볼트', 'screw', 'fastener'],
+          '텀블러': ['tumbler', 'sus304', '진공', 'bottle'],
+          'tumbler': ['텀블러', 'sus304', 'vacuum', 'bottle'],
+          '스테인리스': ['sus', 'stainless', 'sus304', 'sus316'],
+          'sus': ['스테인리스', 'stainless', 'sus304'],
+          'cnc': ['milling', '밀링', 'machining', '가공'],
+          '밀링': ['cnc', 'milling', 'machining'],
+          '충전기': ['charger', 'gan', 'adapter', '전원'],
+          'charger': ['충전기', 'gan', 'adapter'],
+          '박스': ['box', 'carton', '골판지', 'packaging'],
+          'box': ['박스', 'carton', 'packaging'],
+          '더치오븐': ['dutch oven', '주물', 'cast iron', '에나멜'],
+          '수지': ['resin', 'pp', 'granules', 'polymer', '화학'],
+        };
+
+        const searchTokens = [rawQ, ...(synonyms[rawQ] || [])];
+
+        items = items.filter(i => {
+          const haystacks = [
+            i.title.toLowerCase(),
+            i.supplier_name.toLowerCase(),
+            i.category_name.toLowerCase(),
+            ...(i.specifications ? i.specifications.map((s: any) => `${s.name} ${s.value}`.toLowerCase()) : []),
+          ].join(' ');
+
+          return searchTokens.some(tok => haystacks.includes(tok));
+        });
+      }
+
+      // Material specification filter
+      if (material && material !== 'ALL') {
+        const matLower = material.toLowerCase();
         items = items.filter(i =>
-          i.title.toLowerCase().includes(query) ||
-          i.supplier_name.toLowerCase().includes(query) ||
-          i.category_name.toLowerCase().includes(query) ||
-          (i.specifications && i.specifications.some((s: any) => s.value.toLowerCase().includes(query)))
+          i.specifications?.some((s: any) =>
+            (s.name.includes('재질') || s.name.includes('Material')) && s.value.toLowerCase().includes(matLower)
+          ) || i.title.toLowerCase().includes(matLower)
         );
+      }
+
+      // Certification filter
+      if (certification && certification !== 'ALL') {
+        const certLower = certification.toLowerCase();
+        items = items.filter(i =>
+          i.specifications?.some((s: any) =>
+            (s.name.includes('인증') || s.name.includes('Cert')) && s.value.toLowerCase().includes(certLower)
+          )
+        );
+      }
+
+      // Lead time filter
+      if (leadTimeMax) {
+        const maxDays = parseInt(leadTimeMax, 10);
+        if (!isNaN(maxDays)) {
+          items = items.filter(i => (i.lead_time_days || 14) <= maxDays);
+        }
       }
 
       // Verified supplier
@@ -447,6 +514,40 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         items.sort((a, b) => (a.lead_time_days || 99) - (b.lead_time_days || 99));
       }
 
+      // Compute dynamic Alibaba-style facets
+      const facetMaterials = [
+        'SUS304', 'SUS316', 'Aluminum 6061', 'Carbon Steel', 'Cast Iron',
+        'Food-Grade Silicone', 'Polypropylene (PP)', 'Kraft Paper', 'Glass'
+      ].map(mat => ({
+        name: mat,
+        count: allListings.filter(i => {
+          const text = JSON.stringify(i.specifications || []) + i.title;
+          return text.toLowerCase().includes(mat.toLowerCase().split(' ')[0]);
+        }).length
+      })).filter(f => f.count > 0);
+
+      const facetCertifications = [
+        'ISO 9001', 'CE', 'FDA', 'RoHS', 'LFGB', 'REACH'
+      ].map(cert => ({
+        name: cert,
+        count: allListings.filter(i => {
+          const text = JSON.stringify(i.specifications || []);
+          return text.includes(cert);
+        }).length
+      })).filter(f => f.count > 0);
+
+      const facetLeadTimes = [
+        { label: '빠른 출고 (≤ 7일)', max_days: 7, count: allListings.filter(i => (i.lead_time_days || 14) <= 7).length },
+        { label: '표준 출고 (≤ 15일)', max_days: 15, count: allListings.filter(i => (i.lead_time_days || 14) <= 15).length },
+        { label: '대량 주문 (≤ 30일)', max_days: 30, count: allListings.filter(i => (i.lead_time_days || 14) <= 30).length },
+      ];
+
+      const facetMoqBrackets = [
+        { label: '소량 발주 (≤ 100)', max: 100, count: allListings.filter(i => parseInt(i.moq, 10) <= 100).length },
+        { label: '중량 발주 (≤ 500)', max: 500, count: allListings.filter(i => parseInt(i.moq, 10) <= 500).length },
+        { label: '대량 공급 (1,000+)', max: 99999, count: allListings.filter(i => parseInt(i.moq, 10) >= 1000).length },
+      ];
+
       return jsonResponse({
         items,
         total_count: items.length,
@@ -456,6 +557,10 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
             name: c.name,
             count: items.filter(i => i.category === c.id).length,
           })),
+          materials: facetMaterials,
+          certifications: facetCertifications,
+          lead_times: facetLeadTimes,
+          moq_brackets: facetMoqBrackets,
         },
       });
     }

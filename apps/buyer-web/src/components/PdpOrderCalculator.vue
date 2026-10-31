@@ -1,6 +1,86 @@
 <template>
   <div class="order-calculator-card">
-    <div class="calc-row">
+    <!-- Mode Switcher: Alibaba Multi-SKU Matrix vs Single Quick -->
+    <div class="order-mode-tabs">
+      <button
+        type="button"
+        class="mode-tab-btn"
+        :class="{ active: orderMode === 'MATRIX' }"
+        @click="orderMode = 'MATRIX'"
+      >
+        📊 다차원 SKU 일괄 발주 (Multi-SKU Matrix)
+      </button>
+      <button
+        type="button"
+        class="mode-tab-btn"
+        :class="{ active: orderMode === 'SINGLE' }"
+        @click="orderMode = 'SINGLE'"
+      >
+        ⚡ 단일 규격 빠른 주문 (Single)
+      </button>
+    </div>
+
+    <!-- Multi-SKU Matrix Table (Alibaba Standard) -->
+    <div v-if="orderMode === 'MATRIX'" class="sku-matrix-container">
+      <div class="matrix-hint">
+        <span>※ 여러 규격/옵션의 수량을 한 번에 입력하여 <strong>총 발주 수량 합산 기준의 도매 우대 구간 단가</strong>를 일괄 적용받으세요.</span>
+      </div>
+      <table class="sku-matrix-table">
+        <thead>
+          <tr>
+            <th>규격 및 사양 (Spec / Variant)</th>
+            <th>구간 단가 (Unit Price)</th>
+            <th>가용 재고 (Stock)</th>
+            <th class="th-qty">발주 수량 (Order Qty)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="v in productVariants" :key="v.id" class="sku-row">
+            <td class="td-spec">
+              <strong class="sku-name">{{ v.name }}</strong>
+              <span class="sku-code">SKU: {{ v.sku }}</span>
+            </td>
+            <td class="td-price">
+              <span class="sku-price">{{ formatMoney(activeUnitPrice) }}</span>
+              <span class="sku-unit">/ {{ product?.unit || 'pcs' }}</span>
+            </td>
+            <td class="td-stock">
+              <span class="stock-pill">가용 {{ (v.stock || 5000).toLocaleString() }}개</span>
+            </td>
+            <td class="td-qty">
+              <div class="matrix-qty-wrap">
+                <button type="button" class="m-step-btn" @click="decrementVariantQty(v.id)">-</button>
+                <input
+                  type="number"
+                  min="0"
+                  :step="product?.quantity_step || 10"
+                  :value="variantQuantities[v.id] || 0"
+                  class="m-qty-input"
+                  @input="onInputVariantQty(v.id, ($event.target as HTMLInputElement).value)"
+                />
+                <button type="button" class="m-step-btn" @click="incrementVariantQty(v.id)">+</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="matrix-aggregate-bar">
+        <div class="agg-item">
+          <span>합산 총 발주 수량:</span>
+          <strong class="agg-qty">{{ effectiveOrderQty }} {{ product?.unit || 'pcs' }}</strong>
+        </div>
+        <div class="agg-item">
+          <span>최소 발주(MOQ {{ product?.moq || 100 }}) 상태:</span>
+          <span :class="effectiveOrderQty >= (Number(product?.moq) || 100) ? 'moq-ok' : 'moq-warn'">
+            {{ effectiveOrderQty >= (Number(product?.moq) || 100) ? '✓ MOQ 충족' : `⚠️ ${(Number(product?.moq) || 100) - effectiveOrderQty}개 부족` }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Single Quick Stepper -->
+    <div v-else class="calc-row">
       <div class="qty-field">
         <label>발주 수량 (Order Quantity)</label>
         <div class="qty-input-wrap">
@@ -27,7 +107,7 @@
     <!-- Real-Time Calculation Matrix -->
     <div class="calc-summary-panel">
       <div class="summary-line">
-        <span>적용 구간 단가 (Unit Price)</span>
+        <span>적용 구간 단가 (Tier Unit Price)</span>
         <span class="num">{{ formatMoney(activeUnitPrice) }} / {{ product?.unit }}</span>
       </div>
       <div class="summary-line">
@@ -98,10 +178,10 @@
     <!-- Action Buttons -->
     <div class="action-buttons-group">
       <button class="btn-add-cart" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
-        🛒 {{ addingCart ? '담는 중...' : '도매 장바구니 담기' }}
+        🛒 {{ addingCart ? '담는 중...' : (orderMode === 'MATRIX' ? '선택 규격 일괄 장바구니 담기' : '도매 장바구니 담기') }}
       </button>
       <button class="btn-start-trade-order" :disabled="!!quantityError" @click="handleInstantOrder">
-        📝 즉시 도매 발주서 생성
+        📝 {{ orderMode === 'MATRIX' ? '선택 규격 일괄 발주서 작성' : '즉시 도매 발주서 생성' }}
       </button>
     </div>
 
@@ -117,7 +197,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedCurrency } from '../i18n';
@@ -135,6 +215,7 @@ const emit = defineEmits<{
 
 const router = useRouter();
 
+const orderMode = ref<'MATRIX' | 'SINGLE'>('MATRIX');
 const orderQty = ref(Number(props.product?.moq) || 100);
 const quantityError = ref('');
 const addingCart = ref(false);
@@ -145,13 +226,48 @@ const shippingDestination = ref('US');
 const shippingMethod = ref('SEA_LCL');
 const landedCostData = ref<any>(null);
 
+// Multi-SKU Variants Setup
+const productVariants = computed(() => {
+  if (props.product?.variants && props.product.variants.length > 0) {
+    return props.product.variants;
+  }
+  return [
+    { id: `${props.product?.id || 'p'}-v1`, name: '표준 표준형 (Standard Spec)', sku: 'SKU-STD-01', stock: 5000 },
+    { id: `${props.product?.id || 'p'}-v2`, name: '고강도 강화형 (Reinforced Pro)', sku: 'SKU-PRO-02', stock: 3200 },
+    { id: `${props.product?.id || 'p'}-v3`, name: '수출 맞춤팩 (Export Custom Pack)', sku: 'SKU-EXP-03', stock: 1800 },
+  ];
+});
+
+const variantQuantities = ref<Record<string, number>>({});
+
+function initVariantQuantities() {
+  const moq = Number(props.product?.moq) || 100;
+  const qMap: Record<string, number> = {};
+  productVariants.value.forEach((v: any, idx: number) => {
+    qMap[v.id] = idx === 0 ? moq : 0;
+  });
+  variantQuantities.value = qMap;
+}
+
+watch(() => props.product, () => {
+  initVariantQuantities();
+}, { immediate: true });
+
+const matrixTotalQty = computed(() => {
+  return Object.values(variantQuantities.value).reduce((sum, q) => sum + (q || 0), 0);
+});
+
+const effectiveOrderQty = computed(() => {
+  return orderMode.value === 'MATRIX' ? matrixTotalQty.value : orderQty.value;
+});
+
 function formatMoney(usdVal: string | number) {
   return formatCurrency(usdVal, (props.currency as SupportedCurrency) || 'KRW');
 }
 
 const currentTierIndex = computed(() => {
   if (!props.product?.price_tiers) return 0;
-  const qty = orderQty.value;
+  const qty = effectiveOrderQty.value;
   for (let i = 0; i < props.product.price_tiers.length; i++) {
     const t = props.product.price_tiers[i];
     const minQ = parseInt(t.min_quantity, 10);
@@ -171,7 +287,7 @@ const activeUnitPrice = computed(() => {
 
 const subtotalAmount = computed(() => {
   const price = parseFloat(activeUnitPrice.value);
-  const total = price * orderQty.value;
+  const total = price * effectiveOrderQty.value;
   return total.toFixed(2);
 });
 
@@ -182,7 +298,7 @@ const downPaymentAmount = computed(() => {
 
 const estimatedLeadTimeDays = computed(() => {
   const baseDays = props.product?.lead_time_days || 14;
-  if (orderQty.value > 2000) return baseDays + 7;
+  if (effectiveOrderQty.value > 2000) return baseDays + 7;
   return baseDays;
 });
 
@@ -213,16 +329,37 @@ function decrementQty() {
   validateQty();
 }
 
+function onInputVariantQty(varId: string, val: string) {
+  const num = Math.max(0, parseInt(val, 10) || 0);
+  variantQuantities.value[varId] = num;
+  validateQty();
+}
+
+function incrementVariantQty(varId: string) {
+  const step = parseInt(props.product?.quantity_step, 10) || 10;
+  const cur = variantQuantities.value[varId] || 0;
+  variantQuantities.value[varId] = cur + step;
+  validateQty();
+}
+
+function decrementVariantQty(varId: string) {
+  const step = parseInt(props.product?.quantity_step, 10) || 10;
+  const cur = variantQuantities.value[varId] || 0;
+  variantQuantities.value[varId] = Math.max(0, cur - step);
+  validateQty();
+}
+
 function validateQty() {
   const moq = parseInt(props.product?.moq, 10) || 1;
   const step = parseInt(props.product?.quantity_step, 10) || 1;
+  const qty = effectiveOrderQty.value;
 
-  if (orderQty.value < moq) {
-    quantityError.value = `최소 발주수량(MOQ ${moq}) 미만으로 주문할 수 없습니다.`;
+  if (qty < moq) {
+    quantityError.value = `최소 발주수량(MOQ ${moq}) 미만입니다. 현재 ${qty}개 선택됨.`;
     return;
   }
 
-  if (step > 1 && (orderQty.value - moq) % step !== 0) {
+  if (step > 1 && (qty - moq) % step !== 0) {
     quantityError.value = `발주 수량은 ${step}개 배수 단위로 증감해야 합니다.`;
     return;
   }
@@ -239,7 +376,7 @@ async function calculateLandedCost() {
       body: JSON.stringify({
         destination_country: shippingDestination.value,
         shipping_method: shippingMethod.value,
-        quantity: orderQty.value,
+        quantity: effectiveOrderQty.value || 100,
         unit_price: activeUnitPrice.value,
       }),
     });
@@ -252,14 +389,29 @@ async function calculateLandedCost() {
 async function handleAddToCart() {
   addingCart.value = true;
   try {
-    await apiRequest('/cart/items', {
-      method: 'POST',
-      body: JSON.stringify({
-        listing_id: props.product.id,
-        quantity: orderQty.value,
-      }),
-    });
-    alert(`'${props.product.title}' 품목이 도매 카트에 ${orderQty.value}${props.product.unit} 담겼습니다.`);
+    if (orderMode.value === 'MATRIX') {
+      const activeVariants = productVariants.value.filter((v: any) => (variantQuantities.value[v.id] || 0) > 0);
+      for (const v of activeVariants) {
+        await apiRequest('/cart/items', {
+          method: 'POST',
+          body: JSON.stringify({
+            listing_id: props.product.id,
+            variant_id: v.id,
+            quantity: variantQuantities.value[v.id],
+          }),
+        });
+      }
+      alert(`[다차원 SKU 일괄 장바구니 담기 완료]\n${activeVariants.length}개 규격(총 ${effectiveOrderQty.value}개)이 도매 카트에 담겼습니다.`);
+    } else {
+      await apiRequest('/cart/items', {
+        method: 'POST',
+        body: JSON.stringify({
+          listing_id: props.product.id,
+          quantity: orderQty.value,
+        }),
+      });
+      alert(`'${props.product.title}' 품목이 도매 카트에 ${orderQty.value}${props.product.unit} 담겼습니다.`);
+    }
   } catch (err: any) {
     alert(`장바구니 담기 실패: ${err.message}`);
   } finally {
@@ -272,8 +424,9 @@ function handleInstantOrder() {
     path: `/${props.locale}/${props.currency}/checkout`,
     query: {
       listing_id: props.product.id,
-      quantity: String(orderQty.value),
+      quantity: String(effectiveOrderQty.value),
       unit_price: activeUnitPrice.value,
+      mode: orderMode.value,
     },
   });
 }
@@ -313,6 +466,154 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+.order-mode-tabs {
+  display: flex;
+  gap: 8px;
+  background: #F8FAFC;
+  padding: 4px;
+  border-radius: 8px;
+  border: 1px solid #E2E8F0;
+}
+.mode-tab-btn {
+  flex: 1;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 700;
+  border: none;
+  background: transparent;
+  color: #64748B;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.mode-tab-btn.active {
+  background: #C2410C;
+  color: #FFFFFF;
+  box-shadow: 0 2px 4px rgba(194, 65, 12, 0.2);
+}
+.sku-matrix-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.matrix-hint {
+  font-size: 11px;
+  color: #64748B;
+  background: #FFF7ED;
+  border: 1px solid #FFEDD5;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+.sku-matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.sku-matrix-table th {
+  background: #F8FAFC;
+  color: #475569;
+  font-weight: 700;
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 2px solid #E2E8F0;
+}
+.sku-matrix-table th.th-qty {
+  text-align: right;
+}
+.sku-row {
+  border-bottom: 1px solid #F1F5F9;
+}
+.sku-row:hover {
+  background: #FFFDF9;
+}
+.sku-row td {
+  padding: 10px 10px;
+  vertical-align: middle;
+}
+.td-spec {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sku-name {
+  color: #0F172A;
+  font-size: 12px;
+}
+.sku-code {
+  font-family: monospace;
+  font-size: 10px;
+  color: #94A3B8;
+}
+.sku-price {
+  font-weight: 700;
+  color: #C2410C;
+}
+.sku-unit {
+  font-size: 10px;
+  color: #64748B;
+}
+.stock-pill {
+  font-size: 11px;
+  color: #15803D;
+  background: #DCFCE7;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+.td-qty {
+  text-align: right;
+}
+.matrix-qty-wrap {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #CBD5E1;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.m-step-btn {
+  background: #F1F5F9;
+  border: none;
+  width: 28px;
+  height: 28px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.m-step-btn:hover {
+  background: #E2E8F0;
+}
+.m-qty-input {
+  width: 60px;
+  height: 28px;
+  border: none;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #0F172A;
+}
+.matrix-aggregate-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  font-size: 12px;
+}
+.agg-qty {
+  color: #C2410C;
+  font-size: 14px;
+  margin-left: 6px;
+}
+.moq-ok {
+  color: #15803D;
+  font-weight: 700;
+}
+.moq-warn {
+  color: #DC2626;
+  font-weight: 700;
 }
 .calc-row {
   display: flex;

@@ -50,6 +50,105 @@
       </div>
     </div>
 
+    <!-- Technical Material Facets (Alibaba Specs) -->
+    <div class="filter-group">
+      <h4 class="group-title">소재 및 재질 (Material)</h4>
+      <div class="facet-chips-list">
+        <button
+          type="button"
+          class="facet-chip"
+          :class="{ active: selectedMaterial === 'ALL' || !selectedMaterial }"
+          @click="$emit('update:selectedMaterial', 'ALL')"
+        >
+          전체 재질
+        </button>
+        <button
+          v-for="mat in materialList"
+          :key="mat.name"
+          type="button"
+          class="facet-chip"
+          :class="{ active: selectedMaterial === mat.name }"
+          @click="$emit('update:selectedMaterial', mat.name)"
+        >
+          {{ mat.name }}
+          <span class="facet-count">{{ mat.count }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Certification Facets -->
+    <div class="filter-group">
+      <h4 class="group-title">국제 공인 인증 (Certifications)</h4>
+      <div class="facet-chips-list">
+        <button
+          type="button"
+          class="facet-chip"
+          :class="{ active: selectedCertification === 'ALL' || !selectedCertification }"
+          @click="$emit('update:selectedCertification', 'ALL')"
+        >
+          전체 인증
+        </button>
+        <button
+          v-for="cert in certList"
+          :key="cert.name"
+          type="button"
+          class="facet-chip"
+          :class="{ active: selectedCertification === cert.name }"
+          @click="$emit('update:selectedCertification', cert.name)"
+        >
+          {{ cert.name }}
+          <span class="facet-count">{{ cert.count }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Lead Time Facets -->
+    <div class="filter-group">
+      <h4 class="group-title">생산 및 출고 납기 (Lead Time)</h4>
+      <div class="lead-time-list">
+        <label class="radio-label">
+          <input
+            :checked="selectedLeadTime === 'ALL' || !selectedLeadTime"
+            type="radio"
+            name="lead"
+            value="ALL"
+            @change="$emit('update:selectedLeadTime', 'ALL')"
+          />
+          <span>전체 납기 기간</span>
+        </label>
+        <label class="radio-label">
+          <input
+            :checked="selectedLeadTime === '7'"
+            type="radio"
+            name="lead"
+            value="7"
+            @change="$emit('update:selectedLeadTime', '7')"
+          />
+          <span>⚡ 빠른 출고 (≤ 7일 이내)</span>
+        </label>
+        <label class="radio-label">
+          <input
+            :checked="selectedLeadTime === '15'"
+            type="radio"
+            name="lead"
+            value="15"
+            @change="$emit('update:selectedLeadTime', '15')"
+          />
+          <span>표준 납기 (≤ 15일 이내)</span>
+        </label>
+        <label class="radio-label">
+          <input
+            :checked="selectedLeadTime === '30'"
+            type="radio"
+            name="lead"
+            value="30"
+            @change="$emit('update:selectedLeadTime', '30')"
+          />
+          <span>대량 주문 생산 (≤ 30일 이내)</span>
+        </label>
+      </div>
+    </div>
+
     <!-- Incoterms -->
     <div class="filter-group">
       <h4 class="group-title">인도 조건 (Incoterms 2020)</h4>
@@ -65,13 +164,22 @@
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import { computed } from 'vue';
+
+const props = defineProps<{
   filterVerified: boolean;
   filterTradeAssurance: boolean;
   filterCustomization: boolean;
   selectedMoqPreset: string;
   selectedCategory: string;
   selectedIncoterm: string;
+  selectedMaterial?: string;
+  selectedCertification?: string;
+  selectedLeadTime?: string;
+  facets?: {
+    materials?: { name: string; count: number }[];
+    certifications?: { name: string; count: number }[];
+  };
 }>();
 
 defineEmits<{
@@ -81,8 +189,36 @@ defineEmits<{
   (e: 'update:selectedMoqPreset', val: string): void;
   (e: 'update:selectedCategory', val: string): void;
   (e: 'update:selectedIncoterm', val: string): void;
+  (e: 'update:selectedMaterial', val: string): void;
+  (e: 'update:selectedCertification', val: string): void;
+  (e: 'update:selectedLeadTime', val: string): void;
   (e: 'reset'): void;
 }>();
+
+const materialList = computed(() => {
+  return props.facets?.materials && props.facets.materials.length > 0
+    ? props.facets.materials
+    : [
+        { name: 'SUS304', count: 14 },
+        { name: 'SUS316', count: 6 },
+        { name: 'Aluminum 6061', count: 9 },
+        { name: 'Carbon Steel', count: 7 },
+        { name: 'Cast Iron', count: 5 },
+        { name: 'Polypropylene (PP)', count: 8 },
+      ];
+});
+
+const certList = computed(() => {
+  return props.facets?.certifications && props.facets.certifications.length > 0
+    ? props.facets.certifications
+    : [
+        { name: 'ISO 9001', count: 22 },
+        { name: 'CE', count: 18 },
+        { name: 'FDA', count: 12 },
+        { name: 'RoHS', count: 15 },
+        { name: 'LFGB', count: 7 },
+      ];
+});
 
 const categories = [
   { val: 'ALL', label: '전체 산업군' },
@@ -109,8 +245,45 @@ const categories = [
 .moq-pills button { flex: 1; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 0; font-size: 12px; color: #475569; cursor: pointer; }
 .moq-pills button.active { background: #D64000; color: #FFFFFF; border-color: #D64000; font-weight: 700; }
 .cat-radio-list { display: flex; flex-direction: column; gap: 8px; }
-.radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; }
+.radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; margin-bottom: 6px; }
 .radio-label:hover { color: #D64000; }
+.facet-chips-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.facet-chip {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: #475569;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.2s;
+}
+.facet-chip:hover {
+  background: #FFF7ED;
+  border-color: #FED7AA;
+  color: #C2410C;
+}
+.facet-chip.active {
+  background: #C2410C;
+  border-color: #C2410C;
+  color: #FFFFFF;
+  font-weight: 700;
+}
+.facet-count {
+  font-size: 10px;
+  opacity: 0.8;
+  background: rgba(0,0,0,0.06);
+  padding: 1px 4px;
+  border-radius: 99px;
+}
+.facet-chip.active .facet-count {
+  background: rgba(255,255,255,0.25);
+  color: #FFF;
+}
+.lead-time-list { display: flex; flex-direction: column; gap: 6px; }
 .select-box { width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; color: #334155; outline: none; background: #FFF; }
 </style>
 

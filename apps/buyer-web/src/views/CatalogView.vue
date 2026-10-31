@@ -53,11 +53,48 @@
         v-model:selectedMoqPreset="selectedMoqPreset"
         v-model:selectedCategory="selectedCategory"
         v-model:selectedIncoterm="selectedIncoterm"
+        v-model:selectedMaterial="selectedMaterial"
+        v-model:selectedCertification="selectedCertification"
+        v-model:selectedLeadTime="selectedLeadTime"
+        :facets="serverFacets"
         @reset="resetFilters"
       />
 
       <!-- Right Product Cards Section -->
       <section class="products-section">
+        <!-- Active Filter Chips Bar (Alibaba Style) -->
+        <div v-if="hasActiveFilters" class="active-chips-bar">
+          <span class="chips-title">적용된 조건:</span>
+          <span v-if="filterVerified" class="filter-chip" @click="filterVerified = false">
+            인증 공장 (Verified) ✕
+          </span>
+          <span v-if="filterTradeAssurance" class="filter-chip" @click="filterTradeAssurance = false">
+            무역보증 (Trade Assurance) ✕
+          </span>
+          <span v-if="filterCustomization" class="filter-chip" @click="filterCustomization = false">
+            맞춤제작 (OEM/ODM) ✕
+          </span>
+          <span v-if="selectedCategory !== 'ALL'" class="filter-chip" @click="selectedCategory = 'ALL'">
+            카테고리: {{ selectedCategory }} ✕
+          </span>
+          <span v-if="selectedMaterial !== 'ALL'" class="filter-chip" @click="selectedMaterial = 'ALL'">
+            재질: {{ selectedMaterial }} ✕
+          </span>
+          <span v-if="selectedCertification !== 'ALL'" class="filter-chip" @click="selectedCertification = 'ALL'">
+            인증: {{ selectedCertification }} ✕
+          </span>
+          <span v-if="selectedLeadTime !== 'ALL'" class="filter-chip" @click="selectedLeadTime = 'ALL'">
+            출고: ≤ {{ selectedLeadTime }}일 ✕
+          </span>
+          <span v-if="selectedMoqPreset !== 'all'" class="filter-chip" @click="selectedMoqPreset = 'all'">
+            MOQ: ≤ {{ selectedMoqPreset }} ✕
+          </span>
+          <span v-if="selectedIncoterm !== 'ALL'" class="filter-chip" @click="selectedIncoterm = 'ALL'">
+            인도조건: {{ selectedIncoterm }} ✕
+          </span>
+          <button class="btn-clear-all-chips" @click="resetFilters">전체 필터 초기화</button>
+        </div>
+
         <div class="section-toolbar">
           <div class="toolbar-left">
             <h2>도매 상품 및 생산 라인 목록 <span class="count">({{ filteredListings.length }}건)</span></h2>
@@ -126,7 +163,25 @@ const filterCustomization = ref(false);
 const selectedMoqPreset = ref('all');
 const selectedCategory = ref('ALL');
 const selectedIncoterm = ref('ALL');
+const selectedMaterial = ref('ALL');
+const selectedCertification = ref('ALL');
+const selectedLeadTime = ref('ALL');
 const sortOrder = ref('recommended');
+const serverFacets = ref<any>({});
+
+const hasActiveFilters = computed(() => {
+  return (
+    filterVerified.value ||
+    filterTradeAssurance.value ||
+    filterCustomization.value ||
+    selectedCategory.value !== 'ALL' ||
+    selectedIncoterm.value !== 'ALL' ||
+    selectedMaterial.value !== 'ALL' ||
+    selectedCertification.value !== 'ALL' ||
+    selectedLeadTime.value !== 'ALL' ||
+    selectedMoqPreset.value !== 'all'
+  );
+});
 
 const quickRfqItem = ref('');
 const quickRfqQty = ref(1000);
@@ -141,7 +196,7 @@ const filteredListings = computed(() => {
   const list = listings.value.filter(item => {
     if (keywordFilter.value) {
       const q = keywordFilter.value.toLowerCase();
-      const matchText = `${item.title} ${item.supplier_name} ${item.category_name} ${item.sub_category || ''}`.toLowerCase();
+      const matchText = `${item.title} ${item.supplier_name} ${item.category_name} ${item.sub_category || ''} ${JSON.stringify(item.specifications || [])}`.toLowerCase();
       if (!matchText.includes(q)) return false;
     }
     if (filterVerified.value && !item.verified_supplier && !item.is_verified_supplier) return false;
@@ -152,6 +207,27 @@ const filteredListings = computed(() => {
     if (selectedMoqPreset.value === '100' && item.moq > 100) return false;
     if (selectedMoqPreset.value === '500' && item.moq > 500) return false;
     if (selectedMoqPreset.value === '1000' && item.moq < 1000) return false;
+
+    // Material spec filter
+    if (selectedMaterial.value !== 'ALL') {
+      const mat = selectedMaterial.value.toLowerCase().split(' ')[0];
+      const specText = JSON.stringify(item.specifications || []).toLowerCase() + item.title.toLowerCase();
+      if (!specText.includes(mat)) return false;
+    }
+
+    // Certification filter
+    if (selectedCertification.value !== 'ALL') {
+      const cert = selectedCertification.value.toLowerCase();
+      const specText = JSON.stringify(item.specifications || []).toLowerCase();
+      if (!specText.includes(cert)) return false;
+    }
+
+    // Lead time filter
+    if (selectedLeadTime.value !== 'ALL') {
+      const maxDays = Number(selectedLeadTime.value);
+      if ((Number(item.lead_time_days) || 14) > maxDays) return false;
+    }
+
     return true;
   });
 
@@ -182,6 +258,9 @@ function resetFilters() {
   selectedMoqPreset.value = 'all';
   selectedCategory.value = 'ALL';
   selectedIncoterm.value = 'ALL';
+  selectedMaterial.value = 'ALL';
+  selectedCertification.value = 'ALL';
+  selectedLeadTime.value = 'ALL';
 }
 
 function openInquiryModal(item: any) {
@@ -205,6 +284,9 @@ async function fetchListings() {
   fetchError.value = null;
   try {
     const res = await apiRequest('/catalog/listings');
+    if (res && res.facets) {
+      serverFacets.value = res.facets;
+    }
     if (res && Array.isArray(res.items)) {
       listings.value = res.items.map((item: any) => ({
         ...item,
@@ -271,6 +353,47 @@ onMounted(() => {
 
 .active-query-bar { display: flex; justify-content: space-between; align-items: center; background: #FFF7ED; border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: #9A3412; }
 .btn-clear-q { background: #FFF; border: 1px solid #FB923C; color: #C2410C; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+.active-chips-bar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  background: #FFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+.chips-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #475569;
+}
+.filter-chip {
+  background: #EFF6FF;
+  color: #2563EB;
+  border: 1px solid #BFDBFE;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.filter-chip:hover {
+  background: #DBEAFE;
+  color: #1D4ED8;
+}
+.btn-clear-all-chips {
+  margin-left: auto;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  color: #DC2626;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: underline;
+}
 
 .catalog-main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
 .products-section { display: flex; flex-direction: column; gap: 16px; }
