@@ -20,7 +20,7 @@
           <option value="SETTLEMENT_PAYOUT_DISPATCHED">SETTLEMENT_PAYOUT_DISPATCHED</option>
           <option value="SUPPLIER_VERIFICATION_APPROVED">SUPPLIER_VERIFICATION_APPROVED</option>
         </select>
-        <button class="btn-refresh" @click="loadLogs">↻ 새로고침</button>
+        <button class="btn-refresh" @click="loadLogs"><WsIcon name="refresh" :size="15" /> 새로고침</button>
       </div>
     </div>
 
@@ -66,6 +66,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const logs = ref<any[]>([]);
@@ -100,25 +101,25 @@ onMounted(() => {
 .audit-log-page { max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; }
 h2 { margin: 0 0 4px 0; font-size: 20px; color: #FFF; }
-.subtitle { color: #94A3B8; font-size: 13px; margin: 0; }
+.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
 .filter-controls { display: flex; gap: 8px; }
-.filter-controls select { background: #1C2541; color: #E2E8F0; border: 1px solid #3A506B; padding: 8px 12px; border-radius: 6px; font-size: 12px; }
-.btn-refresh { background: #1C2541; border: 1px solid #3A506B; color: #E2E8F0; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-state { padding: 40px; text-align: center; color: #94A3B8; }
+.filter-controls select { background: var(--ws-admin-panel); color: var(--ws-admin-text); border: 1px solid var(--ws-admin-line); padding: 8px 12px; border-radius: 6px; font-size: 12px; }
+.btn-refresh { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
 
-.card { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 24px; }
+.card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 24px; }
 .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 .card-head h3 { margin: 0; font-size: 16px; color: #FFF; }
 .policy-tag { background: #064E3B; color: #6EE7B7; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; }
 
 .log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
 .log-table th, .log-table td { padding: 10px 8px; border-bottom: 1px solid #2B3A55; text-align: left; }
-.log-table th { background: #0B132B; color: #94A3B8; }
-.code { font-family: monospace; color: #94A3B8; }
-.time { color: #94A3B8; white-space: nowrap; }
-.action-badge { background: #0B132B; border: 1px solid #3A506B; color: #F59E0B; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 700; }
+.log-table th { background: var(--ws-admin-panel-2); color: var(--ws-admin-dim); }
+.code { font-family: monospace; color: var(--ws-admin-dim); }
+.time { color: var(--ws-admin-dim); white-space: nowrap; }
+.action-badge { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-accent); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 700; }
 .actor-info { display: flex; flex-direction: column; gap: 2px; }
-.role-chip { font-size: 10px; color: #38BDF8; font-weight: 600; }
-.desc { color: #E2E8F0; max-width: 440px; }
+.role-chip { font-size: 10px; color: var(--ws-admin-link); font-weight: 600; }
+.desc { color: var(--ws-admin-text); max-width: 440px; }
 </style>
 

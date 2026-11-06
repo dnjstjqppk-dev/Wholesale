@@ -1,4 +1,4 @@
-import { users, organizations } from './store';
+import { users, organizations } from './store.ts';
 
 export interface RuntimeConfig {
   JWT_SECRET?: string;
@@ -11,7 +11,9 @@ const configs = new WeakMap<Request, RuntimeConfig>();
 export function configureRequest(request: Request, config: RuntimeConfig) { configs.set(request, config); }
 export function configFor(request: Request): RuntimeConfig { return configs.get(request) || {}; }
 export class DomainError extends Error {
-  constructor(public status: number, public code: string, message: string) { super(message); }
+  status: number;
+  code: string;
+  constructor(status: number, code: string, message: string) { super(message); this.status = status; this.code = code; }
 }
 export function check(condition: unknown, status: number, code: string, message: string): asserts condition {
   if (!condition) throw new DomainError(status, code, message);
@@ -19,6 +21,9 @@ export function check(condition: unknown, status: number, code: string, message:
 const encoder = new TextEncoder();
 const hex = (bytes: ArrayBuffer) => Array.from(new Uint8Array(bytes), b => b.toString(16).padStart(2, '0')).join('');
 export async function digest(text: string) { return hex(await crypto.subtle.digest('SHA-256', encoder.encode(text))); }
+export function contractCanonicalBody(o: { order_number: string; buyer_organization_id: string; supplier_organization_id: string; ordered_quantity: number | string; unit_price: number | string; total_amount_minor: number; currency: string; incoterms: string }): string {
+  return ['WHOLESALE-CTR-v1', o.order_number, o.buyer_organization_id, o.supplier_organization_id, String(o.ordered_quantity), String(o.unit_price), String(o.total_amount_minor), o.currency, o.incoterms].join('|');
+}
 function encode(value: unknown) {
   return btoa(String.fromCharCode(...encoder.encode(JSON.stringify(value)))).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }

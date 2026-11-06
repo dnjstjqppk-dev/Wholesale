@@ -28,7 +28,7 @@
       </div>
 
       <div class="actions">
-        <button class="btn-submit" @click="handleSubmit">분쟁 공식 접수 및 정산 동결</button>
+        <button class="btn-submit" :disabled="submitting" @click="handleSubmit">{{ submitting ? '접수 처리 중...' : '분쟁 공식 접수 및 정산 동결' }}</button>
       </div>
     </div>
   </div>
@@ -70,13 +70,14 @@ async function handleSubmit() {
 
 <style scoped>
 .dispute-create-page { max-width: 700px; margin: 0 auto; }
-.card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 32px; }
-h2 { margin: 0 0 8px 0; font-size: 20px; color: #172B4D; }
-.desc { color: #42526E; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
+.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 32px; }
+h2 { margin: 0 0 8px 0; font-size: 20px; color: var(--ws-text); }
+.desc { color: var(--ws-text-2); font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
 .form-group { margin-bottom: 20px; }
-.form-group label { display: block; font-size: 13px; font-weight: 600; color: #172B4D; margin-bottom: 6px; }
-.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #D8E0EB; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+.form-group label { display: block; font-size: 13px; font-weight: 600; color: var(--ws-text); margin-bottom: 6px; }
+.form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
 .actions { margin-top: 24px; }
-.btn-submit { background: #DC2626; color: #FFF; border: none; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; font-size: 15px; }
+.btn-submit { background: var(--ws-danger); color: var(--ws-surface); border: none; padding: 12px 24px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; font-size: 15px; }
+.btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 </style>
 

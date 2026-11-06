@@ -1,6 +1,6 @@
-import { users, organizations, buyerProfiles, logAudit } from './store';
-import { check, hashPassword, verifyPassword, signJwt, requireAuth, requireRole } from './security';
-import { jsonResponse } from './response';
+import { users, organizations, buyerProfiles, logAudit } from './store.ts';
+import { check, hashPassword, verifyPassword, signJwt, requireAuth, requireRole } from './security.ts';
+import { jsonResponse } from './response.ts';
 
 export function profileFor(ctx: { user: any; org: any }) {
   let profile = buyerProfiles.get(ctx.org.id);
@@ -28,7 +28,7 @@ export async function handleAuth(request: Request, url: URL): Promise<Response |
       return session(user, request);
     }
     check(!users.has(email), 409, 'EMAIL_EXISTS', '이미 가입된 이메일입니다.');
-    check(body.password.length >= 12 && body.password.length <= 256, 400, 'WEAK_PASSWORD', '비밀번호는 12~256자로 입력하세요.');
+    check(typeof body.password === 'string' && body.password.length >= 12 && body.password.length <= 256, 400, 'WEAK_PASSWORD', '비밀번호는 12~256자로 입력하세요.');
     check(typeof body.company_name === 'string' && body.company_name.trim(), 400, 'COMPANY_REQUIRED', '회사명을 입력하세요.');
     check(!body.role_capability || ['BUYER', 'BUYER_CORP', 'SUPPLIER'].includes(body.role_capability), 400, 'INVALID_ROLE', '구매사 또는 공급사로 가입하세요.');
     const org = { id: crypto.randomUUID(), legal_name: body.company_name.trim(), business_number: String(body.business_number || ''), country: String(body.country || 'KR'), business_type: body.role_capability === 'SUPPLIER' ? 'MANUFACTURER' : 'BUYER_CORP', is_verified_supplier: false };
@@ -39,6 +39,8 @@ export async function handleAuth(request: Request, url: URL): Promise<Response |
     logAudit('ACCOUNT_REGISTERED', user.id, user.role, 'ORGANIZATION', org.id, 'Registered unverified organization');
     return session(user, request, 201);
   }
+  const knownAuthPath = path === '/v1/auth/me' || path === '/v1/auth/profile' || path === '/v1/auth/profile/addresses' || path === '/v1/auth/profile/sub-accounts' || /^\/v1\/auth\/profile\/addresses\/[^/]+$/.test(path);
+  check(knownAuthPath, 404, 'NOT_FOUND', '인증 경로를 찾을 수 없습니다.');
   const ctx = await requireAuth(request);
   if (path === '/v1/auth/me' && request.method === 'GET') {
     const { id, email, full_name, role } = ctx.user;
@@ -49,8 +51,11 @@ export async function handleAuth(request: Request, url: URL): Promise<Response |
     if (request.method === 'GET') return jsonResponse(profile);
     if (request.method === 'PUT') {
       const body: any = await request.json();
-      for (const key of ['legal_name', 'business_number', 'ein_vat', 'contact_person', 'contact_email', 'contact_phone', 'primary_industry']) {
-        if (typeof body[key] === 'string') (profile as any)[key] = body[key].trim();
+      for (const key of ['legal_name', 'business_number', 'ein_vat', 'contact_person', 'contact_email', 'contact_phone', 'primary_industry', 'annual_purchasing_volume_usd', 'tax_exemption_cert_url']) {
+        if (typeof body[key] === 'string' && body[key].length <= 500) (profile as any)[key] = body[key].trim();
+      }
+      if (typeof body.tax_exemption_status === 'string' && ['VERIFIED', 'PENDING', 'NOT_SUBMITTED'].includes(body.tax_exemption_status)) {
+        (profile as any).tax_exemption_status = body.tax_exemption_status;
       }
       ctx.org.legal_name = profile.legal_name;
       ctx.org.business_number = profile.business_number;
@@ -74,8 +79,26 @@ export async function handleAuth(request: Request, url: URL): Promise<Response |
     return jsonResponse({ success: true });
   }
   if (path === '/v1/auth/profile/sub-accounts' && request.method === 'POST') {
-    requireRole(ctx, 'BUYER_APPROVER', 'PLATFORM_ADMIN');
-    check(false, 501, 'INVITATION_PROVIDER_REQUIRED', '초대 메일 인증 연동 후 계정을 추가할 수 있습니다.');
+    const body: any = await request.json();
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    check(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email), 400, 'INVALID_EMAIL', '서브 계정 이메일 형식이 올바르지 않습니다.');
+    check(['BUYER_PURCHASER', 'BUYER_APPROVER', 'BUYER_FINANCE'].includes(body.role), 400, 'INVALID_ROLE', '서브 계정 역할이 올바르지 않습니다.');
+    const spendingLimit = Number(body.spending_limit_usd ?? 0);
+    check(Number.isFinite(spendingLimit) && spendingLimit >= 0, 400, 'INVALID_SPENDING_LIMIT', '지출 한도는 0 이상의 숫자여야 합니다.');
+    check(!profile.sub_accounts.some(a => a.email.toLowerCase() === email), 409, 'SUB_ACCOUNT_EXISTS', '이미 등록된 서브 계정 이메일입니다.');
+    const newSub = {
+      id: `user-sub-${Date.now()}`,
+      email,
+      full_name: typeof body.full_name === 'string' && body.full_name.trim() ? body.full_name.trim().slice(0, 120) : email.split('@')[0],
+      role: body.role,
+      status: 'ACTIVE' as const,
+      spending_limit_usd: spendingLimit,
+      can_approve: body.role !== 'BUYER_PURCHASER',
+      created_at: new Date().toISOString(),
+    };
+    profile.sub_accounts.push(newSub);
+    logAudit('SUB_ACCOUNT_REGISTERED', ctx.user.id, ctx.user.role, 'ORGANIZATION', ctx.org.id, `Sub-account roster entry added: ${email}`);
+    return jsonResponse(newSub, 201);
   }
   check(false, 404, 'NOT_FOUND', '인증 경로를 찾을 수 없습니다.');
 }

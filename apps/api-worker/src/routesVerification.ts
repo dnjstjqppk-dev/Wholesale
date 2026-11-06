@@ -2,9 +2,9 @@
 // apps/api-worker/src/routesVerification.ts
 // Corporate KYC & Korean NTS (국세청) / Global D-U-N-S Business Registration Verification Engine
 
-import { jsonResponse, problemResponse } from './response';
-import { getAuthContext } from './security';
-import { verifiedTaxRegistries, logAudit } from './store';
+import { jsonResponse, problemResponse } from './response.ts';
+import { getAuthContext, check } from './security.ts';
+import { verifiedTaxRegistries, logAudit } from './store.ts';
 
 /**
  * Validates 10-digit Korean Business Registration Number (사업자등록번호)
@@ -33,6 +33,7 @@ export async function handleVerification(request: Request, url: URL): Promise<Re
 
   // 1. POST /v1/verification/business-tax-id (Real-Time NTS & DUNS Corporate Verification)
   if (url.pathname === '/v1/verification/business-tax-id' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const rawTaxId = (body.tax_id || body.business_number || '').trim();
     const cleanTaxId = rawTaxId.replace(/\D/g, '');

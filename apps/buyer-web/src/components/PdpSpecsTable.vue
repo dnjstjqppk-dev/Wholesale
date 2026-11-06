@@ -50,7 +50,7 @@ const specPairs = computed(() => {
 
 <style scoped>
 .specs-section {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border: 1px solid #E5E7EB;
   border-radius: 10px;
   padding: 24px;
@@ -65,12 +65,12 @@ const specPairs = computed(() => {
 .specs-head h2 {
   font-size: 16px;
   font-weight: 800;
-  color: #1E293B;
+  color: var(--ws-text);
   margin: 0;
 }
 .sku-tag {
-  background: #F1F5F9;
-  color: #64748B;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-muted);
   font-size: 11px;
   font-weight: 700;
   padding: 3px 8px;
@@ -85,18 +85,18 @@ const specPairs = computed(() => {
   font-size: 13px;
 }
 .spec-th {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   padding: 10px 14px;
   text-align: left;
   width: 22%;
-  color: #334155;
+  color: var(--ws-text-2);
   font-weight: 700;
 }
 .spec-td {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   padding: 10px 14px;
-  color: #475569;
+  color: var(--ws-text-2);
   width: 28%;
 }
 </style>

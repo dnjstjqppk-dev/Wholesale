@@ -2,7 +2,8 @@
 // apps/api-worker/src/routesGovernance.ts
 // Platform Governance, Dual-Control SoD Settlements, Dispute Arbitration & Audit
 
-import { jsonResponse, problemResponse } from './response';
+import { jsonResponse, problemResponse } from './response.ts';
+import { parsePagination, paginate } from './pagination.ts';
 import {
   verifications,
   organizations,
@@ -18,14 +19,16 @@ import {
   masterCategoryAttributes,
   masterCustomsTariffs,
   masterFxRates,
-} from './store';
-import { getAuthContext } from './jwt';
+} from './store.ts';
+import { getAuthContext, check, requireRole } from './security.ts';
 
 export async function handleGovernance(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request, users, organizations);
 
   // GET /v1/admin/dashboard
   if (url.pathname === '/v1/admin/dashboard' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const allOrders = Array.from(orders.values());
     const allSettlements = Array.from(settlements.values());
     const allListings = Array.from(listings.values());
@@ -66,30 +69,46 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // GET /v1/admin/audit-logs & /v1/audit-logs
   if ((url.pathname === '/v1/admin/audit-logs' || url.pathname === '/v1/audit-logs') && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const action = url.searchParams.get('action');
     let logs = [...auditLogs];
     if (action) {
       logs = logs.filter(l => l.action === action);
     }
+    const logPage = paginate(logs, parsePagination(url));
     return jsonResponse({
-      audit_logs: logs,
-      total_count: logs.length,
+      audit_logs: logPage.items,
+      total_count: logPage.total_count,
+      page: logPage.page,
+      page_size: logPage.page_size,
+      total_pages: logPage.total_pages,
+      has_next: logPage.has_next,
       retention_policy: 'IMMUTABLE_LEGAL_ARCHIVE_7_YEARS',
     });
   }
 
   // GET & POST /v1/admin/moderation/listings
   if (url.pathname === '/v1/admin/moderation/listings' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const items = Array.from(listings.values());
+    const modPage = paginate(items, parsePagination(url));
     return jsonResponse({
-      items,
-      total_count: items.length,
+      items: modPage.items,
+      total_count: modPage.total_count,
+      page: modPage.page,
+      page_size: modPage.page_size,
+      total_pages: modPage.total_pages,
+      has_next: modPage.has_next,
       pending_review_count: items.filter(i => i.status === 'UNDER_REVIEW').length,
     });
   }
 
   const modReviewMatch = url.pathname.match(/^\/v1\/admin\/moderation\/listings\/([^\/]+)\/review$/);
   if (modReviewMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const id = modReviewMatch[1];
     const listing = listings.get(id);
     if (!listing) {
@@ -127,13 +146,18 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // GET /v1/admin/verifications
   if (url.pathname === '/v1/admin/verifications' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const items = Array.from(verifications.values());
-    return jsonResponse({ verifications: items, total_count: items.length });
+    const verifPage = paginate(items, parsePagination(url));
+    return jsonResponse({ verifications: verifPage.items, total_count: verifPage.total_count, page: verifPage.page, page_size: verifPage.page_size, total_pages: verifPage.total_pages, has_next: verifPage.has_next });
   }
 
   // POST /v1/admin/verifications/:id/approve
   const verifApprove = url.pathname.match(/^\/v1\/admin\/verifications\/([^\/]+)\/approve$/);
   if (verifApprove && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const id = verifApprove[1];
     const item = verifications.get(id);
     if (!item) {
@@ -164,6 +188,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
   // POST /v1/admin/verifications/:id/reject
   const verifReject = url.pathname.match(/^\/v1\/admin\/verifications\/([^\/]+)\/reject$/);
   if (verifReject && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const id = verifReject[1];
     const item = verifications.get(id);
     if (!item) {
@@ -196,6 +222,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // GET /v1/admin/ledger/audit
   if (url.pathname === '/v1/admin/ledger/audit' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     return jsonResponse({
       audit_timestamp: new Date().toISOString(),
       is_balanced: true,
@@ -230,6 +258,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // POST /v1/admin/ledger/reversal
   if (url.pathname === '/v1/admin/ledger/reversal' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const reversalId = `rev-${Date.now()}`;
     logAudit(
@@ -252,13 +282,18 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // GET /v1/settlements
   if (url.pathname === '/v1/settlements' && request.method === 'GET') {
-    const items = Array.from(settlements.values());
-    return jsonResponse({ settlements: items, total_count: items.length });
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    const allItems = Array.from(settlements.values());
+    const items = ctx.user.role === 'PLATFORM_ADMIN' ? allItems : allItems.filter(s => s.supplier_organization_id === ctx.org.id);
+    const settlementPage = paginate(items, parsePagination(url));
+    return jsonResponse({ settlements: settlementPage.items, total_count: settlementPage.total_count, page: settlementPage.page, page_size: settlementPage.page_size, total_pages: settlementPage.total_pages, has_next: settlementPage.has_next });
   }
 
   // POST /v1/settlements/:id/approve (Stage 1 Approval)
   const setApproveMatch = url.pathname.match(/^\/v1\/settlements\/([^\/]+)\/approve$/);
   if (setApproveMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const id = setApproveMatch[1];
     const set = settlements.get(id);
     if (!set) {
@@ -297,7 +332,25 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
       return problemResponse(404, 'NOT_FOUND', 'Settlement Not Found', `Settlement ${id} does not exist`);
     }
 
-    const executorId = ctx?.user?.id || 'user-admin-002';
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    const executorId = ctx.user.id;
+    const isPlatformAdmin = ctx.user.role === 'PLATFORM_ADMIN';
+    const isOwnerSupplier = ctx.org.id === set.supplier_organization_id;
+    check(isPlatformAdmin || isOwnerSupplier, 403, 'FORBIDDEN', '정산 권한이 없습니다.');
+
+    if (!isPlatformAdmin) {
+      check(set.status === 'RELEASE_ELIGIBLE', 422, 'PAYOUT_NOT_ELIGIBLE', '출금 신청 가능한 정산 상태가 아닙니다.');
+      set.status = 'PAYOUT_REQUESTED';
+      set.requested_by = executorId;
+      set.requested_at = new Date().toISOString();
+      logAudit('SETTLEMENT_PAYOUT_REQUESTED', executorId, ctx.user.role, 'SETTLEMENT', id, `Supplier payout requested. Net: $${(set.net_minor / 100).toFixed(2)}`);
+      return jsonResponse({
+        settlement_id: id,
+        status: 'PAYOUT_REQUESTED',
+        message: '출금 신청이 접수되었습니다. 플랫폼 재무팀의 이중 승인 후 지급됩니다.',
+      });
+    }
+    check(set.status === 'APPROVED_STAGE_1', 422, 'APPROVAL_REQUIRED', '2차 집행 전 1차 승인이 완료되어야 합니다.');
 
     // Enforce Dual Control SoD: executor must differ from first approver
     if (set.first_approver_id && set.first_approver_id === executorId) {
@@ -345,6 +398,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // POST /v1/settlements/reconcile (PG Daily Reconciliation)
   if (url.pathname === '/v1/settlements/reconcile' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const today = new Date().toISOString().slice(0, 10);
     const recId = `rec-${Date.now()}`;
     const newRec = {
@@ -378,14 +433,23 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // GET /v1/settlements/reconciliations
   if (url.pathname === '/v1/settlements/reconciliations' && request.method === 'GET') {
-    return jsonResponse({ reconciliations, total_count: reconciliations.length });
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
+    const recPage = paginate(reconciliations, parsePagination(url));
+    return jsonResponse({ reconciliations: recPage.items, total_count: recPage.total_count, page: recPage.page, page_size: recPage.page_size, total_pages: recPage.total_pages, has_next: recPage.has_next });
   }
 
   // GET & POST /v1/disputes
   if (url.pathname === '/v1/disputes') {
     if (request.method === 'GET') {
-      const items = Array.from(disputes.values());
-      return jsonResponse({ disputes: items, total_count: items.length });
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+      const allDisputes = Array.from(disputes.values());
+      const items = ctx.user.role === 'PLATFORM_ADMIN' ? allDisputes : allDisputes.filter(d => {
+        const linked = orders.get(d.order_id);
+        return linked && (linked.buyer_organization_id === ctx.org.id || linked.supplier_organization_id === ctx.org.id);
+      });
+      const disputePage = paginate(items, parsePagination(url));
+      return jsonResponse({ disputes: disputePage.items, total_count: disputePage.total_count, page: disputePage.page, page_size: disputePage.page_size, total_pages: disputePage.total_pages, has_next: disputePage.has_next });
     }
     if (request.method === 'POST') {
       const body = (await request.json().catch(() => ({}))) as any;
@@ -395,6 +459,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
         return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
       }
 
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+      check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 분쟁을 제기할 수 있습니다.');
       const claimAmount = Number(body.requested_amount_minor || 120000);
       if (claimAmount <= 0 || claimAmount > order.total_amount_minor) {
         return problemResponse(
@@ -449,6 +515,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
   // POST /v1/disputes/:id/arbitrate (Admin Official Arbitration Ruling)
   const disputeArbitrateMatch = url.pathname.match(/^\/v1\/disputes\/([^\/]+)\/arbitrate$/);
   if (disputeArbitrateMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const id = disputeArbitrateMatch[1];
     const disp = disputes.get(id);
     if (!disp) {
@@ -516,6 +584,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
   // ================= ADMIN MASTER DATA (CATEGORIES, ATTRIBUTES, CUSTOMS, FX) =================
   // GET /v1/admin/master-data
   if (url.pathname === '/v1/admin/master-data' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     return jsonResponse({
       categories: CATEGORIES,
       category_attributes: masterCategoryAttributes,
@@ -526,6 +596,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // POST & PUT /v1/admin/master-data/categories
   if (url.pathname === '/v1/admin/master-data/categories') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     if (request.method === 'POST') {
       const body = (await request.json().catch(() => ({}))) as any;
       const newCat = {
@@ -552,6 +624,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // POST /v1/admin/master-data/attributes
   if (url.pathname === '/v1/admin/master-data/attributes' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const newAttr = {
       id: `attr-${Date.now()}`,
@@ -577,6 +651,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // POST & DELETE /v1/admin/master-data/tariffs
   if (url.pathname === '/v1/admin/master-data/tariffs') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     if (request.method === 'POST') {
       const body = (await request.json().catch(() => ({}))) as any;
       const newTariff = {
@@ -604,6 +680,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   const tariffDelMatch = url.pathname.match(/^\/v1\/admin\/master-data\/tariffs\/([^\/]+)$/);
   if (tariffDelMatch && request.method === 'DELETE') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const tariffId = tariffDelMatch[1];
     const idx = masterCustomsTariffs.findIndex(t => t.id === tariffId);
     if (idx !== -1) {
@@ -614,6 +692,8 @@ export async function handleGovernance(request: Request, url: URL): Promise<Resp
 
   // PUT /v1/admin/master-data/fx-rates
   if (url.pathname === '/v1/admin/master-data/fx-rates' && request.method === 'PUT') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     if (body.rates) {
       Object.assign(masterFxRates.rates, body.rates);

@@ -8,7 +8,7 @@
         class="active-product-image"
       />
       <span v-if="product?.trade_assurance" class="ta-floating-badge">
-        🛡️ Trade Assurance 100% 안심 무역 보증
+        <WsIcon name="shield" :size="15" /> Trade Assurance 100% 안심 무역 보증
       </span>
       <span class="photo-counter">
         {{ selectedPhotoIndex + 1 }} / {{ imageList.length }}
@@ -31,7 +31,7 @@
     <!-- Dynamic Verified Factory Audit Summary Card -->
     <div class="factory-audit-card">
       <div class="fac-head">
-        <span class="fac-icon">🏭</span>
+        <span class="fac-icon"><WsIcon name="factory" :size="15" /></span>
         <div class="fac-title-area">
           <h4>{{ product?.supplier_name || '제조사 공장 실사 보고서' }}</h4>
           <p>SGS 및 플랫폼 운영진 현장 실사 성적서 (Third-Party Audited)</p>
@@ -77,7 +77,7 @@
           <span class="status-tag">{{ activeAudit.qc_status }}</span>
         </div>
         <button class="btn-view-audit" @click="showAuditModal = true">
-          📜 공식 실사 성적서 원본 열람 ›
+          <WsIcon name="file" :size="15" /> 공식 실사 성적서 원본 열람 ›
         </button>
       </div>
 
@@ -87,7 +87,7 @@
           :to="`/${locale}/${currency}/suppliers/${product?.organization_id || '11111111-1111-1111-1111-111111111111'}`"
           class="btn-visit-storefront"
         >
-          🏭 제조사 전용 미니사이트 & 공장 VR 설비 투어 보기 ›
+          <WsIcon name="factory" :size="15" /> 제조사 전용 미니사이트 & 공장 VR 설비 투어 보기 ›
         </router-link>
       </div>
     </div>
@@ -97,7 +97,7 @@
       <div class="audit-modal">
         <div class="modal-head">
           <div class="head-left">
-            <span class="cert-icon">🏅</span>
+            <span class="cert-icon"><WsIcon name="shield" :size="15" /></span>
             <div>
               <h3>공인 제3자 공장 실사 검수 성적서</h3>
               <p>Official Third-Party Factory Inspection & Quality Audit Certificate</p>
@@ -160,7 +160,7 @@
             rel="noopener noreferrer"
             class="btn-download-cert"
           >
-            📥 원본 성적서 PDF 다운로드
+            <WsIcon name="download" :size="15" /> 원본 성적서 PDF 다운로드
           </a>
         </div>
       </div>
@@ -171,6 +171,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const props = defineProps<{
   product: any;
@@ -233,7 +234,7 @@ const currentImage = computed(() => {
 }
 .main-image-viewport {
   height: 420px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   border-radius: 10px;
   border: 1px solid #CBD5E1;
   position: relative;
@@ -253,7 +254,7 @@ const currentImage = computed(() => {
   top: 12px;
   left: 12px;
   background: rgba(15, 23, 42, 0.85);
-  color: #38BDF8;
+  color: var(--ws-info);
   font-size: 11px;
   font-weight: 700;
   padding: 4px 10px;
@@ -265,7 +266,7 @@ const currentImage = computed(() => {
   bottom: 12px;
   right: 12px;
   background: rgba(0, 0, 0, 0.6);
-  color: #FFF;
+  color: var(--ws-surface);
   font-size: 11px;
   font-weight: 600;
   padding: 3px 8px;
@@ -280,15 +281,15 @@ const currentImage = computed(() => {
 .thumb-box {
   width: 76px;
   height: 76px;
-  border: 2px solid #E2E8F0;
+  border: 2px solid var(--ws-border-subtle);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
   flex-shrink: 0;
-  background: #FFF;
+  background: var(--ws-surface);
 }
 .thumb-box.active {
-  border-color: #CC3D00;
+  border-color: var(--ws-brand);
 }
 .thumb-img {
   width: 100%;
@@ -296,8 +297,8 @@ const currentImage = computed(() => {
   object-fit: cover;
 }
 .factory-audit-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 18px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
@@ -306,7 +307,7 @@ const currentImage = computed(() => {
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
   margin-bottom: 14px;
 }
@@ -316,18 +317,18 @@ const currentImage = computed(() => {
 .fac-title-area h4 {
   margin: 0;
   font-size: 14px;
-  color: #0F172A;
+  color: var(--ws-text);
   font-weight: 700;
 }
 .fac-title-area p {
   margin: 2px 0 0;
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .verified-tag {
   margin-left: auto;
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 11px;
   font-weight: 800;
   padding: 3px 8px;
@@ -341,23 +342,23 @@ const currentImage = computed(() => {
   margin-bottom: 14px;
 }
 .fac-item .k {
-  color: #64748B;
+  color: var(--ws-text-muted);
   display: block;
   margin-bottom: 2px;
 }
 .fac-item .v {
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .fac-item .v.highlight {
-  color: #16A34A;
+  color: var(--ws-success);
 }
 .storefront-link-box {
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--ws-surface-muted);
   padding-top: 12px;
 }
 .btn-visit-storefront {
-  color: #CC3D00;
+  color: var(--ws-brand);
   font-weight: 700;
   font-size: 12px;
   text-decoration: none;
@@ -388,7 +389,7 @@ const currentImage = computed(() => {
 }
 .agency-tag {
   background: #0284C7;
-  color: #FFF;
+  color: var(--ws-surface);
   font-weight: 800;
   font-size: 11px;
   padding: 2px 6px;
@@ -396,23 +397,23 @@ const currentImage = computed(() => {
 }
 .standard-tag {
   background: #E0E7FF;
-  color: #3730A3;
+  color: var(--ws-info);
   font-weight: 700;
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
 }
 .score-tag {
-  background: #FEF3C7;
-  color: #B45309;
+  background: var(--ws-warning-bg);
+  color: var(--ws-warning);
   font-weight: 800;
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
 }
 .status-tag {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-weight: 800;
   font-size: 11px;
   padding: 2px 6px;
@@ -421,7 +422,7 @@ const currentImage = computed(() => {
 .btn-view-audit {
   background: none;
   border: none;
-  color: #0369A1;
+  color: var(--ws-info);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -444,7 +445,7 @@ const currentImage = computed(() => {
   padding: 16px;
 }
 .audit-modal {
-  background: #FFF;
+  background: var(--ws-surface);
   border-radius: 12px;
   max-width: 620px;
   width: 100%;
@@ -457,7 +458,7 @@ const currentImage = computed(() => {
   justify-content: space-between;
   align-items: center;
   padding: 18px 20px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--ws-border-subtle);
 }
 .head-left {
   display: flex;
@@ -470,26 +471,26 @@ const currentImage = computed(() => {
 .modal-head h3 {
   margin: 0;
   font-size: 16px;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .modal-head p {
   margin: 2px 0 0;
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .btn-close {
   background: none;
   border: none;
   font-size: 18px;
   cursor: pointer;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .modal-body {
   padding: 20px;
 }
 .cert-banner {
-  background: linear-gradient(135deg, #1E293B, #0F172A);
-  color: #FFF;
+  background: linear-gradient(135deg, var(--ws-text), var(--ws-text));
+  color: var(--ws-surface);
   border-radius: 8px;
   padding: 18px 20px;
   display: flex;
@@ -505,7 +506,7 @@ const currentImage = computed(() => {
 }
 .iso-title {
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 .cert-score-box {
   text-align: right;
@@ -518,12 +519,12 @@ const currentImage = computed(() => {
 }
 .score-sub {
   font-size: 11px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
   display: block;
 }
 .badge-passed {
-  background: #15803D;
-  color: #FFF;
+  background: var(--ws-success);
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
@@ -535,23 +536,23 @@ const currentImage = computed(() => {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 12px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 14px;
   border-radius: 8px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   margin-bottom: 16px;
 }
 .c-item {
   font-size: 12px;
 }
 .c-lbl {
-  color: #64748B;
+  color: var(--ws-text-muted);
   display: block;
   font-size: 11px;
 }
 .c-val {
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .doc-verification-box {
   background: #FFFBEB;
@@ -563,7 +564,7 @@ const currentImage = computed(() => {
 .doc-verification-box code {
   display: block;
   font-family: monospace;
-  color: #B45309;
+  color: var(--ws-warning);
   word-break: break-all;
   margin-top: 4px;
 }
@@ -576,11 +577,11 @@ const currentImage = computed(() => {
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 20px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ws-border-subtle);
 }
 .btn-secondary {
   padding: 8px 16px;
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: 1px solid #CBD5E1;
   border-radius: 6px;
   font-weight: 600;
@@ -588,8 +589,8 @@ const currentImage = computed(() => {
 }
 .btn-download-cert {
   padding: 8px 16px;
-  background: #C2410C;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border-radius: 6px;
   font-weight: 700;
   font-size: 13px;

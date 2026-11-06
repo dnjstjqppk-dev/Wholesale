@@ -20,14 +20,14 @@ class WholesaleApp extends StatelessWidget {
       title: 'Wholesale B2B',
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFF6F8FB),
-        primaryColor: const Color(0xFFD64000),
+        primaryColor: const Color(0xFFC2410C),
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFFD64000),
-          primary: const Color(0xFFD64000),
+          seedColor: const Color(0xFFC2410C),
+          primary: const Color(0xFFC2410C),
           secondary: const Color(0xFF1A73E8),
         ),
         appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFFD64000),
+          backgroundColor: Color(0xFFC2410C),
           foregroundColor: Colors.white,
           elevation: 0,
         ),

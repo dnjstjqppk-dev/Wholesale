@@ -8,14 +8,14 @@
 
       <!-- Quick Role Switcher for Demo / SoD Verification -->
       <div class="quick-switch-box">
-        <h4>⚡ 원클릭 실계정 전환 (HMAC-SHA256 JWT 실서명 발급)</h4>
+        <h4><WsIcon name="bolt" :size="15" /> 원클릭 실계정 전환 (HMAC-SHA256 JWT 실서명 발급)</h4>
         <p>기안자(Purchaser)와 결재권자(Approver) 간 내부결재 직무분리(SoD)를 즉시 검증할 수 있습니다.</p>
         <div class="role-btns">
           <button class="btn-role" @click="quickLogin('buyer@wholesale.internal')">
-            👤 구매 기안자 (BUYER_PURCHASER)
+            <WsIcon name="users" :size="15" /> 구매 기안자 (BUYER_PURCHASER)
           </button>
           <button class="btn-role approver" @click="quickLogin('approver@wholesale.internal')">
-            ✍️ 구매 결재권자 (BUYER_APPROVER)
+            <WsIcon name="pencil" :size="15" /> 구매 결재권자 (BUYER_APPROVER)
           </button>
         </div>
       </div>
@@ -46,7 +46,8 @@
         </div>
         <div class="field">
           <label>비밀번호 (Password)</label>
-          <input v-model="regForm.password" type="password" required />
+          <input v-model="regForm.password" type="password" minlength="12" required />
+          <small style="color: var(--ws-text-muted); font-size: 11px;">12자 이상 입력하세요.</small>
         </div>
         <div class="field">
           <label>법인 상호명 (Legal Company Name)</label>
@@ -67,6 +68,13 @@
             </select>
           </div>
         </div>
+        <div class="field">
+          <label>가입 유형 (Account Type)</label>
+          <select v-model="regForm.role">
+            <option value="BUYER">구매기업 (Buyer)</option>
+            <option value="SUPPLIER">공급기업 (Supplier)</option>
+          </select>
+        </div>
         <p v-if="errorMsg" class="err-msg">{{ errorMsg }}</p>
         <button type="submit" class="btn-submit" :disabled="submitting">
           {{ submitting ? '기업 계정 생성 중...' : '기업 회원 가입 완료 및 즉시 로그인' }}
@@ -80,6 +88,7 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { loginUser, apiRequest, setAuthSession } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -96,7 +105,7 @@ const regForm = ref({
   company_name: '',
   business_number: '',
   country: 'US',
-  role: 'BUYER_PURCHASER',
+  role: 'BUYER',
 });
 
 async function handleLogin() {
@@ -126,7 +135,10 @@ async function handleRegister() {
   try {
     const res = await apiRequest('/auth/register', {
       method: 'POST',
-      body: JSON.stringify(regForm.value),
+      body: JSON.stringify({
+        ...regForm.value,
+        role_capability: regForm.value.role === 'SUPPLIER' ? 'SUPPLIER' : 'BUYER',
+      }),
     });
     setAuthSession(res.access_token, {
       ...res.user,
@@ -134,7 +146,7 @@ async function handleRegister() {
     });
     window.dispatchEvent(new Event('auth-changed'));
     alert(`신규 기업 계정이 생성되었습니다: ${res.organization.legal_name}`);
-    router.push('/ko/KRW/');
+    router.push('/onboarding');
   } catch (err: any) {
     errorMsg.value = err.message;
   } finally {
@@ -145,24 +157,24 @@ async function handleRegister() {
 
 <style scoped>
 .auth-page { max-width: 540px; margin: 32px auto; }
-.auth-card { background: #FFF; border: 1px solid #E2E8F0; border-radius: 12px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; background: #F1F5F9; padding: 4px; border-radius: 8px; }
-.auth-tabs button { border: none; background: transparent; padding: 10px; font-weight: 700; font-size: 13px; color: #64748B; border-radius: 6px; cursor: pointer; }
-.auth-tabs button.active { background: #FFF; color: #D64000; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.auth-card { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 12px; padding: 28px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.auth-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 20px; background: var(--ws-surface-muted); padding: 4px; border-radius: 8px; }
+.auth-tabs button { border: none; background: transparent; padding: 10px; font-weight: 700; font-size: 13px; color: var(--ws-text-muted); border-radius: 6px; cursor: pointer; }
+.auth-tabs button.active { background: var(--ws-surface); color: var(--ws-brand); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
 
-.quick-switch-box { background: #FFF7ED; border: 1px solid #FDBA74; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
-.quick-switch-box h4 { margin: 0 0 4px 0; font-size: 13px; color: #C2410C; }
-.quick-switch-box p { margin: 0 0 10px 0; font-size: 11px; color: #9A3412; }
+.quick-switch-box { background: var(--ws-brand-light); border: 1px solid #FDBA74; border-radius: 8px; padding: 14px; margin-bottom: 20px; }
+.quick-switch-box h4 { margin: 0 0 4px 0; font-size: 13px; color: var(--ws-brand); }
+.quick-switch-box p { margin: 0 0 10px 0; font-size: 11px; color: var(--ws-brand-hover); }
 .role-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.btn-role { background: #FFF; border: 1px solid #FB923C; color: #C2410C; padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.btn-role.approver { background: #CC3D00; color: #FFF; border-color: #CC3D00; }
+.btn-role { background: var(--ws-surface); border: 1px solid #FB923C; color: var(--ws-brand); padding: 8px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-role.approver { background: var(--ws-brand); color: var(--ws-surface); border-color: var(--ws-brand); }
 
 .auth-form { display: flex; flex-direction: column; gap: 14px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.field label { font-size: 12px; font-weight: 700; color: #334155; }
+.field label { font-size: 12px; font-weight: 700; color: var(--ws-text-2); }
 .field input, .field select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 13px; }
-.err-msg { color: #DC2626; font-size: 12px; margin: 0; font-weight: 600; }
-.btn-submit { background: #D64000; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; }
+.err-msg { color: var(--ws-danger); font-size: 12px; margin: 0; font-weight: 600; }
+.btn-submit { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px; }
 </style>
 

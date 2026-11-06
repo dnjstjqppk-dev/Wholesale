@@ -2,10 +2,10 @@
   <div class="messenger-page">
     <div class="messenger-header">
       <div>
-        <h2>💬 글로벌 B2B 메신저 & 1:1 견적 문의 센터 (Alibaba Message Center)</h2>
+        <h2><WsIcon name="chat" :size="15" /> 글로벌 B2B 메신저 & 1:1 견적 문의 센터 (Alibaba Message Center)</h2>
         <p class="subtitle">인증 제조사와 실시간 기술 협의, 도면 공유 및 맞춤형 견적 카드를 주고받으세요.</p>
       </div>
-      <span class="encryption-badge">🔒 TLS 1.3 & Trade Assurance 대화 기록 보관</span>
+      <span class="encryption-badge"><WsIcon name="lock" :size="15" /> TLS 1.3 & Trade Assurance 대화 기록 보관</span>
     </div>
 
     <div class="messenger-layout">
@@ -13,7 +13,7 @@
       <aside class="thread-sidebar">
         <div class="sidebar-top">
           <h3>전체 대화 스레드 ({{ threads.length }})</h3>
-          <button class="btn-refresh" @click="loadInquiries">↻</button>
+          <button class="btn-refresh" @click="loadInquiries"><WsIcon name="refresh" :size="15" /></button>
         </div>
 
         <div v-if="loading" class="thread-empty">대화 목록 불러오는 중...</div>
@@ -29,7 +29,7 @@
             @click="selectThread(t)"
           >
             <div class="thread-row-top">
-              <strong class="sup-name">🏭 {{ t.supplier_name }}</strong>
+              <strong class="sup-name"><WsIcon name="factory" :size="15" /> {{ t.supplier_name }}</strong>
               <span class="status-pill" :class="t.status.toLowerCase()">{{ t.status }}</span>
             </div>
             <div class="thread-subject">{{ t.listing_title || t.subject }}</div>
@@ -76,7 +76,7 @@
 
                 <!-- 1. Interactive Quote Offer Card (TradeManager Standard) -->
                 <div v-if="msg.message_type === 'QUOTE_OFFER' || msg.quote_card" class="interactive-quote-card">
-                  <div class="iq-badge">🏷️ 실시간 공식 견적 제안서 (Official Quotation Offer)</div>
+                  <div class="iq-badge"><WsIcon name="tag" :size="15" /> 실시간 공식 견적 제안서 (Official Quotation Offer)</div>
                   <h4 class="iq-title">{{ msg.quote_card?.title || activeThread.listing_title || activeThread.subject }}</h4>
                   <div class="iq-grid">
                     <div class="iq-item"><span class="k">제안 단가:</span><strong class="v">${{ msg.quote_card?.unit_price || '2.15' }} / {{ msg.quote_card?.unit || 'pcs' }}</strong></div>
@@ -100,7 +100,7 @@
 
                 <!-- 2. Interactive Contract Signing Card -->
                 <div v-else-if="msg.message_type === 'CONTRACT_SIGN' || msg.contract_card" class="interactive-contract-card">
-                  <div class="ic-badge">📜 전자 무역 매매계약서 체결 요청 (ICC Model Contract)</div>
+                  <div class="ic-badge"><WsIcon name="file" :size="15" /> 전자 무역 매매계약서 체결 요청 (ICC Model Contract)</div>
                   <div class="ic-details">
                     <p>계약서 식별 번호: <code>{{ msg.contract_card?.contract_number || 'CTR-2026-001' }}</code></p>
                     <p>총 계약 금액: <strong>${{ msg.contract_card?.total_amount || '4,200.00' }} USD</strong></p>
@@ -110,13 +110,13 @@
                     :to="`/${currentLocale}/${currentCurrency}/contracts/CTR-2026-001`"
                     class="btn-ic-sign"
                   >
-                    ✍️ 계약서 원문 열람 및 인앱 즉시 전자서명
+                    <WsIcon name="pencil" :size="15" /> 계약서 원문 열람 및 인앱 즉시 전자서명
                   </router-link>
                 </div>
 
                 <!-- 3. Interactive Escrow Payment Request Card -->
                 <div v-else-if="msg.message_type === 'PAYMENT_REQUEST' || msg.payment_card" class="interactive-payment-card">
-                  <div class="ip-badge">🛡️ Trade Assurance 에스크로 예치 청구</div>
+                  <div class="ip-badge"><WsIcon name="shield" :size="15" /> Trade Assurance 에스크로 예치 청구</div>
                   <div class="ip-details">
                     <p>1차 선급금 예치액 (30%): <strong>${{ msg.payment_card?.amount_usd || '1,260.00' }} USD</strong></p>
                     <p>보관 기관: <strong>신한은행 B2B 무역 에스크로 신탁</strong></p>
@@ -125,7 +125,7 @@
                     :to="`/${currentLocale}/${currentCurrency}/orders/ord-20261018-001`"
                     class="btn-ip-pay"
                   >
-                    🏛️ 에스크로 가상계좌 입금 및 결제 바로가기 →
+                    <WsIcon name="building" :size="15" /> 에스크로 가상계좌 입금 및 결제 바로가기 →
                   </router-link>
                 </div>
 
@@ -139,7 +139,7 @@
                       :disabled="translatingId === msg.id"
                       @click="toggleTranslate(msg)"
                     >
-                      🌐 {{ translatingId === msg.id ? '번역 중...' : (translatedMessages[msg.id] ? '원본 보기' : '실시간 AI 번역') }}
+                      <WsIcon name="globe" :size="15" /> {{ translatingId === msg.id ? '번역 중...' : (translatedMessages[msg.id] ? '원본 보기' : '실시간 AI 번역') }}
                     </button>
                     <span v-if="translatedMessages[msg.id]" class="translated-meta-tag">
                       ✓ AI 번역됨 (Gemini B2B Neural)
@@ -148,7 +148,7 @@
                 </div>
 
                 <div v-if="msg.attachment_url" class="msg-attachment">
-                  📎 첨부 도면/사양서: <a :href="msg.attachment_url" target="_blank">{{ msg.attachment_url }}</a>
+                  <WsIcon name="file" :size="15" /> 첨부 도면/사양서: <a :href="msg.attachment_url" target="_blank">{{ msg.attachment_url }}</a>
                 </div>
               </div>
             </div>
@@ -156,15 +156,15 @@
 
           <!-- Quick Negotiation Action Bar (TradeManager Bar) -->
           <div class="chat-negotiation-bar">
-            <span class="neg-title">⚡ 빠른 무역 협상 도구:</span>
+            <span class="neg-title"><WsIcon name="bolt" :size="15" /> 빠른 무역 협상 도구:</span>
             <button class="btn-neg-tool" @click="openQuoteComposer()">
-              🏷️ 맞춤 견적 카드 제안
+              <WsIcon name="tag" :size="15" /> 맞춤 견적 카드 제안
             </button>
             <button class="btn-neg-tool" @click="sendQuickCard('CONTRACT_SIGN')">
-              📜 전자계약서 송부
+              <WsIcon name="file" :size="15" /> 전자계약서 송부
             </button>
             <button class="btn-neg-tool" @click="sendQuickCard('PAYMENT_REQUEST')">
-              🛡️ 에스크로 청구서 송부
+              <WsIcon name="shield" :size="15" /> 에스크로 청구서 송부
             </button>
           </div>
 
@@ -196,7 +196,7 @@
     <div v-if="showQuoteModal" class="quote-modal-overlay" @click.self="showQuoteModal = false">
       <div class="quote-modal-card">
         <div class="qm-head">
-          <h3>🏷️ 1:1 맞춤형 무역 견적 제안서 작성</h3>
+          <h3><WsIcon name="tag" :size="15" /> 1:1 맞춤형 무역 견적 제안서 작성</h3>
           <button class="btn-close" @click="showQuoteModal = false">✕</button>
         </div>
         <div class="qm-body">
@@ -243,6 +243,7 @@
 import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiRequest, getCurrentUser } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -452,50 +453,50 @@ onMounted(() => {
 
 <style scoped>
 .messenger-page { display: flex; flex-direction: column; gap: 20px; }
-.messenger-header { display: flex; justify-content: space-between; align-items: center; background: #FFF; padding: 20px 24px; border-radius: 10px; border: 1px solid #E2E8F0; }
-.messenger-header h2 { margin: 0 0 4px 0; font-size: 20px; color: #0F172A; }
-.subtitle { margin: 0; font-size: 13px; color: #64748B; }
-.encryption-badge { background: #F0FDF4; color: #15803D; border: 1px solid #86EFAC; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+.messenger-header { display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface); padding: 20px 24px; border-radius: 10px; border: 1px solid var(--ws-border-subtle); }
+.messenger-header h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { margin: 0; font-size: 13px; color: var(--ws-text-muted); }
+.encryption-badge { background: #F0FDF4; color: var(--ws-success); border: 1px solid #86EFAC; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
 
 .messenger-layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; height: 680px; }
-.thread-sidebar { background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
-.sidebar-top { padding: 16px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; }
-.sidebar-top h3 { margin: 0; font-size: 14px; color: #1E293B; }
-.btn-refresh { background: #FFF; border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
-.thread-empty { padding: 32px 16px; text-align: center; color: #64748B; font-size: 13px; }
+.thread-sidebar { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+.sidebar-top { padding: 16px; border-bottom: 1px solid var(--ws-border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface-muted); }
+.sidebar-top h3 { margin: 0; font-size: 14px; color: var(--ws-text); }
+.btn-refresh { background: var(--ws-surface); border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
+.thread-empty { padding: 32px 16px; text-align: center; color: var(--ws-text-muted); font-size: 13px; }
 .thread-list { flex: 1; overflow-y: auto; }
-.thread-item { padding: 14px 16px; border-bottom: 1px solid #F1F5F9; cursor: pointer; transition: background 0.15s; }
-.thread-item:hover { background: #F8FAFC; }
-.thread-item.active { background: #FFF7ED; border-left: 4px solid #D64000; }
+.thread-item { padding: 14px 16px; border-bottom: 1px solid var(--ws-surface-muted); cursor: pointer; transition: background 0.15s; }
+.thread-item:hover { background: var(--ws-surface-muted); }
+.thread-item.active { background: var(--ws-brand-light); border-left: 4px solid var(--ws-brand); }
 .thread-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.sup-name { font-size: 13px; color: #0F172A; }
-.status-pill { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: #E2E8F0; color: #334155; }
-.status-pill.replied { background: #DCFCE7; color: #15803D; }
-.thread-subject { font-size: 12px; font-weight: 700; color: #CC3D00; margin-bottom: 4px; }
-.thread-preview { font-size: 12px; color: #64748B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sup-name { font-size: 13px; color: var(--ws-text); }
+.status-pill { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--ws-border-subtle); color: var(--ws-text-2); }
+.status-pill.replied { background: var(--ws-success-bg); color: var(--ws-success); }
+.thread-subject { font-size: 12px; font-weight: 700; color: var(--ws-brand); margin-bottom: 4px; }
+.thread-preview { font-size: 12px; color: var(--ws-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-.chat-panel { background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
-.chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: #64748B; }
-.chat-head { padding: 16px 24px; border-bottom: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; }
-.chat-head h3 { margin: 0 0 2px 0; font-size: 16px; color: #0F172A; }
-.chat-sub { font-size: 12px; color: #64748B; }
-.btn-view-prod { font-size: 12px; font-weight: 700; color: #CC3D00; text-decoration: none; background: #FFF7ED; padding: 6px 12px; border-radius: 6px; border: 1px solid #FDBA74; }
+.chat-panel { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
+.chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--ws-text-muted); }
+.chat-head { padding: 16px 24px; border-bottom: 1px solid var(--ws-border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface-muted); }
+.chat-head h3 { margin: 0 0 2px 0; font-size: 16px; color: var(--ws-text); }
+.chat-sub { font-size: 12px; color: var(--ws-text-muted); }
+.btn-view-prod { font-size: 12px; font-weight: 700; color: var(--ws-brand); text-decoration: none; background: var(--ws-brand-light); padding: 6px 12px; border-radius: 6px; border: 1px solid #FDBA74; }
 
-.chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: #F8FAFC; }
+.chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: var(--ws-surface-muted); }
 .msg-bubble-row { display: flex; justify-content: flex-start; }
 .msg-bubble-row.mine { justify-content: flex-end; }
-.msg-bubble { max-width: 76%; background: #FFF; border: 1px solid #E2E8F0; padding: 12px 16px; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-.msg-bubble-row.mine .msg-bubble { background: #FFF7ED; border-color: #FDBA74; }
-.msg-bubble.card-bubble { width: 420px; max-width: 90%; background: #FFFFFF; border: 1px solid #E2E8F0; }
+.msg-bubble { max-width: 76%; background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); padding: 12px 16px; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
+.msg-bubble-row.mine .msg-bubble { background: var(--ws-brand-light); border-color: #FDBA74; }
+.msg-bubble.card-bubble { width: 420px; max-width: 90%; background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); }
 .msg-bubble-row.mine .msg-bubble.card-bubble { background: #FFFDF9; border-color: #FDBA74; }
-.msg-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #64748B; margin-bottom: 6px; }
-.role-chip { background: #F1F5F9; padding: 1px 6px; border-radius: 4px; font-weight: 600; }
-.msg-text { margin: 0; font-size: 13px; color: #1E293B; line-height: 1.5; }
+.msg-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ws-text-muted); margin-bottom: 6px; }
+.role-chip { background: var(--ws-surface-muted); padding: 1px 6px; border-radius: 4px; font-weight: 600; }
+.msg-text { margin: 0; font-size: 13px; color: var(--ws-text); line-height: 1.5; }
 .msg-attachment { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #CBD5E1; font-size: 12px; }
 
 /* Interactive Cards Styling */
 .interactive-quote-card {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border: 1px solid #FED7AA;
   border-radius: 8px;
   padding: 12px;
@@ -504,8 +505,8 @@ onMounted(() => {
   gap: 10px;
 }
 .iq-badge {
-  background: #FFF7ED;
-  color: #C2410C;
+  background: var(--ws-brand-light);
+  color: var(--ws-brand);
   font-size: 11px;
   font-weight: 800;
   padding: 3px 8px;
@@ -517,19 +518,19 @@ onMounted(() => {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .iq-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 6px;
   font-size: 12px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 8px;
   border-radius: 6px;
 }
-.iq-item .k { color: #64748B; margin-right: 4px; }
-.iq-item .v { color: #0F172A; }
+.iq-item .k { color: var(--ws-text-muted); margin-right: 4px; }
+.iq-item .v { color: var(--ws-text); }
 .iq-total-bar {
   display: flex;
   justify-content: space-between;
@@ -540,7 +541,7 @@ onMounted(() => {
 }
 .iq-total-val {
   font-size: 16px;
-  color: #C2410C;
+  color: var(--ws-brand);
 }
 .iq-actions {
   display: flex;
@@ -548,8 +549,8 @@ onMounted(() => {
   gap: 6px;
 }
 .btn-iq-accept {
-  background: #C2410C;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   padding: 8px;
   border-radius: 6px;
@@ -560,8 +561,8 @@ onMounted(() => {
 }
 .btn-iq-accept:hover { background: #EA580C; }
 .btn-iq-counter {
-  background: #FFF;
-  color: #475569;
+  background: var(--ws-surface);
+  color: var(--ws-text-2);
   border: 1px solid #CBD5E1;
   padding: 6px;
   border-radius: 6px;
@@ -579,16 +580,16 @@ onMounted(() => {
   gap: 8px;
 }
 .ic-badge {
-  color: #15803D;
+  color: var(--ws-success);
   font-weight: 700;
   font-size: 12px;
 }
-.ic-details { font-size: 12px; color: #1E293B; line-height: 1.6; }
+.ic-details { font-size: 12px; color: var(--ws-text); line-height: 1.6; }
 .ic-details p { margin: 2px 0; }
-.ic-hash { font-size: 10px; color: #64748B; word-break: break-all; }
+.ic-hash { font-size: 10px; color: var(--ws-text-muted); word-break: break-all; }
 .btn-ic-sign {
-  background: #15803D;
-  color: #FFF;
+  background: var(--ws-success);
+  color: var(--ws-surface);
   text-align: center;
   text-decoration: none;
   padding: 8px;
@@ -607,15 +608,15 @@ onMounted(() => {
   gap: 8px;
 }
 .ip-badge {
-  color: #1D4ED8;
+  color: var(--ws-info);
   font-weight: 700;
   font-size: 12px;
 }
-.ip-details { font-size: 12px; color: #1E293B; line-height: 1.6; }
+.ip-details { font-size: 12px; color: var(--ws-text); line-height: 1.6; }
 .ip-details p { margin: 2px 0; }
 .btn-ip-pay {
-  background: #1D4ED8;
-  color: #FFF;
+  background: var(--ws-info);
+  color: var(--ws-surface);
   text-align: center;
   text-decoration: none;
   padding: 8px;
@@ -645,11 +646,11 @@ onMounted(() => {
 }
 .btn-translate-pill:hover {
   background: #F0F9FF;
-  border-color: #38BDF8;
+  border-color: var(--ws-info);
 }
 .translated-meta-tag {
   font-size: 10px;
-  color: #16A34A;
+  color: var(--ws-success);
   font-weight: 700;
 }
 
@@ -659,16 +660,16 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   padding: 8px 16px;
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border-top: 1px solid #FED7AA;
   font-size: 12px;
   flex-wrap: wrap;
 }
-.neg-title { font-weight: 700; color: #9A3412; }
+.neg-title { font-weight: 700; color: var(--ws-brand-hover); }
 .btn-neg-tool {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border: 1px solid #FDBA74;
-  color: #C2410C;
+  color: var(--ws-brand);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 11px;
@@ -676,14 +677,14 @@ onMounted(() => {
   cursor: pointer;
   transition: all 0.2s;
 }
-.btn-neg-tool:hover { background: #FFEDD5; }
+.btn-neg-tool:hover { background: var(--ws-brand-light); }
 
-.chat-input-bar { padding: 12px 16px; border-top: 1px solid #E2E8F0; background: #FFF; display: flex; flex-direction: column; gap: 8px; }
-.input-attach { border: 1px solid #E2E8F0; border-radius: 6px; padding: 6px 10px; font-size: 12px; }
+.chat-input-bar { padding: 12px 16px; border-top: 1px solid var(--ws-border-subtle); background: var(--ws-surface); display: flex; flex-direction: column; gap: 8px; }
+.input-attach { border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 6px 10px; font-size: 12px; }
 .send-row { display: flex; gap: 10px; }
 .input-msg { flex: 1; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 14px; font-size: 13px; outline: none; }
-.input-msg:focus { border-color: #D64000; }
-.btn-send { background: #D64000; color: #FFF; border: none; padding: 0 22px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.input-msg:focus { border-color: var(--ws-brand); }
+.btn-send { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 0 22px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 
 /* Quote Composer Modal */
 .quote-modal-overlay {
@@ -696,7 +697,7 @@ onMounted(() => {
   z-index: 1000;
 }
 .quote-modal-card {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border-radius: 10px;
   width: 520px;
   max-width: 90vw;
@@ -708,11 +709,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 14px 18px;
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border-bottom: 1px solid #FED7AA;
 }
-.qm-head h3 { margin: 0; font-size: 15px; color: #9A3412; }
-.btn-close { background: transparent; border: none; font-size: 16px; cursor: pointer; color: #64748B; }
+.qm-head h3 { margin: 0; font-size: 15px; color: var(--ws-brand-hover); }
+.btn-close { background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--ws-text-muted); }
 .qm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
 .qm-form-grid {
   display: grid;
@@ -722,7 +723,7 @@ onMounted(() => {
 .qm-form-grid label {
   font-size: 12px;
   font-weight: 700;
-  color: #334155;
+  color: var(--ws-text-2);
   display: block;
   margin-bottom: 4px;
 }
@@ -739,21 +740,21 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   border-radius: 6px;
   font-size: 13px;
 }
-.qm-total-price { font-size: 18px; color: #C2410C; }
+.qm-total-price { font-size: 18px; color: var(--ws-brand); }
 .qm-foot {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
   padding: 14px 18px;
-  border-top: 1px solid #E2E8F0;
-  background: #F8FAFC;
+  border-top: 1px solid var(--ws-border-subtle);
+  background: var(--ws-surface-muted);
 }
 .btn-qm-cancel {
-  background: #FFF;
+  background: var(--ws-surface);
   border: 1px solid #CBD5E1;
   padding: 8px 14px;
   border-radius: 6px;
@@ -761,8 +762,8 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-qm-submit {
-  background: #C2410C;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   padding: 8px 18px;
   border-radius: 6px;

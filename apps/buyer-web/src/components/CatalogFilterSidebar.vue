@@ -14,7 +14,7 @@
       </label>
       <label class="checkbox-label">
         <input :checked="filterTradeAssurance" type="checkbox" @change="$emit('update:filterTradeAssurance', ($event.target as HTMLInputElement).checked)" />
-        <span class="shield-badge">🛡️</span> 무역보증(Trade Assurance)
+        <span class="shield-badge"><WsIcon name="shield" :size="15" /></span> 무역보증(Trade Assurance)
       </label>
       <label class="checkbox-label">
         <input :checked="filterCustomization" type="checkbox" @change="$emit('update:filterCustomization', ($event.target as HTMLInputElement).checked)" />
@@ -124,7 +124,7 @@
             value="7"
             @change="$emit('update:selectedLeadTime', '7')"
           />
-          <span>⚡ 빠른 출고 (≤ 7일 이내)</span>
+          <span><WsIcon name="bolt" :size="15" /> 빠른 출고 (≤ 7일 이내)</span>
         </label>
         <label class="radio-label">
           <input
@@ -165,6 +165,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const props = defineProps<{
   filterVerified: boolean;
@@ -222,39 +223,39 @@ const certList = computed(() => {
 
 const categories = [
   { val: 'ALL', label: '전체 산업군' },
-  { val: 'CAT-IND', label: '⚙️ 산업기계 & 부품' },
-  { val: 'CAT-ELE', label: '🔌 가전 & 전자부품' },
-  { val: 'CAT-PKG', label: '📦 포장용기 & 인쇄' },
-  { val: 'CAT-HOM', label: '🏠 홈/인테리어 & 건축' },
-  { val: 'CAT-CHM', label: '🧪 화학 원료 & 플라스틱' },
+  { val: 'CAT-IND', label: '산업기계 & 부품' },
+  { val: 'CAT-ELE', label: '가전 & 전자부품' },
+  { val: 'CAT-PKG', label: '포장용기 & 인쇄' },
+  { val: 'CAT-HOM', label: '홈/인테리어 & 건축' },
+  { val: 'CAT-CHM', label: '화학 원료 & 플라스틱' },
 ];
 </script>
 
 <style scoped>
-.filter-sidebar { width: 280px; flex-shrink: 0; background: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; box-sizing: border-box; }
-.sidebar-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; margin-bottom: 16px; }
-.sidebar-head h3 { margin: 0; font-size: 15px; font-weight: 700; color: #1E293B; }
-.btn-reset { background: transparent; border: none; font-size: 12px; color: #64748B; cursor: pointer; text-decoration: underline; }
-.btn-reset:hover { color: #D64000; }
+.filter-sidebar { width: 280px; flex-shrink: 0; background: var(--ws-surface); border: 1px solid #E5E7EB; border-radius: 8px; padding: 20px; box-sizing: border-box; }
+.sidebar-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 12px; margin-bottom: 16px; }
+.sidebar-head h3 { margin: 0; font-size: 15px; font-weight: 700; color: var(--ws-text); }
+.btn-reset { background: transparent; border: none; font-size: 12px; color: var(--ws-text-muted); cursor: pointer; text-decoration: underline; }
+.btn-reset:hover { color: var(--ws-brand); }
 .filter-group { margin-bottom: 24px; }
-.group-title { font-size: 13px; font-weight: 700; color: #334155; margin: 0 0 10px 0; }
-.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; margin-bottom: 8px; cursor: pointer; }
-.badge-gold { background: #FEF3C7; color: #B45309; font-weight: 700; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
+.group-title { font-size: 13px; font-weight: 700; color: var(--ws-text-2); margin: 0 0 10px 0; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ws-text-2); margin-bottom: 8px; cursor: pointer; }
+.badge-gold { background: var(--ws-warning-bg); color: var(--ws-warning); font-weight: 700; font-size: 11px; padding: 1px 6px; border-radius: 4px; }
 .shield-badge { font-size: 12px; }
 .moq-pills { display: flex; gap: 6px; }
-.moq-pills button { flex: 1; background: #F8FAFC; border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 0; font-size: 12px; color: #475569; cursor: pointer; }
-.moq-pills button.active { background: #D64000; color: #FFFFFF; border-color: #D64000; font-weight: 700; }
+.moq-pills button { flex: 1; background: var(--ws-surface-muted); border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 0; font-size: 12px; color: var(--ws-text-2); cursor: pointer; }
+.moq-pills button.active { background: var(--ws-brand); color: var(--ws-surface); border-color: var(--ws-brand); font-weight: 700; }
 .cat-radio-list { display: flex; flex-direction: column; gap: 8px; }
-.radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; cursor: pointer; margin-bottom: 6px; }
-.radio-label:hover { color: #D64000; }
+.radio-label { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ws-text-2); cursor: pointer; margin-bottom: 6px; }
+.radio-label:hover { color: var(--ws-brand); }
 .facet-chips-list { display: flex; flex-wrap: wrap; gap: 6px; }
 .facet-chip {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 4px 8px;
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
@@ -262,14 +263,14 @@ const categories = [
   transition: all 0.2s;
 }
 .facet-chip:hover {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border-color: #FED7AA;
-  color: #C2410C;
+  color: var(--ws-brand);
 }
 .facet-chip.active {
-  background: #C2410C;
-  border-color: #C2410C;
-  color: #FFFFFF;
+  background: var(--ws-brand);
+  border-color: var(--ws-brand);
+  color: var(--ws-surface);
   font-weight: 700;
 }
 .facet-count {
@@ -281,9 +282,9 @@ const categories = [
 }
 .facet-chip.active .facet-count {
   background: rgba(255,255,255,0.25);
-  color: #FFF;
+  color: var(--ws-surface);
 }
 .lead-time-list { display: flex; flex-direction: column; gap: 6px; }
-.select-box { width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; color: #334155; outline: none; background: #FFF; }
+.select-box { width: 100%; padding: 8px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; color: var(--ws-text-2); outline: none; background: var(--ws-surface); }
 </style>
 

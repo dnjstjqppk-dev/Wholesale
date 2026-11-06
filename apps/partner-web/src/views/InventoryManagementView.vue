@@ -5,11 +5,17 @@
         <h2>창고·재고 원장 및 생산 배치 관리 (Warehouse & Inventory Ledger)</h2>
         <p class="subtitle">SKU별 실물 재고(`on_hand`), 주문 예약 재고(`reserved`), 가용 재고(`available`) 및 안전 재고를 실시간 관리합니다.</p>
       </div>
-      <button class="btn-refresh" @click="loadInventory">↻ 재고 원장 새로고침</button>
+      <button class="btn-refresh" @click="loadInventory"><WsIcon name="refresh" :size="15" /> 재고 원장 새로고침</button>
+    </div>
+
+    <div v-if="loadError" class="ws-banner ws-banner-danger">{{ loadError }}</div>
+    <div v-if="!loadError && inventory.length === 0" class="ws-empty">
+      <h3>표시할 재고가 없습니다</h3>
+      <p>새로고침 후에도 비어 있으면 상품·창고 등록 상태를 확인하세요.</p>
     </div>
 
     <div class="card">
-      <h3>📦 창고별 실시간 재고 원장</h3>
+      <h3><WsIcon name="package" :size="15" /> 창고별 실시간 재고 원장</h3>
       <table class="inv-table">
         <thead>
           <tr>
@@ -46,11 +52,14 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const inventory = ref<any[]>([]);
 const adjustAmounts = ref<Record<string, number>>({});
+const loadError = ref('');
 
 async function loadInventory() {
+  loadError.value = '';
   try {
     const res = await apiRequest('/partner/inventory');
     inventory.value = res.inventory || [];
@@ -59,8 +68,8 @@ async function loadInventory() {
         adjustAmounts.value[item.sku_id] = 500;
       }
     }
-  } catch (e) {
-    console.warn('Inventory load failed:', e);
+  } catch (e: any) {
+    loadError.value = `재고 원장을 불러오지 못했습니다: ${e.message}`;
   }
 }
 
@@ -93,20 +102,20 @@ onMounted(() => {
 <style scoped>
 .inv-page { max-width: 1080px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.subtitle { color: #64748B; font-size: 13px; margin: 0; }
-.btn-refresh { background: #FFF; border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.card h3 { margin: 0 0 16px 0; font-size: 16px; color: #172B4D; }
+h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
+.btn-refresh { background: var(--ws-surface); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
+.card h3 { margin: 0 0 16px 0; font-size: 16px; color: var(--ws-text); }
 .inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.inv-table th, .inv-table td { border-bottom: 1px solid #F1F5F9; padding: 10px 8px; text-align: left; }
-.inv-table th { background: #F8FAFC; color: #475569; font-size: 12px; }
-.bold { font-weight: 700; color: #0F172A; }
+.inv-table th, .inv-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 10px 8px; text-align: left; }
+.inv-table th { background: var(--ws-surface-muted); color: var(--ws-text-2); font-size: 12px; }
+.bold { font-weight: 700; color: var(--ws-text); }
 .num { font-variant-numeric: tabular-nums; font-weight: 600; }
-.num.warn { color: #D97706; }
-.num.avail { color: #15803D; font-weight: 800; }
+.num.warn { color: var(--ws-warning); }
+.num.avail { color: var(--ws-success); font-weight: 800; }
 .adj-cell { display: flex; gap: 6px; align-items: center; }
 .adj-input { width: 90px; padding: 6px 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 12px; }
-.btn-adj { background: #C2410C; color: #FFF; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.btn-adj { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; }
 </style>
 

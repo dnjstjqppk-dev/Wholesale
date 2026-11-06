@@ -2,9 +2,9 @@
 // apps/api-worker/src/routesRealtime.ts
 // Real-Time Server-Sent Events (SSE) Stream & Notification Dispatcher
 
-import { jsonResponse, CORS_HEADERS } from './response';
-import { getAuthContext } from './security';
-import { notifications, BUYER_ORG_ID } from './store';
+import { jsonResponse, CORS_HEADERS } from './response.ts';
+import { getAuthContext, check, requireRole } from './security.ts';
+import { notifications, BUYER_ORG_ID } from './store.ts';
 
 export async function handleRealtime(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request);
@@ -63,6 +63,7 @@ export async function handleRealtime(request: Request, url: URL): Promise<Respon
   // 3. PUT /v1/notifications/:id/read
   const readMatch = url.pathname.match(/^\/v1\/notifications\/([^\/]+)\/read$/);
   if (readMatch && request.method === 'PUT') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const notifId = readMatch[1];
     const item = notifications.find(n => n.id === notifId);
     if (item) {
@@ -73,6 +74,8 @@ export async function handleRealtime(request: Request, url: URL): Promise<Respon
 
   // 4. POST /v1/realtime/broadcast
   if (url.pathname === '/v1/realtime/broadcast' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const newNotif = {
       id: `notif-${Date.now()}`,

@@ -57,7 +57,7 @@
           <p><strong>인도 주소:</strong> {{ order.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</p>
 
           <div v-if="order.shipped_quantity > 0" class="shipping-info-box">
-            <span>🚢 출고 완료 수량: <strong>{{ order.shipped_quantity }} / {{ order.ordered_quantity }} {{ order.unit }}</strong></span>
+            <span><WsIcon name="truck" :size="15" /> 출고 완료 수량: <strong>{{ order.shipped_quantity }} / {{ order.ordered_quantity }} {{ order.unit }}</strong></span>
             <span>선하증권(B/L): <a href="#" @click.prevent="openDocument('B/L')">BL-BUSAN-88991.pdf (다운로드)</a></span>
           </div>
         </div>
@@ -69,7 +69,7 @@
             class="btn-action approve"
             @click="approveOrder(order)"
           >
-            📋 기업 내부 결재 승인
+            <WsIcon name="file" :size="15" /> 기업 내부 결재 승인
           </button>
 
           <!-- Electronic Contract Signing -->
@@ -78,7 +78,7 @@
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`"
             class="btn-action contract"
           >
-            ✍️ 전자계약 서명하기 (Sign Contract)
+            <WsIcon name="pencil" :size="15" /> 전자계약 서명하기 (Sign Contract)
           </router-link>
 
           <!-- 30% Downpayment -->
@@ -97,7 +97,7 @@
             class="btn-action inspect"
             @click="passInspection(order)"
           >
-            🔍 제3자 품질 검수(SGS/TÜV) 합격 승인
+            <WsIcon name="search" :size="15" /> 제3자 품질 검수(SGS/TÜV) 합격 승인
           </button>
 
           <!-- 70% Balance Payment -->
@@ -107,7 +107,7 @@
             :disabled="paying"
             @click="payBalance(order)"
           >
-            💰 잔금 70% (${{ ((order.balance_minor || 294000) / 100).toFixed(2) }}) 결제 승인
+            <WsIcon name="card" :size="15" /> 잔금 70% (${{ ((order.balance_minor || 294000) / 100).toFixed(2) }}) 결제 승인
           </button>
 
           <!-- Final Delivery Confirmation -->
@@ -124,7 +124,7 @@
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}`"
             class="btn-action detail"
           >
-            🔎 발주 상세 & 물류 추적
+            <WsIcon name="search" :size="15" /> 발주 상세 & 물류 추적
           </router-link>
 
           <!-- Open Trade Dispute -->
@@ -133,7 +133,7 @@
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/dispute`"
             class="btn-action dispute"
           >
-            ⚠️ 클레임 및 분쟁 제기
+            <WsIcon name="alert" :size="15" /> 클레임 및 분쟁 제기
           </router-link>
         </div>
       </div>
@@ -146,6 +146,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const loading = ref(true);
@@ -281,11 +282,11 @@ function openDocument(docType: string) {
 .page-head h2 {
   margin: 0 0 6px 0;
   font-size: 22px;
-  color: #0F172A;
+  color: var(--ws-text);
   font-weight: 800;
 }
 .subtitle {
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-size: 13px;
   margin-bottom: 24px;
 }
@@ -295,8 +296,8 @@ function openDocument(docType: string) {
   gap: 20px;
 }
 .order-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.03);
@@ -305,24 +306,24 @@ function openDocument(docType: string) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
   margin-bottom: 14px;
 }
 .ord-num {
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
   font-size: 16px;
   margin-right: 12px;
 }
 .ord-date {
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .total-price {
   font-size: 18px;
   font-weight: 800;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 
 .state-badges {
@@ -332,29 +333,29 @@ function openDocument(docType: string) {
   margin-bottom: 14px;
 }
 .badge-item {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 4px;
   padding: 4px 8px;
   font-size: 11px;
 }
 .badge-item .k {
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-right: 4px;
 }
 .badge-item .v {
   font-weight: 700;
 }
-.v.ord { color: #1D4ED8; }
-.v.pay { color: #D97706; }
+.v.ord { color: var(--ws-info); }
+.v.pay { color: var(--ws-warning); }
 .v.ship { color: #0E7490; }
-.v.disp { color: #15803D; }
+.v.disp { color: var(--ws-success); }
 .v.set { color: #7C3AED; }
 
 .card-body p {
   margin: 4px 0;
   font-size: 13px;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 .shipping-info-box {
   background: #EFF6FF;
@@ -365,16 +366,16 @@ function openDocument(docType: string) {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #1E40AF;
+  color: var(--ws-info);
 }
 .shipping-info-box a {
-  color: #2563EB;
+  color: var(--ws-info);
   font-weight: 700;
   text-decoration: underline;
 }
 
 .card-actions {
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--ws-surface-muted);
   padding-top: 14px;
   margin-top: 14px;
   display: flex;
@@ -390,17 +391,17 @@ function openDocument(docType: string) {
   text-decoration: none;
   border: none;
 }
-.btn-action.approve { background: #3B82F6; color: #FFF; }
-.btn-action.contract { background: #0F172A; color: #FFF; }
-.btn-action.pay { background: #CC3D00; color: #FFF; }
-.btn-action.pay-balance { background: #16A34A; color: #FFF; }
-.btn-action.inspect { background: #0284C7; color: #FFF; }
-.btn-action.confirm-delivery { background: #059669; color: #FFF; }
-.btn-action.dispute { background: #FFF; border: 1px solid #F87171; color: #DC2626; }
+.btn-action.approve { background: var(--ws-info); color: var(--ws-surface); }
+.btn-action.contract { background: var(--ws-text); color: var(--ws-surface); }
+.btn-action.pay { background: var(--ws-brand); color: var(--ws-surface); }
+.btn-action.pay-balance { background: var(--ws-success); color: var(--ws-surface); }
+.btn-action.inspect { background: #0284C7; color: var(--ws-surface); }
+.btn-action.confirm-delivery { background: #059669; color: var(--ws-surface); }
+.btn-action.dispute { background: var(--ws-surface); border: 1px solid #F87171; color: var(--ws-danger); }
 
 .state-box {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 60px 20px;
   text-align: center;

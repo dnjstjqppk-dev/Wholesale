@@ -36,7 +36,7 @@
             <p><strong>승인 결재자:</strong> 박팀장 수석 (BUYER_APPROVER)</p>
           </div>
           <div class="alert-sod">
-            ⚠️ <strong>직무 분리(SoD) 원칙:</strong> 기안자 본인은 본 견적을 승인할 수 없으며 승인 권한자 결재 후 발주 전환됩니다.
+            <WsIcon name="alert" :size="15" /> <strong>직무 분리(SoD) 원칙:</strong> 기안자 본인은 본 견적을 승인할 수 없으며 승인 권한자 결재 후 발주 전환됩니다.
           </div>
           <button class="btn-accept" :disabled="quote.status !== 'ISSUED'" @click="handleAccept">
             결재 승인 및 무역계약 생성 (Accept)
@@ -51,6 +51,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -136,22 +137,22 @@ async function handleAccept() {
 <style scoped>
 .quote-review-page { max-width: 1000px; margin: 0 auto; }
 .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.header-bar h2 { margin: 0; font-size: 20px; color: #172B4D; }
-.status-tag { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: #DBEAFE; color: #1D4ED8; }
+.header-bar h2 { margin: 0; font-size: 20px; color: var(--ws-text); }
+.status-tag { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: var(--ws-info-bg); color: var(--ws-info); }
 .grid-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-.card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-.card h3 { font-size: 15px; margin: 0 0 16px 0; color: #172B4D; }
+.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+.card h3 { font-size: 15px; margin: 0 0 16px 0; color: var(--ws-text); }
 .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; }
-.lbl { color: #64748B; margin-right: 4px; }
-.price { color: #C2410C; font-size: 16px; font-variant-numeric: tabular-nums; }
-.rev-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #F1F5F9; font-size: 13px; }
-.rev-num { font-weight: 700; color: #172B4D; }
-.rev-status.issued { color: #15803D; font-weight: 600; }
-.rev-status.superseded { color: #94A3B8; }
-.approval-card { background: #F8FAFC; }
-.user-info p { font-size: 13px; margin: 6px 0; color: #42526E; }
-.alert-sod { background: #FEF3C7; border: 1px solid #FDE68A; border-radius: 6px; padding: 10px; font-size: 11px; color: #92400E; margin: 16px 0; }
-.btn-accept { width: 100%; background: #C2410C; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.lbl { color: var(--ws-text-muted); margin-right: 4px; }
+.price { color: var(--ws-brand); font-size: 16px; font-variant-numeric: tabular-nums; }
+.rev-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--ws-surface-muted); font-size: 13px; }
+.rev-num { font-weight: 700; color: var(--ws-text); }
+.rev-status.issued { color: var(--ws-success); font-weight: 600; }
+.rev-status.superseded { color: var(--ws-admin-dim); }
+.approval-card { background: var(--ws-surface-muted); }
+.user-info p { font-size: 13px; margin: 6px 0; color: var(--ws-text-2); }
+.alert-sod { background: var(--ws-warning-bg); border: 1px solid #FDE68A; border-radius: 6px; padding: 10px; font-size: 11px; color: #92400E; margin: 16px 0; }
+.btn-accept { width: 100%; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 
 @media (max-width: 768px) {
   .header-bar { flex-direction: column; align-items: flex-start; gap: 8px; }

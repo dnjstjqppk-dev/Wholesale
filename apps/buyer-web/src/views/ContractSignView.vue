@@ -71,7 +71,7 @@
           <span>구매사(Buyer) 전자서명:</span>
           <strong v-if="contract.buyer_signed" class="signed-ok">✓ 전자서명 완료 ({{ contract.signed_at || 'UTC 검증됨' }})</strong>
           <button v-else class="btn-sign" :disabled="signing" @click="handleSignBuyer">
-            {{ signing ? 'SHA-256 해시 대조 및 서명 중...' : '✍️ 구매사 공인 전자서명 실행' }}
+            <WsIcon v-if="!(signing)" name="pencil" :size="14" /> {{ signing ? 'SHA-256 해시 대조 및 서명 중...' : '구매사 공인 전자서명 실행' }}
           </button>
         </div>
         <div class="sig-box">
@@ -88,6 +88,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -183,27 +184,27 @@ async function handleSignBuyer() {
 
 <style scoped>
 .contract-sign-page { max-width: 920px; margin: 0 auto; }
-.card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 10px; padding: 32px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-.contract-header { border-bottom: 2px solid #172B4D; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-.contract-header h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.sub-order { font-size: 12px; color: #CC3D00; font-weight: 700; }
-.contract-no { font-size: 13px; color: #334155; font-weight: 700; background: #F1F5F9; padding: 6px 12px; border-radius: 6px; }
+.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 10px; padding: 32px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+.contract-header { border-bottom: 2px solid var(--ws-text); padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
+.contract-header h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.sub-order { font-size: 12px; color: var(--ws-brand); font-weight: 700; }
+.contract-no { font-size: 13px; color: var(--ws-text-2); font-weight: 700; background: var(--ws-surface-muted); padding: 6px 12px; border-radius: 6px; }
 .section { margin-bottom: 24px; font-size: 14px; }
-.section h4 { margin: 0 0 8px 0; font-size: 14px; color: #172B4D; }
-.section p { margin: 4px 0; color: #42526E; }
+.section h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--ws-text); }
+.section p { margin: 4px 0; color: var(--ws-text-2); }
 .schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-.schedule-table th, .schedule-table td { border: 1px solid #D8E0EB; padding: 10px 12px; text-align: left; }
-.schedule-table th { background: #F8FAFC; color: #172B4D; }
-.total-row { background: #FFF7ED; }
-.integrity-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; }
+.schedule-table th, .schedule-table td { border: 1px solid var(--ws-border); padding: 10px 12px; text-align: left; }
+.schedule-table th { background: var(--ws-surface-muted); color: var(--ws-text); }
+.total-row { background: var(--ws-brand-light); }
+.integrity-section { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
 .hash-box { display: flex; flex-direction: column; gap: 4px; }
-.hash-box .lbl { font-size: 12px; font-weight: 700; color: #42526E; }
-.hash-box code { font-family: monospace; font-size: 12px; background: #FFF; padding: 8px; border: 1px solid #D8E0EB; border-radius: 4px; word-break: break-all; color: #0F172A; }
-.hash-note { font-size: 11px; color: #64748B; margin-top: 6px; }
-.signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid #E2E8F0; padding-top: 24px; margin-top: 24px; }
-.sig-box { background: #F8FAFC; border: 1px solid #D8E0EB; border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.signed-ok { color: #15803D; font-size: 13px; }
-.btn-sign { background: #CC3D00; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
+.hash-box .lbl { font-size: 12px; font-weight: 700; color: var(--ws-text-2); }
+.hash-box code { font-family: monospace; font-size: 12px; background: var(--ws-surface); padding: 8px; border: 1px solid var(--ws-border); border-radius: 4px; word-break: break-all; color: var(--ws-text); }
+.hash-note { font-size: 11px; color: var(--ws-text-muted); margin-top: 6px; }
+.signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--ws-border-subtle); padding-top: 24px; margin-top: 24px; }
+.sig-box { background: var(--ws-surface-muted); border: 1px solid var(--ws-border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.signed-ok { color: var(--ws-success); font-size: 13px; }
+.btn-sign { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
 
 @media (max-width: 640px) {
   .card { padding: 16px; }

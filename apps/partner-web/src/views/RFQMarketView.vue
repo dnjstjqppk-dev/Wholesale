@@ -8,7 +8,7 @@
     </div>
 
     <div v-else-if="error" class="error-banner">
-      ⚠️ {{ error }}
+      <WsIcon name="alert" :size="15" /> {{ error }}
     </div>
 
     <div v-else class="rfq-list">
@@ -57,6 +57,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const submitting = ref(false);
@@ -109,26 +110,26 @@ async function submitBid(rfq: any) {
 
 <style scoped>
 .rfq-market-page { max-width: 1000px; margin: 0 auto; }
-h2 { margin: 0 0 6px 0; font-size: 20px; color: #172B4D; }
-.subtitle { color: #64748B; font-size: 13px; margin-bottom: 24px; }
-.loading-state { padding: 40px; text-align: center; color: #64748B; }
-.error-banner { background: #FEF2F2; color: #B91C1C; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+h2 { margin: 0 0 6px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { color: var(--ws-text-muted); font-size: 13px; margin-bottom: 24px; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-text-muted); }
+.error-banner { background: #FEF2F2; color: var(--ws-danger); padding: 12px; border-radius: 6px; margin-bottom: 20px; }
 .rfq-list { display: flex; flex-direction: column; gap: 20px; }
-.rfq-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; }
-.dest-badge { background: #173A5E; color: #FFF; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-.rfq-title { margin: 0; font-size: 16px; color: #172B4D; flex: 1; }
-.expires { font-size: 12px; color: #64748B; }
+.rfq-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
+.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 12px; }
+.dest-badge { background: var(--ws-navy); color: var(--ws-surface); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
+.rfq-title { margin: 0; font-size: 16px; color: var(--ws-text); flex: 1; }
+.expires { font-size: 12px; color: var(--ws-text-muted); }
 .card-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; margin-bottom: 20px; }
-.card-info .k { color: #64748B; margin-right: 4px; }
-.mask { background: #F1F5F9; color: #475569; font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-.bid-section { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; }
-.bid-section h4 { margin: 0 0 12px 0; font-size: 14px; color: #172B4D; }
+.card-info .k { color: var(--ws-text-muted); margin-right: 4px; }
+.mask { background: var(--ws-surface-muted); color: var(--ws-text-2); font-size: 11px; padding: 2px 6px; border-radius: 4px; }
+.bid-section { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
+.bid-section h4 { margin: 0 0 12px 0; font-size: 14px; color: var(--ws-text); }
 .bid-inputs { display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 12px; align-items: flex-end; }
-.bid-inputs label { display: block; font-size: 12px; font-weight: 600; color: #42526E; margin-bottom: 4px; }
-.bid-inputs input { width: 100%; padding: 8px 10px; border: 1px solid #D8E0EB; border-radius: 4px; box-sizing: border-box; }
-.btn-bid { background: #C2410C; color: #FFF; border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.history-note { font-size: 11px; color: #64748B; margin-top: 10px; }
+.bid-inputs label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
+.bid-inputs input { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; }
+.btn-bid { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.history-note { font-size: 11px; color: var(--ws-text-muted); margin-top: 10px; }
 
 @media (max-width: 768px) {
   .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }

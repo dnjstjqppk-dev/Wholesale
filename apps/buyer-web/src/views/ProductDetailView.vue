@@ -3,7 +3,7 @@
     <p>도매 상품 상세 사양 및 제조사 공급가 정보를 서버에서 실시간 조회 중입니다...</p>
   </div>
   <div v-else-if="fetchError || !product" class="pdp-state-box error-box">
-    <p class="error-msg">⚠️ {{ fetchError || '요청하신 도매 상품을 찾을 수 없습니다.' }}</p>
+    <p class="error-msg"><WsIcon name="alert" :size="15" /> {{ fetchError || '요청하신 도매 상품을 찾을 수 없습니다.' }}</p>
     <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="btn-back">카탈로그 목록으로 이동</router-link>
   </div>
   <div v-else class="pdp-container">
@@ -43,7 +43,7 @@
             <span v-if="product.verified_supplier" class="v-badge">✓ Verified</span>
           </div>
           <div class="trade-guard-badge">
-            <span>🛡️ Trade Assurance 100% 보호</span>
+            <span><WsIcon name="shield" :size="15" /> Trade Assurance 100% 보호</span>
           </div>
         </div>
 
@@ -104,6 +104,7 @@ import PdpGalleryAudit from '../components/PdpGalleryAudit.vue';
 import PdpOrderCalculator from '../components/PdpOrderCalculator.vue';
 import PdpSpecsTable from '../components/PdpSpecsTable.vue';
 import CatalogInquiryModal from '../components/CatalogInquiryModal.vue';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const loading = ref(true);
@@ -169,24 +170,24 @@ function onTierChanged(idx: number) {
 }
 .breadcrumb {
   font-size: 13px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   display: flex;
   align-items: center;
   gap: 8px;
   margin-top: 10px;
 }
 .breadcrumb a {
-  color: #475569;
+  color: var(--ws-text-2);
   text-decoration: none;
 }
 .breadcrumb a:hover {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .breadcrumb .sep {
   color: #CBD5E1;
 }
 .breadcrumb .current {
-  color: #1E293B;
+  color: var(--ws-text);
   font-weight: 600;
 }
 
@@ -205,8 +206,8 @@ function onTierChanged(idx: number) {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 8px 14px;
 }
@@ -218,28 +219,28 @@ function onTierChanged(idx: number) {
 }
 .sup-name {
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
   text-decoration: none;
 }
 .sup-name:hover {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .sup-years {
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-size: 11px;
 }
 .v-badge {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 10px;
   font-weight: 800;
   padding: 1px 6px;
   border-radius: 4px;
 }
 .trade-guard-badge {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border: 1px solid #FDBA74;
-  color: #C2410C;
+  color: var(--ws-brand);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
@@ -249,14 +250,14 @@ function onTierChanged(idx: number) {
 .pdp-title {
   font-size: 22px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
   margin: 0;
   line-height: 1.4;
 }
 
 .tier-bracket-box {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 18px;
 }
@@ -270,11 +271,11 @@ function onTierChanged(idx: number) {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 .incoterm-tag {
-  background: #F1F5F9;
-  color: #475569;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
@@ -286,45 +287,45 @@ function onTierChanged(idx: number) {
   gap: 12px;
 }
 .bracket-col {
-  background: #F8FAFC;
-  border: 2px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 2px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 12px;
   text-align: center;
   position: relative;
 }
 .bracket-col.highlighted {
-  border-color: #CC3D00;
-  background: #FFF7ED;
+  border-color: var(--ws-brand);
+  background: var(--ws-brand-light);
 }
 .bracket-qty {
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 6px;
 }
 .bracket-price {
   font-size: 20px;
   font-weight: 800;
-  color: #1E293B;
+  color: var(--ws-text);
   font-variant-numeric: tabular-nums;
 }
 .bracket-col.highlighted .bracket-price {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .active-badge {
   position: absolute;
   top: -10px;
   right: 12px;
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 800;
   padding: 1px 6px;
   border-radius: 4px;
 }
 .pdp-state-box {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 48px 24px;
   text-align: center;
@@ -337,14 +338,14 @@ function onTierChanged(idx: number) {
 .pdp-state-box.error-box {
   background: #FEF2F2;
   border-color: #FCA5A5;
-  color: #DC2626;
+  color: var(--ws-danger);
   font-weight: 600;
 }
 .btn-back {
   display: inline-block;
   margin-top: 14px;
-  background: #1E293B;
-  color: #FFFFFF;
+  background: var(--ws-text);
+  color: var(--ws-surface);
   text-decoration: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -352,7 +353,7 @@ function onTierChanged(idx: number) {
   font-size: 13px;
 }
 .btn-back:hover {
-  background: #CC3D00;
+  background: var(--ws-brand);
 }
 
 /* Mobile & Tablet Responsive Layout */

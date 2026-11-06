@@ -74,6 +74,18 @@ jobs:
       - name: Run 100-Client Concurrency & Zero-Oversell Load Test
         run: node tests/load/load_concurrency.js
 
+      - name: Run API Worker Security Invariant Tests
+        run: node tests/security/security_test.js
+
+      - name: Run Secured Worker Trade Cycle Tests
+        run: node tests/e2e/worker_trade_cycle_test.js
+
+      - name: Run List Pagination & Search Tests
+        run: node tests/e2e/worker_pagination_test.js
+
+      - name: Run Edge Observability & Sentry Hook Tests
+        run: node tests/e2e/worker_observability_test.js
+
   backend-test:
     name: Backend Go Domain Engines & Ledger Tests
     runs-on: ubuntu-latest

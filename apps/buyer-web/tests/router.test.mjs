@@ -80,11 +80,37 @@ test('static routes do not collide with dynamic detail routes', () => {
   assert.equal(router.resolve('/en/USD/suppliers/123').name, 'supplier-storefront');
 });
 
-test('unsupported locales, currencies and unknown paths redirect home', async () => {
+test('root redirects home while unknown paths render not-found', async () => {
   const router = createRouter();
-  for (const path of ['/', '/fr/USD/catalog', '/en/EUR/catalog', '/en/USD/missing']) {
+  await router.push('/');
+  assert.equal(router.currentRoute.value.path, '/ko/KRW/');
+  assert.equal(router.currentRoute.value.name, 'home');
+  for (const path of ['/fr/USD/catalog', '/en/EUR/catalog', '/en/USD/missing']) {
     await router.push(path);
-    assert.equal(router.currentRoute.value.path, '/ko/KRW/');
-    assert.equal(router.currentRoute.value.name, 'home');
+    assert.equal(router.currentRoute.value.name, 'not-found');
   }
+});
+
+test('error and onboarding pages resolve on locale and plain paths', () => {
+  const router = createRouter();
+  assert.equal(router.resolve('/en/USD/500').name, 'server-error');
+  assert.equal(router.resolve('/en/USD/onboarding').name, 'onboarding');
+  assert.equal(router.resolve({ name: 'server-error', params: { locale: 'ko', currency: 'KRW' } }).path, '/ko/KRW/500');
+  assert.equal(router.resolve({ name: 'onboarding', params: { locale: 'ko', currency: 'KRW' } }).path, '/ko/KRW/onboarding');
+  const direct = router.resolve('/onboarding');
+  const localized = router.resolve('/en/USD/onboarding');
+  assert.equal(localized.matched.at(-1)?.components.default,
+    direct.matched.at(-1)?.components.default);
+});
+
+test('legal pages resolve on locale and plain paths', () => {
+  const router = createRouter();
+  assert.equal(router.resolve('/en/USD/terms').name, 'terms');
+  assert.equal(router.resolve('/en/USD/privacy').name, 'privacy');
+  assert.equal(router.resolve({ name: 'terms', params: { locale: 'ko', currency: 'KRW' } }).path, '/ko/KRW/terms');
+  assert.equal(router.resolve({ name: 'privacy', params: { locale: 'ko', currency: 'KRW' } }).path, '/ko/KRW/privacy');
+  const direct = router.resolve('/terms');
+  const localized = router.resolve('/en/USD/terms');
+  assert.equal(localized.matched.at(-1)?.components.default,
+    direct.matched.at(-1)?.components.default);
 });

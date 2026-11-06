@@ -9,7 +9,8 @@
     "noEmit": true,
     "isolatedModules": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true
   },
   "include": [
     "apps/api-worker/src/**/*"

@@ -11,7 +11,7 @@
     <!-- Registered Products Table -->
     <div class="list-card">
       <div class="list-head">
-        <h3>📋 등록된 도매 상품 목록 ({{ myListings.length }}건)</h3>
+        <h3><WsIcon name="file" :size="15" /> 등록된 도매 상품 목록 ({{ myListings.length }}건)</h3>
         <input v-model="searchFilter" type="text" placeholder="상품명 또는 카테고리 검색..." class="filter-input" />
       </div>
       <div class="table-scroll">
@@ -47,7 +47,7 @@
 
     <!-- Create / Edit Form -->
     <form class="form-card" @submit.prevent="handleSave">
-      <h3>{{ editingId ? `✏️ 기존 상품 수정 (ID: ${editingId})` : '➕ 신규 도매 상품 및 구간단가 등록' }}</h3>
+      <h3><WsIcon v-if="editingId" name="pencil" :size="16" /> <WsIcon v-else name="plus" :size="16" /> {{ editingId ? `기존 상품 수정 (ID: ${editingId})` : '신규 도매 상품 및 구간단가 등록' }}</h3>
 
       <div class="section">
         <h4>1. 기본 상품 정보 및 카테고리</h4>
@@ -150,7 +150,7 @@
         <button type="button" class="btn-add-tier" @click="addTier">+ 수량 할인 구간 추가</button>
       </div>
 
-      <p v-if="errorMsg" class="error-banner">⚠️ {{ errorMsg }}</p>
+      <p v-if="errorMsg" class="error-banner"><WsIcon name="alert" :size="15" /> {{ errorMsg }}</p>
 
       <div class="actions">
         <button type="submit" class="btn-save" :disabled="submitting">
@@ -164,6 +164,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const myListings = ref<any[]>([]);
 const searchFilter = ref('');
@@ -329,48 +330,48 @@ async function handleSave() {
 <style scoped>
 .catalog-editor { max-width: 1080px; display: flex; flex-direction: column; gap: 20px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.subtitle { color: #64748B; font-size: 13px; margin: 0; }
-.btn-new { background: #1E293B; color: #FFF; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
+h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
+.btn-new { background: var(--ws-text); color: var(--ws-surface); border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
 
-.list-card, .form-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 22px; }
+.list-card, .form-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 22px; }
 .list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.list-head h3, .form-card h3 { margin: 0; font-size: 16px; color: #172B4D; }
+.list-head h3, .form-card h3 { margin: 0; font-size: 16px; color: var(--ws-text); }
 .filter-input { border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 12px; font-size: 12px; width: 240px; }
-.table-scroll { max-height: 280px; overflow-y: auto; border: 1px solid #E2E8F0; border-radius: 6px; }
+.table-scroll { max-height: 280px; overflow-y: auto; border: 1px solid var(--ws-border-subtle); border-radius: 6px; }
 .prod-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.prod-table th, .prod-table td { border-bottom: 1px solid #F1F5F9; padding: 8px 10px; text-align: left; }
-.prod-table th { background: #F8FAFC; color: #475569; position: sticky; top: 0; }
+.prod-table th, .prod-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 8px 10px; text-align: left; }
+.prod-table th { background: var(--ws-surface-muted); color: var(--ws-text-2); position: sticky; top: 0; }
 .mini-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
-.title-cell { font-weight: 700; color: #0F172A; max-width: 280px; }
-.price-cell { font-weight: 700; color: #C2410C; }
-.st-pill { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: #DCFCE7; color: #15803D; }
+.title-cell { font-weight: 700; color: var(--ws-text); max-width: 280px; }
+.price-cell { font-weight: 700; color: var(--ws-brand); }
+.st-pill { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: var(--ws-success-bg); color: var(--ws-success); }
 .actions-cell { display: flex; gap: 6px; }
-.btn-sm { border: 1px solid #CBD5E1; background: #FFF; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.btn-sm.edit { color: #2563EB; border-color: #93C5FD; }
-.btn-sm.del { color: #DC2626; border-color: #FCA5A5; }
+.btn-sm { border: 1px solid #CBD5E1; background: var(--ws-surface); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.btn-sm.edit { color: var(--ws-info); border-color: #93C5FD; }
+.btn-sm.del { color: var(--ws-danger); border-color: #FCA5A5; }
 
-.section { margin-top: 20px; border-bottom: 1px solid #F1F5F9; padding-bottom: 18px; }
-.section h4 { margin: 0 0 12px 0; font-size: 14px; color: #172B4D; }
+.section { margin-top: 20px; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 18px; }
+.section h4 { margin: 0 0 12px 0; font-size: 14px; color: var(--ws-text); }
 .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .field.span-2 { grid-column: span 2; }
-.field label { display: block; font-size: 12px; font-weight: 600; color: #42526E; margin-bottom: 4px; }
-.field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid #D8E0EB; border-radius: 4px; font-size: 13px; box-sizing: border-box; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
+.field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; font-size: 13px; box-sizing: border-box; }
 
 .specs-list { display: flex; flex-direction: column; gap: 8px; }
 .spec-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; }
-.spec-row input { padding: 7px 10px; border: 1px solid #D8E0EB; border-radius: 4px; font-size: 13px; }
-.btn-del-row { background: #FEE2E2; color: #B91C1C; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 700; }
+.spec-row input { padding: 7px 10px; border: 1px solid var(--ws-border); border-radius: 4px; font-size: 13px; }
+.btn-del-row { background: var(--ws-danger-bg); color: var(--ws-danger); border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 700; }
 
 .tier-editor-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
-.tier-editor-table th, .tier-editor-table td { border: 1px solid #D8E0EB; padding: 8px; text-align: left; }
-.tier-editor-table th { background: #F8FAFC; font-size: 12px; }
+.tier-editor-table th, .tier-editor-table td { border: 1px solid var(--ws-border); padding: 8px; text-align: left; }
+.tier-editor-table th { background: var(--ws-surface-muted); font-size: 12px; }
 .tier-editor-table input { width: 100%; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; box-sizing: border-box; }
-.btn-add-tier { background: #F1F5F9; border: 1px dashed #94A3B8; color: #334155; padding: 7px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
-.error-banner { background: #FEF2F2; border: 1px solid #FECACA; color: #B91C1C; padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: 12px; }
+.btn-add-tier { background: var(--ws-surface-muted); border: 1px dashed var(--ws-admin-dim); color: var(--ws-text-2); padding: 7px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.error-banner { background: #FEF2F2; border: 1px solid #FECACA; color: var(--ws-danger); padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: 12px; }
 .actions { margin-top: 16px; }
-.btn-save { background: #C2410C; color: #FFF; border: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn-save { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
 
 @media (max-width: 900px) {
   .form-grid-4 { grid-template-columns: repeat(2, 1fr); }

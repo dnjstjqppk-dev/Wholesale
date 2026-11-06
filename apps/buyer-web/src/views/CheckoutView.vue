@@ -107,7 +107,7 @@
           <h3>도매 발주 품목 및 금액 확인</h3>
 
           <div v-for="item in checkoutItems" :key="item.id" class="item-summary-box">
-            <span class="badge-sup">🏢 {{ item.supplier_name }}</span>
+            <span class="badge-sup"><WsIcon name="building" :size="15" /> {{ item.supplier_name }}</span>
             <h4>{{ item.title }}</h4>
             <div class="meta-line">
               <span>수량: {{ item.quantity }} {{ item.unit }}</span>
@@ -149,7 +149,7 @@
             :disabled="submitting || checkoutItems.length === 0"
             @click="generateContract"
           >
-            {{ submitting ? '계약서 생성 및 주문 접수 중...' : '📝 최종 도매 계약서 발급 및 주문 체결 →' }}
+            <WsIcon v-if="!(submitting)" name="pencil" :size="14" /> {{ submitting ? '계약서 생성 및 주문 접수 중...' : '최종 도매 계약서 발급 및 주문 체결 →' }}
           </button>
         </div>
       </div>
@@ -162,6 +162,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -289,19 +290,19 @@ async function generateContract() {
 }
 .checkout-header h2 {
   font-size: 22px;
-  color: #0F172A;
+  color: var(--ws-text);
   margin: 0 0 6px;
   font-weight: 800;
 }
 .subtitle {
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-size: 13px;
   margin-bottom: 24px;
 }
 .loading-state {
   padding: 40px;
   text-align: center;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 
 .checkout-layout {
@@ -316,8 +317,8 @@ async function generateContract() {
   gap: 20px;
 }
 .form-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 22px;
 }
@@ -326,14 +327,14 @@ async function generateContract() {
   align-items: center;
   gap: 10px;
   margin-bottom: 18px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
 }
 .step-num {
   width: 24px;
   height: 24px;
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -344,7 +345,7 @@ async function generateContract() {
 .card-head h3 {
   margin: 0;
   font-size: 16px;
-  color: #0F172A;
+  color: var(--ws-text);
   font-weight: 700;
 }
 
@@ -360,7 +361,7 @@ async function generateContract() {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 4px;
 }
 .form-grid input, .form-grid select {
@@ -372,16 +373,16 @@ async function generateContract() {
   font-size: 13px;
 }
 .form-grid input:disabled {
-  background: #F8FAFC;
-  color: #64748B;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-muted);
 }
 .spec-note {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   padding: 10px 12px;
   border-radius: 4px;
   font-size: 12px;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 .schedule-table-wrap {
@@ -393,42 +394,42 @@ async function generateContract() {
   font-size: 12px;
 }
 .schedule-table th, .schedule-table td {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   padding: 8px 10px;
   text-align: left;
 }
 .schedule-table th {
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   font-weight: 700;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 .schedule-table .amount {
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .schedule-table .amount.orange {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 
 /* Sidebar Confirmation Card */
 .confirm-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 22px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.04);
 }
 .confirm-card h3 {
   font-size: 15px;
-  color: #0F172A;
+  color: var(--ws-text);
   margin: 0 0 16px;
   font-weight: 800;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 .item-summary-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 14px;
@@ -436,30 +437,30 @@ async function generateContract() {
 .badge-sup {
   font-size: 11px;
   font-weight: 700;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .item-summary-box h4 {
   margin: 6px 0;
   font-size: 13px;
-  color: #1E293B;
+  color: var(--ws-text);
   font-weight: 700;
 }
 .meta-line {
   display: flex;
   justify-content: space-between;
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-bottom: 2px;
 }
 .subtotal-line {
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ws-border-subtle);
   padding-top: 4px;
   margin-top: 4px;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 
 .price-breakdown {
-  border-top: 1px solid #F1F5F9;
+  border-top: 1px solid var(--ws-surface-muted);
   padding-top: 12px;
   margin-bottom: 16px;
 }
@@ -468,45 +469,45 @@ async function generateContract() {
   justify-content: space-between;
   font-size: 13px;
   padding: 4px 0;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .row.total {
   font-weight: 800;
   font-size: 15px;
-  color: #0F172A;
-  border-top: 1px solid #E2E8F0;
+  color: var(--ws-text);
+  border-top: 1px solid var(--ws-border-subtle);
   margin-top: 8px;
   padding-top: 10px;
 }
 .row .free {
-  color: #16A34A;
+  color: var(--ws-success);
   font-weight: 700;
 }
 .row.downpayment-row {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border-radius: 4px;
   padding: 8px;
   margin-top: 8px;
   font-weight: 700;
 }
 .val-dp {
-  color: #CC3D00;
+  color: var(--ws-brand);
   font-size: 15px;
   font-weight: 800;
 }
 
 .legal-notice {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   line-height: 1.4;
   margin-bottom: 16px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 10px;
   border-radius: 4px;
 }
 .error-msg {
   background: #FEF2F2;
-  color: #B91C1C;
+  color: var(--ws-danger);
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 12px;
@@ -515,8 +516,8 @@ async function generateContract() {
 
 .btn-generate-contract {
   width: 100%;
-  background: #FF6A00;
-  color: #FFF;
+  background: var(--ws-brand-hover);
+  color: var(--ws-surface);
   border: none;
   padding: 14px;
   border-radius: 6px;
@@ -525,7 +526,7 @@ async function generateContract() {
   cursor: pointer;
 }
 .btn-generate-contract:hover {
-  background: #E55E00;
+  background: var(--ws-brand-hover);
 }
 .btn-generate-contract:disabled {
   background: #CBD5E1;

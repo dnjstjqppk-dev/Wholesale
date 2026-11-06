@@ -11,6 +11,8 @@ import SettlementView from '../views/SettlementView.vue';
 import StorefrontBuilderView from '../views/StorefrontBuilderView.vue';
 import SupplierAnalyticsView from '../views/SupplierAnalyticsView.vue';
 import MarketingKwaView from '../views/MarketingKwaView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
+import ErrorView from '../views/ErrorView.vue';
 
 const routes = [
   { path: '/', name: 'dashboard', component: SupplierDashboardView },
@@ -26,7 +28,8 @@ const routes = [
   { path: '/analytics', name: 'analytics', component: SupplierAnalyticsView },
   { path: '/fulfillment', name: 'fulfillment', component: FulfillmentView },
   { path: '/settlement', name: 'settlement', component: SettlementView },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/500', name: 'server-error', component: ErrorView },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ];
 
 const router = createRouter({

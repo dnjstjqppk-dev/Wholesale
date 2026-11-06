@@ -15,14 +15,14 @@
             :class="{ active: currentUser.email === 'admin@wholesale.internal' }"
             @click="switchAccount('admin@wholesale.internal')"
           >
-            👤 1차 심사관 (Super Admin)
+            <WsIcon name="users" :size="15" /> 1차 심사관 (Super Admin)
           </button>
           <button
             class="btn-sw finance"
             :class="{ active: currentUser.email === 'finance@wholesale.internal' }"
             @click="switchAccount('finance@wholesale.internal')"
           >
-            💼 2차 집행관 (Treasury Director)
+            <WsIcon name="users" :size="15" /> 2차 집행관 (Treasury Director)
           </button>
         </div>
       </div>
@@ -33,7 +33,7 @@
     </div>
 
     <div v-else-if="error" class="error-banner">
-      ⚠️ {{ error }}
+      <WsIcon name="alert" :size="15" /> {{ error }}
     </div>
 
     <div v-else class="payout-list">
@@ -96,6 +96,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest, getCurrentUser, switchAdminUser } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const submitting = ref(false);
@@ -166,29 +167,29 @@ onMounted(() => {
 .settlement-approval-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .head-row { display: flex; justify-content: space-between; align-items: flex-start; }
 h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: #94A3B8; font-size: 13px; margin: 0; max-width: 600px; }
+.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; max-width: 600px; }
 
-.admin-switcher-box { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
-.curr-user { font-size: 11px; color: #94A3B8; }
-.curr-user strong { color: #38BDF8; }
+.admin-switcher-box { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.curr-user { font-size: 11px; color: var(--ws-admin-dim); }
+.curr-user strong { color: var(--ws-admin-link); }
 .switch-btns { display: flex; gap: 6px; }
-.btn-sw { background: #0B132B; border: 1px solid #3A506B; color: #E2E8F0; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.btn-sw.active { border-color: #38BDF8; color: #38BDF8; background: rgba(56,189,248,0.1); }
+.btn-sw { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
+.btn-sw.active { border-color: var(--ws-admin-link); color: var(--ws-admin-link); background: rgba(56,189,248,0.1); }
 
-.loading-state { padding: 40px; text-align: center; color: #94A3B8; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
 .error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; }
 .payout-list { display: flex; flex-direction: column; gap: 20px; }
-.p-card { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 22px; }
+.p-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 22px; }
 .card-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2B3A55; padding-bottom: 12px; margin-bottom: 14px; }
-.p-id { font-weight: 700; color: #38BDF8; font-size: 15px; margin-right: 12px; }
-.supplier { font-size: 13px; color: #E2E8F0; }
+.p-id { font-weight: 700; color: var(--ws-admin-link); font-size: 15px; margin-right: 12px; }
+.supplier { font-size: 13px; color: var(--ws-admin-text); }
 .badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; }
 .badge.release_eligible { background: #065F46; color: #A7F3D0; }
 .badge.approved_stage_1 { background: #854D0E; color: #FEF08A; }
 .badge.payout_dispatched { background: #1E3A8A; color: #93C5FD; }
 
-.details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; background: #0B132B; padding: 14px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #2B3A55; }
-.details-grid span { color: #94A3B8; }
+.details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; background: var(--ws-admin-panel-2); padding: 14px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #2B3A55; }
+.details-grid span { color: var(--ws-admin-dim); }
 .details-grid strong { color: #FFF; }
 .amount.net { color: #10B981; }
 .tag-ok { color: #10B981; font-weight: 700; font-size: 12px; }
@@ -199,10 +200,10 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
 .step-num { background: #3B82F6; color: #FFF; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
 .step-head h4 { margin: 0; font-size: 14px; color: #FFF; }
 .approved-tag { color: #10B981; font-weight: 700; font-size: 13px; }
-.paid-tag { color: #38BDF8; font-weight: 700; font-size: 13px; }
-.btn-step { background: #D97706; color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+.paid-tag { color: var(--ws-admin-link); font-weight: 700; font-size: 13px; }
+.btn-step { background: var(--ws-admin-accent); color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 .btn-step.execute { background: #059669; }
-.sod-note { color: #94A3B8; font-size: 11px; margin: 8px 0 0 0; }
+.sod-note { color: var(--ws-admin-dim); font-size: 11px; margin: 8px 0 0 0; }
 
 @media (max-width: 768px) {
   .head-row { flex-direction: column; gap: 14px; }

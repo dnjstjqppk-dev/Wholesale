@@ -16,6 +16,11 @@ import BuyerProfileView from '../views/BuyerProfileView.vue';
 import SupplierDirectoryView from '../views/SupplierDirectoryView.vue';
 import RFQListView from '../views/RFQListView.vue';
 import OrderDetailView from '../views/OrderDetailView.vue';
+import TermsView from '../views/TermsView.vue';
+import PrivacyView from '../views/PrivacyView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
+import ErrorView from '../views/ErrorView.vue';
+import OnboardingView from '../views/OnboardingView.vue';
 
 const routes = [
   {
@@ -45,6 +50,10 @@ const routes = [
   { path: '/orders/:id/contract', component: ContractSignView },
   { path: '/orders/:id/dispute', component: DisputeCreateView },
   { path: '/disputes/new', component: DisputeCreateView },
+  { path: '/terms', component: TermsView },
+  { path: '/privacy', component: PrivacyView },
+  { path: '/500', component: ErrorView },
+  { path: '/onboarding', component: OnboardingView },
 
   // Locale-prefixed routes with strict regex constraint
   {
@@ -69,11 +78,16 @@ const routes = [
       { path: 'orders/:id/contract', name: 'contract-sign', component: ContractSignView },
       { path: 'orders/:id/dispute', name: 'dispute-create', component: DisputeCreateView },
       { path: 'disputes/new', component: DisputeCreateView },
+      { path: 'terms', name: 'terms', component: TermsView },
+      { path: 'privacy', name: 'privacy', component: PrivacyView },
+      { path: '500', name: 'server-error', component: ErrorView },
+      { path: 'onboarding', name: 'onboarding', component: OnboardingView },
     ],
   },
   {
     path: '/:pathMatch(.*)*',
-    redirect: '/ko/KRW/',
+    name: 'not-found',
+    component: NotFoundView,
   },
 ];
 

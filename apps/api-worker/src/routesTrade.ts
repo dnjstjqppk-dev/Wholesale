@@ -2,7 +2,9 @@
 // apps/api-worker/src/routesTrade.ts
 // Trade Orders, Cart Management, Multi-tier Pricing, Sample Orders, Logistics & Payments
 
-import { jsonResponse, problemResponse } from './response';
+import { jsonResponse, problemResponse } from './response.ts';
+import { parsePagination, paginate, matchesQuery } from './pagination.ts';
+import { priceListing, moneyMinor, major } from './pricing.ts';
 import {
   orders,
   users,
@@ -16,8 +18,8 @@ import {
   logAudit,
   BUYER_ORG_ID,
   SUPPLIER_ORG_ID,
-} from './store';
-import { getAuthContext } from './jwt';
+} from './store.ts';
+import { getAuthContext, check, requireRole, digest, contractCanonicalBody } from './security.ts';
 
 export async function handleTrade(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request, users, organizations);
@@ -26,6 +28,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // ================= CART ENDPOINTS =================
   // GET /v1/cart
   if (url.pathname === '/v1/cart' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const items = carts.get(buyerOrgId) || [];
     const totalMinor = items.reduce((sum, item) => sum + Math.round(parseFloat(item.total_price) * 100), 0);
     return jsonResponse({
@@ -39,6 +42,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // POST /v1/cart/items
   if (url.pathname === '/v1/cart/items' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const listingId = body.listing_id;
     const qty = parseInt(body.quantity, 10);
@@ -52,25 +56,12 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
       return problemResponse(404, 'NOT_FOUND', 'Listing Not Found', `Product listing ${listingId} does not exist`);
     }
 
-    const moq = parseInt(listing.moq, 10);
-    if (qty < moq) {
-      return problemResponse(422, 'BELOW_MOQ', 'Below Minimum Order Quantity', `Quantity (${qty}) cannot be less than MOQ (${moq})`);
-    }
-
-    // Determine unit price from price_tiers
-    let unitPrice = parseFloat(listing.price_tiers[0]?.unit_price || '5.00');
-    for (const tier of listing.price_tiers) {
-      const minQ = parseInt(tier.min_quantity, 10);
-      const maxQ = tier.max_quantity ? parseInt(tier.max_quantity, 10) : Infinity;
-      if (qty >= minQ && qty <= maxQ) {
-        unitPrice = parseFloat(tier.unit_price);
-        break;
-      }
-    }
+    const priced = priceListing(listing, qty);
+    const unitPrice = Number(priced.unit_price);
 
     const items = carts.get(buyerOrgId) || [];
     const existingIndex = items.findIndex(i => i.listing_id === listingId);
-    const totalPrice = (unitPrice * qty).toFixed(2);
+    const totalPrice = major(priced.total_amount_minor, priced.currency);
 
     if (existingIndex >= 0) {
       items[existingIndex].quantity = qty;
@@ -110,6 +101,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // PUT /v1/cart/items/:id
   const cartPutMatch = url.pathname.match(/^\/v1\/cart\/items\/([^\/]+)$/);
   if (cartPutMatch && request.method === 'PUT') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const cartItemId = cartPutMatch[1];
     const body = (await request.json().catch(() => ({}))) as any;
     const qty = parseInt(body.quantity, 10);
@@ -122,22 +114,12 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
     const listing = listings.get(item.listing_id);
     if (listing) {
-      const moq = parseInt(listing.moq, 10);
-      if (qty < moq) {
-        return problemResponse(422, 'BELOW_MOQ', 'Below Minimum Order Quantity', `Quantity (${qty}) cannot be less than MOQ (${moq})`);
-      }
-      for (const tier of listing.price_tiers) {
-        const minQ = parseInt(tier.min_quantity, 10);
-        const maxQ = tier.max_quantity ? parseInt(tier.max_quantity, 10) : Infinity;
-        if (qty >= minQ && qty <= maxQ) {
-          item.unit_price = parseFloat(tier.unit_price).toFixed(2);
-          break;
-        }
-      }
+      const repriced = priceListing(listing, qty);
+      item.unit_price = Number(repriced.unit_price).toFixed(2);
     }
 
     item.quantity = qty;
-    item.total_price = (parseFloat(item.unit_price) * qty).toFixed(2);
+    item.total_price = major(moneyMinor(item.unit_price, qty, item.currency || 'USD'), item.currency || 'USD');
     carts.set(buyerOrgId, items);
 
     return jsonResponse({ success: true, item, items });
@@ -146,6 +128,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // DELETE /v1/cart/items/:id
   const cartDelMatch = url.pathname.match(/^\/v1\/cart\/items\/([^\/]+)$/);
   if (cartDelMatch && request.method === 'DELETE') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const cartItemId = cartDelMatch[1];
     let items = carts.get(buyerOrgId) || [];
     items = items.filter(i => i.id !== cartItemId);
@@ -156,6 +139,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // ================= TRADE ORDERS ENDPOINTS =================
   // GET /v1/trade/orders
   if (url.pathname === '/v1/trade/orders' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     let orderList = Array.from(orders.values());
     if (ctx) {
       if (ctx.user.role === 'PLATFORM_ADMIN') {
@@ -166,19 +150,27 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
         );
       }
     }
-    return jsonResponse({ orders: orderList, total_count: orderList.length });
+    const orderQuery = url.searchParams.get('q');
+    if (orderQuery) {
+      orderList = orderList.filter(o => matchesQuery([o.order_number, o.id], orderQuery));
+    }
+    const orderPage = paginate(orderList, parsePagination(url));
+    return jsonResponse({ orders: orderPage.items, total_count: orderPage.total_count, page: orderPage.page, page_size: orderPage.page_size, total_pages: orderPage.total_pages, has_next: orderPage.has_next });
   }
 
   // POST /v1/trade/orders (Create Order from Checkout / PDP)
   if (url.pathname === '/v1/trade/orders' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const listingId = body.listing_id || '33333333-3333-3333-3333-333333333333';
     const listing = listings.get(listingId);
 
-    const qty = parseInt(body.quantity || 1000, 10);
-    const unitPrice = parseFloat(body.unit_price || listing?.price_tiers[0]?.unit_price || '4.20');
-    const totalAmountMinor = Math.round(unitPrice * qty * 100);
-    const downpaymentMinor = Math.round(totalAmountMinor * 0.30);
+    check(listing, 404, 'LISTING_NOT_FOUND', '주문 대상 상품을 찾을 수 없습니다.');
+    const priced = priceListing(listing, parseInt(body.quantity || 1000, 10));
+    const qty = priced.quantity;
+    const unitPrice = Number(priced.unit_price);
+    const totalAmountMinor = priced.total_amount_minor;
+    const downpaymentMinor = Math.floor((totalAmountMinor * 30 + 50) / 100);
     const balanceMinor = totalAmountMinor - downpaymentMinor;
 
     const orderId = `ord-${Date.now()}`;
@@ -201,7 +193,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
       total_amount_minor: totalAmountMinor,
       downpayment_minor: downpaymentMinor,
       balance_minor: balanceMinor,
-      currency: body.currency || 'USD',
+      currency: priced.currency,
       order_status: 'CONTRACT_PENDING',
       payment_status: 'DOWN_PAYMENT_PENDING',
       fulfillment_status: 'UNFULFILLED',
@@ -209,16 +201,26 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
       settlement_status: 'HELD_ESCROW',
       shipped_quantity: 0,
       is_contract_signed: false,
-      contract_hash: 'c67469723725e6e026620593dd2a466a9d184ffbe6cf2ab82a725e1a3d02b557',
+      contract_hash: '', // computed below from canonical terms
       incoterms: body.incoterms || 'FOB Busan Port',
       shipping_address: body.shipping_address || '450 Lexington Ave, New York, NY 10017, USA',
       created_at: new Date().toISOString(),
     };
 
+    newOrder.contract_hash = await digest(contractCanonicalBody({
+      order_number: newOrder.order_number,
+      buyer_organization_id: newOrder.buyer_organization_id,
+      supplier_organization_id: newOrder.supplier_organization_id,
+      ordered_quantity: newOrder.ordered_quantity,
+      unit_price: newOrder.unit_price,
+      total_amount_minor: newOrder.total_amount_minor,
+      currency: newOrder.currency,
+      incoterms: newOrder.incoterms,
+    }));
     orders.set(orderId, newOrder);
 
     // Create settlement record
-    const setFeeMinor = Math.round(totalAmountMinor * 0.05);
+    const setFeeMinor = Math.floor((totalAmountMinor * 5 + 50) / 100);
     const setNetMinor = totalAmountMinor - setFeeMinor;
     settlements.set(`set-${orderId}`, {
       id: `set-${orderId}`,
@@ -258,10 +260,12 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // GET /v1/trade/orders/:id
   const orderDetailMatch = url.pathname.match(/^\/v1\/trade\/orders\/([^\/]+)$/);
   if (orderDetailMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const order = orders.get(orderDetailMatch[1]);
     if (!order) {
       return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderDetailMatch[1]} was not found`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.org.id === order.supplier_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '거래 당사자만 주문을 조회할 수 있습니다.');
     return jsonResponse(order);
   }
 
@@ -275,7 +279,9 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
     }
 
     const body = (await request.json().catch(() => ({}))) as any;
-    const approverUserId = body.approver_user_id || ctx?.user?.id || 'user-buyer-002';
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'BUYER_APPROVER', 'PLATFORM_ADMIN');
+    const approverUserId = ctx.user.id;
 
     // SoD Check: purchaser cannot approve own order
     if (order.requester_user_id && order.requester_user_id === approverUserId) {
@@ -311,11 +317,13 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // GET /v1/trade/orders/:id/contract
   const contractGetMatch = url.pathname.match(/^\/v1\/trade\/orders\/([^\/]+)\/contract$/);
   if (contractGetMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = contractGetMatch[1];
     const order = orders.get(orderId);
     if (!order) {
       return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.org.id === order.supplier_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '계약 당사자만 조회할 수 있습니다.');
     return jsonResponse({
       contract_id: `ct-${orderId}`,
       order_id: orderId,
@@ -340,16 +348,29 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // POST /v1/trade/orders/:id/contract/sign
   const contractSignMatch = url.pathname.match(/^\/v1\/trade\/orders\/([^\/]+)\/contract\/sign$/);
   if (contractSignMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = contractSignMatch[1];
     const order = orders.get(orderId);
     if (!order) {
       return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '구매기업만 계약에 서명할 수 있습니다.');
 
     const body = (await request.json().catch(() => ({}))) as any;
-    if (!body.document_hash || body.document_hash.length !== 64) {
+    if (!body.document_hash || !/^[a-f0-9]{64}$/i.test(body.document_hash)) {
       return problemResponse(400, 'INVALID_DOCUMENT_HASH', 'Invalid SHA-256 Hash', 'document_hash must be a valid 64-character SHA-256 hex string');
     }
+    const expectedHash = await digest(contractCanonicalBody({
+      order_number: order.order_number,
+      buyer_organization_id: order.buyer_organization_id,
+      supplier_organization_id: order.supplier_organization_id,
+      ordered_quantity: order.ordered_quantity,
+      unit_price: order.unit_price,
+      total_amount_minor: order.total_amount_minor,
+      currency: order.currency,
+      incoterms: order.incoterms,
+    }));
+    check(String(body.document_hash).toLowerCase() === expectedHash, 422, 'CONTRACT_HASH_MISMATCH', '계약서 해시가 주문 조건과 일치하지 않습니다.');
 
     order.is_contract_signed = true;
     order.contract_hash = body.document_hash;
@@ -384,6 +405,8 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
       return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
 
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '구매기업만 수령을 확정할 수 있습니다.');
     order.order_status = 'COMPLETED';
     order.fulfillment_status = 'DELIVERED';
     order.settlement_status = 'RELEASE_ELIGIBLE';
@@ -415,6 +438,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // POST /v1/trade/samples (Real Sample Order Dispatch)
   if (url.pathname === '/v1/trade/samples' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const listingId = body.listing_id || '33333333-3333-3333-3333-333333333333';
     const listing = listings.get(listingId);
@@ -594,6 +618,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // GET /v1/logistics/tracking/:tracking_no (Milestone Container Tracking)
   const trackingMatch = url.pathname.match(/^\/v1\/logistics\/tracking\/([^\/]+)$/);
   if (trackingMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const trackingNo = trackingMatch[1];
     return jsonResponse({
       tracking_no: trackingNo,
@@ -620,12 +645,14 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // POST /v1/payments/process (Captures Down Payment 30% or Balance 70%)
   if (url.pathname === '/v1/payments/process' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const order = orders.get(orderId);
     if (!order) {
       return problemResponse(404, 'NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 결제할 수 있습니다.');
     if (!order.is_contract_signed) {
       return problemResponse(422, 'CONTRACT_NOT_SIGNED', 'Contract Not Signed', 'Cannot capture payment: trade contract must be cryptographically signed first');
     }
@@ -668,6 +695,8 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // POST /v1/logistics/shipments (Split Shipment Dispatch)
   if (url.pathname === '/v1/logistics/shipments' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const order = orders.get(orderId);
@@ -725,6 +754,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   // POST /v1/logistics/inspections (Third-Party Quality Inspection)
   const inspectionApproveMatch = url.pathname.match(/^\/v1\/logistics\/inspections\/([^\/]+)\/approve$/);
   if (inspectionApproveMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = inspectionApproveMatch[1];
     const order = orders.get(orderId);
     if (!order) {
@@ -751,6 +781,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   }
 
   if (url.pathname === '/v1/logistics/inspections' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const order = orders.get(orderId);
@@ -779,7 +810,9 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // ================= TRADE ASSURANCE CLAIMS =================
   if (url.pathname === '/v1/trade/assurance/claims' && request.method === 'GET') {
-    const list = Array.from(tradeAssuranceClaims.values());
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    const allClaims = Array.from(tradeAssuranceClaims.values());
+    const list = ctx.user.role === 'PLATFORM_ADMIN' ? allClaims : allClaims.filter(c => c.buyer_organization_id === ctx.org.id || c.supplier_organization_id === ctx.org.id);
     return jsonResponse({
       claims: list,
       total_count: list.length,
@@ -787,6 +820,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   }
 
   if (url.pathname === '/v1/trade/assurance/claims' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const order = orders.get(orderId);
@@ -824,6 +858,7 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
 
   // ================= CUSTOMS MANIFESTS =================
   if (url.pathname === '/v1/logistics/customs' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const list = Array.from(customsDeclarations.values());
     return jsonResponse({
       manifests: list,
@@ -832,6 +867,8 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   }
 
   if (url.pathname === '/v1/logistics/customs' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const declId = `customs-${Date.now()}`;
@@ -866,6 +903,8 @@ export async function handleTrade(request: Request, url: URL): Promise<Response 
   }
 
   if (url.pathname === '/v1/catalog/audits' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const auditId = `audit-${Date.now()}`;
     const audit = {

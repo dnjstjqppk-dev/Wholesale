@@ -29,6 +29,15 @@ jobs:
       - name: Run Full B2B Trade E2E Invariant Tests
         run: node tests/e2e/e2e_full_cycle.js
 
+      - name: Run API Worker Security Invariant Tests
+        run: node tests/security/security_test.js
+
+      - name: Run Secured Worker Trade Cycle Tests
+        run: node tests/e2e/worker_trade_cycle_test.js
+
+      - name: Run List Pagination & Search Tests
+        run: node tests/e2e/worker_pagination_test.js
+
       - name: TypeScript Type-check API Worker
         run: npm --prefix apps/api-worker run build
 

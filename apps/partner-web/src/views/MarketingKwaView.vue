@@ -50,7 +50,7 @@
       <div class="card-section">
         <div class="sec-head">
           <h3>진행 중인 키워드 입찰 목록 (Bidding Campaigns)</h3>
-          <button class="btn-refresh" @click="fetchMarketingData">↻ 새로고침</button>
+          <button class="btn-refresh" @click="fetchMarketingData"><WsIcon name="refresh" :size="15" /> 새로고침</button>
         </div>
 
         <table class="data-table">
@@ -86,7 +86,7 @@
                   :class="c.status.toLowerCase()"
                   @click="toggleStatus(c)"
                 >
-                  {{ c.status === 'ACTIVE' ? '✓ 활성 중' : '⏸ 일시 정지' }}
+                  <WsIcon v-if="c.status !== 'ACTIVE'" name="pause" :size="13" />{{ c.status === 'ACTIVE' ? '✓ 활성 중' : '일시 정지' }}
                 </button>
               </td>
               <td>
@@ -139,6 +139,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const submitting = ref(false);
@@ -260,18 +261,18 @@ onMounted(() => {
 .head-text h2 {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ws-text);
   margin: 0 0 4px 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 0;
 }
 
 .btn-create-campaign {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   padding: 10px 20px;
   border-radius: 6px;
@@ -282,7 +283,7 @@ onMounted(() => {
 }
 
 .btn-create-campaign:hover {
-  background: #e65c00;
+  background: var(--ws-brand-hover);
 }
 
 .toast-banner {
@@ -295,13 +296,13 @@ onMounted(() => {
 
 .toast-banner.success {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   border: 1px solid #a7f3d0;
 }
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
@@ -319,7 +320,7 @@ onMounted(() => {
 
 .summary-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 20px;
   display: flex;
@@ -329,7 +330,7 @@ onMounted(() => {
 .card-title {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin-bottom: 8px;
 }
 
@@ -341,13 +342,13 @@ onMounted(() => {
 
 .card-sub {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ws-admin-dim);
   margin-top: auto;
 }
 
 .card-section {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 24px;
 }
@@ -357,18 +358,18 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 
 .sec-head h3 {
   margin: 0;
   font-size: 16px;
-  color: #1e293b;
+  color: var(--ws-text);
 }
 
 .btn-refresh {
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 4px 10px;
   border-radius: 4px;
@@ -384,16 +385,16 @@ onMounted(() => {
 }
 
 .data-table th {
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   padding: 10px 12px;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--ws-text-2);
+  border-bottom: 1px solid var(--ws-border-subtle);
   font-weight: 600;
 }
 
 .data-table td {
   padding: 12px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .badge-match {
@@ -404,7 +405,7 @@ onMounted(() => {
 }
 
 .badge-match.exact { background: #e0f2fe; color: #0284c7; }
-.badge-match.broad { background: #fef3c7; color: #d97706; }
+.badge-match.broad { background: var(--ws-warning-bg); color: var(--ws-warning); }
 
 .btn-status {
   padding: 4px 10px;
@@ -415,13 +416,13 @@ onMounted(() => {
   cursor: pointer;
 }
 
-.btn-status.active { background: #dcfce7; color: #166534; }
-.btn-status.paused { background: #f1f5f9; color: #64748b; }
+.btn-status.active { background: var(--ws-success-bg); color: var(--ws-success); }
+.btn-status.paused { background: var(--ws-surface-muted); color: var(--ws-text-muted); }
 
 .btn-del-camp {
   background: transparent;
   border: 1px solid #fecaca;
-  color: #ef4444;
+  color: var(--ws-danger);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 11px;
@@ -429,7 +430,7 @@ onMounted(() => {
 }
 
 .btn-del-camp:hover {
-  background: #fee2e2;
+  background: var(--ws-danger-bg);
 }
 
 .modal-backdrop {
@@ -463,7 +464,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 4px;
 }
 
@@ -494,7 +495,7 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 8px 16px;
   border-radius: 6px;
@@ -503,7 +504,7 @@ onMounted(() => {
 }
 
 .btn-submit {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -515,11 +516,11 @@ onMounted(() => {
 
 .state-box {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 60px;
   text-align: center;
-  color: #64748b;
+  color: var(--ws-text-muted);
 }
 
 /* Mobile & Tablet Responsive Layout */

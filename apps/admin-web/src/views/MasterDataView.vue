@@ -8,7 +8,7 @@
         </p>
       </div>
       <button class="btn-refresh" @click="fetchMasterData">
-        ↻ 데이터 새로고침
+        <WsIcon name="refresh" :size="15" /> 데이터 새로고침
       </button>
     </div>
 
@@ -24,28 +24,28 @@
         :class="{ active: activeTab === 'categories' }"
         @click="activeTab = 'categories'"
       >
-        🌳 3단계 카테고리 체계 (Categories)
+        <WsIcon name="layout" :size="15" /> 3단계 카테고리 체계 (Categories)
       </button>
       <button
         class="tab-btn"
         :class="{ active: activeTab === 'attributes' }"
         @click="activeTab = 'attributes'"
       >
-        ⚙️ 카테고리 필수 속성 (Attributes)
+        <WsIcon name="gear" :size="15" /> 카테고리 필수 속성 (Attributes)
       </button>
       <button
         class="tab-btn"
         :class="{ active: activeTab === 'tariffs' }"
         @click="activeTab = 'tariffs'"
       >
-        🛃 HS Code 관세율 (Customs Tariffs)
+        <WsIcon name="file" :size="15" /> HS Code 관세율 (Customs Tariffs)
       </button>
       <button
         class="tab-btn"
         :class="{ active: activeTab === 'fx' }"
         @click="activeTab = 'fx'"
       >
-        💱 실시간 기준 환율 (FX Rates)
+        <WsIcon name="trend" :size="15" /> 실시간 기준 환율 (FX Rates)
       </button>
     </div>
 
@@ -289,6 +289,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const savingFx = ref(false);
@@ -451,13 +452,13 @@ onMounted(() => {
 .head-text h2 {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ws-admin-bg);
   margin: 0 0 4px 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 0;
 }
 
@@ -486,14 +487,14 @@ onMounted(() => {
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
 .tab-bar {
   display: flex;
   gap: 8px;
-  border-bottom: 2px solid #e2e8f0;
+  border-bottom: 2px solid var(--ws-admin-text);
   margin-bottom: 24px;
 }
 
@@ -503,15 +504,15 @@ onMounted(() => {
   padding: 12px 20px;
   font-size: 14px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--ws-text-muted);
   cursor: pointer;
   border-bottom: 3px solid transparent;
   margin-bottom: -2px;
 }
 
 .tab-btn.active {
-  color: #d64000;
-  border-bottom-color: #d64000;
+  color: var(--ws-brand);
+  border-bottom-color: var(--ws-brand);
 }
 
 .panel-head {
@@ -524,11 +525,11 @@ onMounted(() => {
 .panel-head h3 {
   margin: 0;
   font-size: 16px;
-  color: #1e293b;
+  color: var(--ws-admin-bg);
 }
 
 .btn-primary {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -546,7 +547,7 @@ onMounted(() => {
 
 .cat-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-admin-text);
   border-radius: 10px;
   padding: 20px;
 }
@@ -565,18 +566,18 @@ onMounted(() => {
 .cat-info h4 {
   margin: 0 0 2px 0;
   font-size: 16px;
-  color: #0f172a;
+  color: var(--ws-admin-bg);
 }
 
 .cat-en {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   display: block;
 }
 
 .cat-code {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ws-admin-dim);
   font-family: monospace;
 }
 
@@ -590,7 +591,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 6px;
 }
 
@@ -613,7 +614,7 @@ onMounted(() => {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-admin-text);
   border-radius: 8px;
   overflow: hidden;
   font-size: 13px;
@@ -623,14 +624,14 @@ onMounted(() => {
 .data-table th {
   background: #f8fafc;
   padding: 12px 14px;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--ws-text-2);
+  border-bottom: 1px solid var(--ws-admin-text);
   font-weight: 600;
 }
 
 .data-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .badge-cat {
@@ -643,7 +644,7 @@ onMounted(() => {
 }
 
 .badge-type {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   color: #334155;
   font-size: 11px;
   font-weight: 600;
@@ -653,7 +654,7 @@ onMounted(() => {
 
 .badge-req {
   background: #fef2f2;
-  color: #b91c1c;
+  color: var(--ws-danger);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 6px;
@@ -667,8 +668,8 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.badge-restriction.none { background: #dcfce7; color: #166534; }
-.badge-restriction.strategic_goods_permit { background: #fee2e2; color: #991b1b; }
+.badge-restriction.none { background: var(--ws-success-bg); color: #166534; }
+.badge-restriction.strategic_goods_permit { background: #fee2e2; color: var(--ws-danger); }
 
 .btn-del {
   background: transparent;
@@ -682,7 +683,7 @@ onMounted(() => {
 
 .guide-text {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin-bottom: 16px;
 }
 
@@ -694,7 +695,7 @@ onMounted(() => {
 
 .fx-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-admin-text);
   border-radius: 8px;
   padding: 18px;
 }
@@ -702,7 +703,7 @@ onMounted(() => {
 .fx-cur {
   font-size: 16px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ws-admin-bg);
   display: block;
   margin-bottom: 10px;
 }
@@ -715,7 +716,7 @@ onMounted(() => {
 
 .fx-input-wrap label {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   white-space: nowrap;
 }
 
@@ -730,7 +731,7 @@ onMounted(() => {
 
 .fx-unit {
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 
 .modal-backdrop {
@@ -764,7 +765,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 4px;
 }
 
@@ -800,7 +801,7 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 8px 16px;
   border-radius: 6px;
@@ -810,11 +811,11 @@ onMounted(() => {
 
 .state-box {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-admin-text);
   border-radius: 10px;
   padding: 60px;
   text-align: center;
-  color: #64748b;
+  color: var(--ws-text-muted);
 }
 
 /* Mobile & Tablet Responsive Layout */

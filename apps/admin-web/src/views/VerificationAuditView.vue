@@ -5,7 +5,7 @@
         <h2>기업 및 공급사 입점 심사 (Verification Audit)</h2>
         <p class="subtitle">제출된 사업자등록증 및 SGS/TÜV 현장 공장 실사 성적서를 인앱 뷰어로 검수하고 Verified Supplier 자격을 부여합니다.</p>
       </div>
-      <button class="btn-refresh" @click="loadVerifications">↻ 심사 대기열 새로고침</button>
+      <button class="btn-refresh" @click="loadVerifications"><WsIcon name="refresh" :size="15" /> 심사 대기열 새로고침</button>
     </div>
 
     <div v-if="loading" class="loading-state">
@@ -13,7 +13,7 @@
     </div>
 
     <div v-else-if="error" class="error-banner">
-      ⚠️ {{ error }}
+      <WsIcon name="alert" :size="15" /> {{ error }}
     </div>
 
     <div v-else class="requests-list">
@@ -28,34 +28,34 @@
 
         <!-- Korean NTS (국세청) & Global D-U-N-S Status Bar -->
         <div class="nts-badge-box">
-          <span class="nts-title">🏛️ 국세청(NTS) 법인실사 & D-U-N-S:</span>
+          <span class="nts-title"><WsIcon name="building" :size="15" /> 국세청(NTS) 법인실사 & D-U-N-S:</span>
           <span v-if="req.nts_status" class="nts-status-tag" :class="req.nts_status.is_valid ? 'valid' : 'invalid'">
             ✓ {{ req.nts_status.tax_status_kr }} ({{ req.nts_status.tax_type }})
           </span>
           <span v-else class="nts-status-tag unverified">
-            ⏳ 국세청 미조회 (검증 대기)
+            <WsIcon name="clock" :size="15" /> 국세청 미조회 (검증 대기)
           </span>
           <span v-if="req.nts_status?.duns_number" class="duns-tag">
-            🌐 D-U-N-S®: {{ req.nts_status.duns_number }}
+            <WsIcon name="globe" :size="15" /> D-U-N-S®: {{ req.nts_status.duns_number }}
           </span>
           <button type="button" class="btn-nts-verify" :disabled="verifyingId === req.id" @click="verifyWithNTS(req)">
-            {{ verifyingId === req.id ? '검증 중...' : '🔍 실시간 국세청 MOD-10 검증' }}
+            <WsIcon v-if="!(verifyingId === req.id)" name="search" :size="14" /> {{ verifyingId === req.id ? '검증 중...' : '실시간 국세청 MOD-10 검증' }}
           </button>
         </div>
 
         <div class="v-metrics">
-          <span>🏭 공장 부지 면적: <strong>{{ req.facilities_sqm?.toLocaleString() }} m²</strong></span>
-          <span>⚙️ 생산 라인 수: <strong>{{ req.production_lines }}개</strong></span>
-          <span>🔬 품질 검수원: <strong>{{ req.qc_inspectors }}명</strong></span>
-          <span>📜 보유 인증: <strong>{{ (req.certificates || []).join(', ') }}</strong></span>
+          <span><WsIcon name="factory" :size="15" /> 공장 부지 면적: <strong>{{ req.facilities_sqm?.toLocaleString() }} m²</strong></span>
+          <span><WsIcon name="gear" :size="15" /> 생산 라인 수: <strong>{{ req.production_lines }}개</strong></span>
+          <span><WsIcon name="search" :size="15" /> 품질 검수원: <strong>{{ req.qc_inspectors }}명</strong></span>
+          <span><WsIcon name="file" :size="15" /> 보유 인증: <strong>{{ (req.certificates || []).join(', ') }}</strong></span>
         </div>
 
         <div class="doc-links">
           <button class="doc-btn" @click="previewDoc('사업자등록증 원본 사본', req.license_url)">
-            📄 사업자등록증 인앱 서류 열람
+            <WsIcon name="file" :size="15" /> 사업자등록증 인앱 서류 열람
           </button>
           <button class="doc-btn" @click="previewDoc('SGS/TÜV 공장 실사 성적서', req.audit_report_url)">
-            🏭 공장 실사 성적서 원문 열람
+            <WsIcon name="factory" :size="15" /> 공장 실사 성적서 원문 열람
           </button>
         </div>
 
@@ -94,6 +94,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const submitting = ref(false);
@@ -201,15 +202,15 @@ async function reject(req: any) {
 .audit-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; }
 h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: #94A3B8; font-size: 13px; margin: 0; }
-.btn-refresh { background: #1C2541; border: 1px solid #3A506B; color: #E2E8F0; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-state { padding: 40px; text-align: center; color: #94A3B8; }
+.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
+.btn-refresh { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
 .error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; }
 .requests-list { display: flex; flex-direction: column; gap: 18px; }
-.audit-card { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 22px; }
+.audit-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 22px; }
 .card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid #2B3A55; padding-bottom: 12px; }
 .company-name { margin: 0 0 4px 0; font-size: 17px; color: #FFF; }
-.meta { font-size: 12px; color: #94A3B8; }
+.meta { font-size: 12px; color: var(--ws-admin-dim); }
 .status-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 .status-badge.approved { background: #065F46; color: #A7F3D0; }
 .status-badge.pending { background: #854D0E; color: #FEF08A; }
@@ -218,7 +219,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #0F172A;
+  background: var(--ws-admin-bg);
   border: 1px solid #334155;
   border-radius: 6px;
   padding: 8px 12px;
@@ -227,7 +228,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
   flex-wrap: wrap;
 }
 .nts-title {
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
   font-weight: 700;
 }
 .nts-status-tag {
@@ -248,7 +249,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
   color: #CBD5E1;
 }
 .duns-tag {
-  color: #38BDF8;
+  color: var(--ws-admin-link);
   font-family: monospace;
   font-weight: 700;
 }
@@ -273,18 +274,18 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
 }
 .v-metrics { display: flex; gap: 18px; font-size: 12px; color: #CBD5E1; margin-bottom: 14px; flex-wrap: wrap; }
 .doc-links { display: flex; gap: 10px; margin-bottom: 16px; }
-.doc-btn { background: #0B132B; border: 1px solid #3A506B; color: #38BDF8; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.doc-btn { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-link); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
 .actions { display: flex; gap: 10px; }
 .btn-approve { background: #059669; color: #FFF; border: none; padding: 9px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.btn-reject { background: #DC2626; color: #FFF; border: none; padding: 9px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+.btn-reject { background: var(--ws-danger); color: #FFF; border: none; padding: 9px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
 .approved-info { color: #10B981; font-weight: 700; font-size: 13px; }
 .rejected-info { color: #EF4444; font-weight: 700; font-size: 13px; }
 
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-box { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; width: 680px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
+.modal-box { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; width: 680px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
 .modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #2B3A55; }
 .modal-head h3 { margin: 0; font-size: 15px; color: #FFF; }
-.btn-close { background: transparent; border: none; color: #94A3B8; font-size: 18px; cursor: pointer; }
+.btn-close { background: transparent; border: none; color: var(--ws-admin-dim); font-size: 18px; cursor: pointer; }
 .modal-body { padding: 16px; overflow-y: auto; text-align: center; }
 .doc-img { max-width: 100%; border-radius: 6px; }
 </style>

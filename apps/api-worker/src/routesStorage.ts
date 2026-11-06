@@ -2,15 +2,17 @@
 // apps/api-worker/src/routesStorage.ts
 // Cloud Object Storage & Multipart Pre-Signed Upload Engine (Cloudflare R2 / AWS S3)
 
-import { jsonResponse, problemResponse } from './response';
-import { getAuthContext } from './security';
-import { uploadedDocuments, logAudit, BUYER_ORG_ID } from './store';
+import { jsonResponse, problemResponse } from './response.ts';
+import { parsePagination, paginate } from './pagination.ts';
+import { getAuthContext, check } from './security.ts';
+import { uploadedDocuments, logAudit, BUYER_ORG_ID } from './store.ts';
 
 export async function handleStorage(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request);
 
   // 1. POST /v1/storage/upload-url (Generate Pre-Signed S3/R2 Direct Upload URL)
   if (url.pathname === '/v1/storage/upload-url' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const fileName = body.file_name || `trade_doc_${Date.now()}.pdf`;
     const mimeType = body.mime_type || 'application/pdf';
@@ -36,6 +38,7 @@ export async function handleStorage(request: Request, url: URL): Promise<Respons
 
   // 2. POST /v1/storage/upload (Direct Document Upload & SHA-256 Digest Verification)
   if (url.pathname === '/v1/storage/upload' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     let fileName = 'trade_document.pdf';
     let mimeType = 'application/pdf';
     let category = 'GENERAL_DOC';
@@ -100,6 +103,7 @@ export async function handleStorage(request: Request, url: URL): Promise<Respons
 
   // 3. GET /v1/storage/documents
   if (url.pathname === '/v1/storage/documents' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = url.searchParams.get('order_id');
     const category = url.searchParams.get('category');
 
@@ -111,9 +115,14 @@ export async function handleStorage(request: Request, url: URL): Promise<Respons
       docs = docs.filter(d => d.category === category);
     }
 
+    const docPage = paginate(docs, parsePagination(url));
     return jsonResponse({
-      documents: docs,
-      total_count: docs.length,
+      documents: docPage.items,
+      total_count: docPage.total_count,
+      page: docPage.page,
+      page_size: docPage.page_size,
+      total_pages: docPage.total_pages,
+      has_next: docPage.has_next,
     });
   }
 

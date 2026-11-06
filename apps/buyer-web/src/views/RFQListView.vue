@@ -32,7 +32,7 @@
       </div>
       <div class="refresh-box">
         <button class="btn-refresh" :disabled="loading" @click="fetchRFQs">
-          ↻ 새로고침
+          <WsIcon name="refresh" :size="15" /> 새로고침
         </button>
       </div>
     </div>
@@ -169,6 +169,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -293,18 +294,18 @@ onMounted(() => {
 .head-text h2 {
   font-size: 24px;
   font-weight: 800;
-  color: #111827;
+  color: var(--ws-text);
   margin: 0 0 6px 0;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin: 0;
 }
 
 .btn-post-rfq {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   padding: 10px 20px;
   border-radius: 6px;
@@ -314,7 +315,7 @@ onMounted(() => {
 }
 
 .btn-post-rfq:hover {
-  background: #e65c00;
+  background: var(--ws-brand-hover);
 }
 
 .toast-banner {
@@ -327,13 +328,13 @@ onMounted(() => {
 
 .toast-banner.success {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   border: 1px solid #a7f3d0;
 }
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
@@ -341,7 +342,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 12px 16px;
@@ -357,14 +358,14 @@ onMounted(() => {
 
 .filter-left select {
   padding: 6px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   font-size: 13px;
 }
 
 .btn-refresh {
   background: white;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--ws-border-subtle);
   padding: 6px 12px;
   border-radius: 6px;
   font-size: 13px;
@@ -390,7 +391,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
 }
 
@@ -401,8 +402,8 @@ onMounted(() => {
 }
 
 .category-badge {
-  background: #f1f5f9;
-  color: #334155;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
   font-size: 12px;
   padding: 3px 8px;
   border-radius: 4px;
@@ -413,12 +414,12 @@ onMounted(() => {
   margin: 0;
   font-size: 18px;
   font-weight: 700;
-  color: #111827;
+  color: var(--ws-text);
 }
 
 .rfq-id {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--ws-admin-dim);
   font-family: monospace;
 }
 
@@ -427,15 +428,15 @@ onMounted(() => {
   font-weight: 700;
   padding: 3px 10px;
   border-radius: 9999px;
-  background: #dbeafe;
-  color: #1e40af;
+  background: var(--ws-info-bg);
+  color: var(--ws-info);
 }
 
 .rfq-specs-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 12px;
-  background: #fafafa;
+  background: var(--ws-surface-muted);
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 20px;
@@ -444,17 +445,17 @@ onMounted(() => {
 .spec-cell .k {
   display: block;
   font-size: 11px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin-bottom: 2px;
 }
 
 .spec-cell .v {
   font-size: 13px;
-  color: #1f2937;
+  color: var(--ws-text);
 }
 
 .quotes-section {
-  border-top: 1px solid #f3f4f6;
+  border-top: 1px solid var(--ws-surface-muted);
   padding-top: 16px;
 }
 
@@ -469,23 +470,23 @@ onMounted(() => {
   margin: 0;
   font-size: 15px;
   font-weight: 700;
-  color: #374151;
+  color: var(--ws-text-2);
 }
 
 .quote-count {
   font-size: 12px;
-  color: #d64000;
+  color: var(--ws-brand);
   font-weight: 600;
 }
 
 .no-quotes {
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   border: 1px dashed #e5e7eb;
   border-radius: 6px;
   padding: 16px;
   text-align: center;
   font-size: 13px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .quotes-table-wrap {
@@ -499,17 +500,17 @@ onMounted(() => {
 }
 
 .quotes-table th {
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   padding: 8px 12px;
   text-align: left;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--ws-text-2);
   border-bottom: 1px solid #e5e7eb;
 }
 
 .quotes-table td {
   padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .supplier-info {
@@ -520,7 +521,7 @@ onMounted(() => {
 
 .supp-name {
   font-weight: 600;
-  color: #111827;
+  color: var(--ws-text);
 }
 
 .supp-badge {
@@ -530,25 +531,25 @@ onMounted(() => {
 }
 
 .rev-badge {
-  background: #f3f4f6;
-  color: #4b5563;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 11px;
 }
 
 .quote-status.issued {
-  color: #2563eb;
+  color: var(--ws-info);
   font-weight: 600;
 }
 
 .quote-status.accepted {
-  color: #16a34a;
+  color: var(--ws-success);
   font-weight: 700;
 }
 
 .btn-accept {
-  background: #16a34a;
+  background: var(--ws-success);
   color: white;
   border: none;
   padding: 6px 12px;
@@ -558,17 +559,17 @@ onMounted(() => {
 }
 
 .btn-accept:hover {
-  background: #15803d;
+  background: var(--ws-success);
 }
 
 .accepted-tag {
-  color: #16a34a;
+  color: var(--ws-success);
   font-weight: 700;
   font-size: 12px;
 }
 
 .superseded-tag {
-  color: #9ca3af;
+  color: var(--ws-admin-dim);
   font-size: 12px;
 }
 
@@ -578,7 +579,7 @@ onMounted(() => {
   border-radius: 10px;
   padding: 40px;
   text-align: center;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 /* Mobile & Tablet Responsive Layout */

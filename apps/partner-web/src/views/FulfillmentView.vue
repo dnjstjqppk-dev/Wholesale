@@ -20,7 +20,7 @@
     </div>
 
     <div v-else-if="error" class="error-banner">
-      ⚠️ {{ error }}
+      <WsIcon name="alert" :size="15" /> {{ error }}
     </div>
 
     <div v-else-if="activeOrder" class="order-box">
@@ -52,7 +52,7 @@
 
       <!-- New Split Shipment Form -->
       <div class="shipment-form">
-        <h4>🚢 신규 분할 출고 및 무역 서류 등록 (Split Shipment & Trade Docs)</h4>
+        <h4><WsIcon name="truck" :size="15" /> 신규 분할 출고 및 무역 서류 등록 (Split Shipment & Trade Docs)</h4>
         <div class="form-grid-3">
           <div>
             <label>출고 수량 (최대 {{ remaining }} {{ activeOrder.unit }})</label>
@@ -75,7 +75,7 @@
             <div class="label-with-action">
               <label>상업송장 (Commercial Invoice URL)</label>
               <button type="button" class="btn-xs-upload" :disabled="uploadingCi" @click="uploadTradeDoc('COMMERCIAL_INVOICE')">
-                {{ uploadingCi ? '업로드 중...' : '☁️ R2 업로드' }}
+                <WsIcon v-if="!(uploadingCi)" name="upload" :size="14" /> {{ uploadingCi ? '업로드 중...' : 'R2 업로드' }}
               </button>
             </div>
             <input v-model="ciUrl" type="text" />
@@ -84,7 +84,7 @@
             <div class="label-with-action">
               <label>포장명세서 (Packing List URL)</label>
               <button type="button" class="btn-xs-upload" :disabled="uploadingPl" @click="uploadTradeDoc('PACKING_LIST')">
-                {{ uploadingPl ? '업로드 중...' : '☁️ R2 업로드' }}
+                <WsIcon v-if="!(uploadingPl)" name="upload" :size="14" /> {{ uploadingPl ? '업로드 중...' : 'R2 업로드' }}
               </button>
             </div>
             <input v-model="plUrl" type="text" />
@@ -97,17 +97,17 @@
 
         <div class="dispatch-bar">
           <p v-if="dispatchQty > remaining" class="err-txt">
-            ⚠️ 누적 출고 한도 초과 경고: 요청 수량({{ dispatchQty }})이 잔여 계약 수량({{ remaining }})을 초과합니다. 강제 호출 시 백엔드가 `422 CUMULATIVE_OVERFLOW`로 차단합니다.
+            <WsIcon name="alert" :size="15" /> 누적 출고 한도 초과 경고: 요청 수량({{ dispatchQty }})이 잔여 계약 수량({{ remaining }})을 초과합니다. 강제 호출 시 백엔드가 `422 CUMULATIVE_OVERFLOW`로 차단합니다.
           </p>
           <button class="btn-dispatch" :disabled="submitting || dispatchQty <= 0" @click="handleDispatch">
-            {{ submitting ? '선적 및 B/L 등록 중...' : '🚢 분할 선적 출고 확정 (POST /v1/logistics/shipments)' }}
+            <WsIcon v-if="!(submitting)" name="truck" :size="14" /> {{ submitting ? '선적 및 B/L 등록 중...' : '분할 선적 출고 확정 (POST /v1/logistics/shipments)' }}
           </button>
         </div>
       </div>
 
       <!-- Shipped History -->
       <div class="history-section">
-        <h4>📜 누적 선적 및 무역 서류 원장 ({{ orderShipments.length }}건)</h4>
+        <h4><WsIcon name="file" :size="15" /> 누적 선적 및 무역 서류 원장 ({{ orderShipments.length }}건)</h4>
         <div v-if="orderShipments.length === 0" class="empty-ship">아직 등록된 선적 내역이 없습니다.</div>
         <div v-for="(s, idx) in orderShipments" :key="s.id || idx" class="history-row">
           <span><strong>{{ s.id || `SHP-#${idx + 1}` }}</strong></span>
@@ -121,7 +121,7 @@
       <!-- Customs Declaration Manifest Submission Form & List -->
       <div class="customs-manifest-section">
         <div class="section-head-toggle" @click="showCustomsForm = !showCustomsForm">
-          <h4>🏛️ 관세청 수출신고필증 (Customs Manifest) 등록 및 교부 내역</h4>
+          <h4><WsIcon name="building" :size="15" /> 관세청 수출신고필증 (Customs Manifest) 등록 및 교부 내역</h4>
           <span class="toggle-icon">{{ showCustomsForm ? '▲ 접기' : '▼ 펼치기' }}</span>
         </div>
 
@@ -154,7 +154,7 @@
           </div>
           <div class="customs-action-bar">
             <button class="btn-customs-submit" :disabled="submittingCustoms" @click="handleCustomsSubmit">
-              {{ submittingCustoms ? '세관 신고 전송 중...' : '🏛️ 관세청 수출통관신고서 전송 (POST /v1/logistics/customs)' }}
+              <WsIcon v-if="!(submittingCustoms)" name="building" :size="14" /> {{ submittingCustoms ? '세관 신고 전송 중...' : '관세청 수출통관신고서 전송 (POST /v1/logistics/customs)' }}
             </button>
           </div>
         </div>
@@ -179,6 +179,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const submitting = ref(false);
@@ -372,41 +373,41 @@ async function handleDispatch() {
 <style scoped>
 .fulfillment-page { max-width: 1040px; margin: 0 auto; }
 .head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.subtitle { color: #64748B; font-size: 13px; margin: 0; }
+h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
 .order-selector { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
 .order-selector select { padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; }
-.loading-state { padding: 40px; text-align: center; color: #64748B; }
-.error-banner { background: #FEF2F2; color: #B91C1C; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-.order-box { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.box-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #F1F5F9; padding-bottom: 12px; margin-bottom: 16px; }
-.ord-no { font-weight: 700; color: #172B4D; font-size: 16px; margin-right: 12px; }
-.buyer { font-size: 13px; color: #64748B; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-text-muted); }
+.error-banner { background: #FEF2F2; color: var(--ws-danger); padding: 12px; border-radius: 6px; margin-bottom: 20px; }
+.order-box { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
+.box-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 12px; margin-bottom: 16px; }
+.ord-no { font-weight: 700; color: var(--ws-text); font-size: 16px; margin-right: 12px; }
+.buyer { font-size: 13px; color: var(--ws-text-muted); }
 .badges { display: flex; gap: 8px; }
-.status-tag { background: #EDE9FE; color: #6D28D9; font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 9999px; }
-.status-tag.ship { background: #DCFCE7; color: #15803D; }
-.item-summary { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; margin-bottom: 20px; }
-.item-summary h4 { margin: 0 0 8px 0; font-size: 14px; color: #172B4D; }
+.status-tag { background: #EDE9FE; color: var(--ws-info); font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 9999px; }
+.status-tag.ship { background: var(--ws-success-bg); color: var(--ws-success); }
+.item-summary { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; margin-bottom: 20px; }
+.item-summary h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--ws-text); }
 .progress-info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
-.progress-bar { height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden; }
-.progress-bar .fill { height: 100%; background: #C2410C; transition: width 0.3s ease; }
-.shipment-form { background: #FFF; border: 1px solid #E2E8F0; border-radius: 6px; padding: 18px; margin-bottom: 20px; }
-.shipment-form h4 { margin: 0 0 14px 0; font-size: 14px; color: #172B4D; }
+.progress-bar { height: 8px; background: var(--ws-border-subtle); border-radius: 4px; overflow: hidden; }
+.progress-bar .fill { height: 100%; background: var(--ws-brand); transition: width 0.3s ease; }
+.shipment-form { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 18px; margin-bottom: 20px; }
+.shipment-form h4 { margin: 0 0 14px 0; font-size: 14px; color: var(--ws-text); }
 .form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.form-grid-3 label { display: block; font-size: 12px; font-weight: 600; color: #42526E; margin-bottom: 4px; }
-.form-grid-3 input, .form-grid-3 select { width: 100%; padding: 8px 10px; border: 1px solid #D8E0EB; border-radius: 4px; box-sizing: border-box; font-size: 13px; }
+.form-grid-3 label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
+.form-grid-3 input, .form-grid-3 select { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
 .dispatch-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.btn-dispatch { background: #15803D; color: #FFF; border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; margin-left: auto; }
-.err-txt { color: #DC2626; font-size: 12px; font-weight: 700; margin: 0; }
-.history-section h4 { margin: 0 0 8px 0; font-size: 13px; color: #172B4D; }
-.empty-ship { color: #64748B; font-size: 12px; padding: 8px 0; }
-.history-row { display: flex; justify-content: space-between; padding: 10px 12px; background: #F8FAFC; border-radius: 6px; margin-bottom: 6px; font-size: 13px; border: 1px solid #E2E8F0; }
-.carrier, .date { color: #64748B; }
+.btn-dispatch { background: var(--ws-success); color: var(--ws-surface); border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; margin-left: auto; }
+.err-txt { color: var(--ws-danger); font-size: 12px; font-weight: 700; margin: 0; }
+.history-section h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--ws-text); }
+.empty-ship { color: var(--ws-text-muted); font-size: 12px; padding: 8px 0; }
+.history-row { display: flex; justify-content: space-between; padding: 10px 12px; background: var(--ws-surface-muted); border-radius: 6px; margin-bottom: 6px; font-size: 13px; border: 1px solid var(--ws-border-subtle); }
+.carrier, .date { color: var(--ws-text-muted); }
 
 /* Customs Manifest Section */
 .customs-manifest-section {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 18px;
   margin-top: 20px;
@@ -422,16 +423,16 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 .section-head-toggle h4 {
   margin: 0;
   font-size: 14px;
-  color: #172B4D;
+  color: var(--ws-text);
 }
 .toggle-icon {
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-weight: 700;
 }
 .customs-form-panel {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 14px;
   margin-bottom: 14px;
@@ -447,7 +448,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 }
 .btn-xs-upload {
   background: #EFF6FF;
-  color: #2563EB;
+  color: var(--ws-info);
   border: 1px solid #BFDBFE;
   padding: 2px 8px;
   border-radius: 4px;
@@ -457,7 +458,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
   transition: all 0.2s;
 }
 .btn-xs-upload:hover:not(:disabled) {
-  background: #DBEAFE;
+  background: var(--ws-info-bg);
 }
 .btn-xs-upload:disabled {
   opacity: 0.6;
@@ -469,7 +470,7 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 }
 .btn-customs-submit {
   background: #0284C7;
-  color: #FFF;
+  color: var(--ws-surface);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -497,13 +498,13 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
 }
 .decl-no {
   font-family: monospace;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .broker {
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .tax-badge {
-  color: #15803D;
+  color: var(--ws-success);
   font-weight: 700;
 }
 .status-pill {
@@ -513,8 +514,8 @@ h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
   border-radius: 4px;
 }
 .status-pill.cleared {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
 }
 
 @media (max-width: 768px) {

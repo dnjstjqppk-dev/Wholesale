@@ -9,7 +9,7 @@
       </div>
       <div class="head-actions">
         <a :href="`https://wholesale.dnjstjqppk.workers.dev/ko/KRW/suppliers/${storefront.organization_id}`" target="_blank" class="btn-preview">
-          👁️ 실제 바이어 뷰 보기
+          <WsIcon name="eye" :size="15" /> 실제 바이어 뷰 보기
         </a>
         <button class="btn-save" :disabled="saving" @click="saveStorefront">
           {{ saving ? '저장 중...' : '✓ 미니사이트 변경사항 저장' }}
@@ -107,7 +107,7 @@
       <!-- Right: Live Storefront Mini Preview -->
       <div class="preview-col">
         <div class="preview-sticky-card">
-          <h4>📱 바이어 화면 라이브 프리뷰</h4>
+          <h4><WsIcon name="phone" :size="15" /> 바이어 화면 라이브 프리뷰</h4>
           <div class="mini-storefront-frame">
             <div class="frame-banner">
               <img :src="storefront.banner_image" alt="Banner" />
@@ -117,9 +117,9 @@
               </div>
             </div>
             <div class="frame-meta">
-              <span>📅 설립: {{ storefront.year_established }}년</span>
-              <span>🚢 수출: {{ storefront.export_percentage }}</span>
-              <span>💰 매출: {{ storefront.total_revenue_usd }}</span>
+              <span><WsIcon name="calendar" :size="15" /> 설립: {{ storefront.year_established }}년</span>
+              <span><WsIcon name="truck" :size="15" /> 수출: {{ storefront.export_percentage }}</span>
+              <span><WsIcon name="card" :size="15" /> 매출: {{ storefront.total_revenue_usd }}</span>
             </div>
             <div class="frame-section">
               <h6>주요 인증 규격</h6>
@@ -147,6 +147,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest, getCurrentUser } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const user = ref(getCurrentUser());
 const loading = ref(true);
@@ -242,13 +243,13 @@ onMounted(() => {
 .head-text h2 {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ws-text);
   margin: 0 0 4px 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 0;
 }
 
@@ -265,14 +266,14 @@ onMounted(() => {
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-  color: #334155;
+  color: var(--ws-text-2);
   display: flex;
   align-items: center;
 }
 
 .btn-save {
   padding: 8px 18px;
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   border: none;
   border-radius: 6px;
@@ -282,7 +283,7 @@ onMounted(() => {
 }
 
 .btn-save:hover {
-  background: #e65c00;
+  background: var(--ws-brand-hover);
 }
 
 .toast-banner {
@@ -295,13 +296,13 @@ onMounted(() => {
 
 .toast-banner.success {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   border: 1px solid #a7f3d0;
 }
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
@@ -313,7 +314,7 @@ onMounted(() => {
 
 .card-section {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 20px;
   margin-bottom: 20px;
@@ -322,9 +323,9 @@ onMounted(() => {
 .card-section h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ws-text);
   margin: 0 0 16px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 8px;
 }
 
@@ -332,7 +333,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 8px;
   margin-bottom: 16px;
 }
@@ -351,7 +352,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 600;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 4px;
 }
 
@@ -377,7 +378,7 @@ onMounted(() => {
   border-radius: 6px;
   overflow: hidden;
   height: 120px;
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   margin-top: 8px;
 }
 
@@ -403,7 +404,7 @@ onMounted(() => {
 .flex-1 { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
 
 .btn-add-item {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 6px 12px;
   border-radius: 4px;
@@ -415,7 +416,7 @@ onMounted(() => {
 .btn-del {
   background: transparent;
   border: none;
-  color: #ef4444;
+  color: var(--ws-danger);
   font-size: 18px;
   cursor: pointer;
 }
@@ -433,7 +434,7 @@ onMounted(() => {
 }
 
 .slot-badge {
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   font-size: 11px;
   font-weight: 700;
@@ -443,7 +444,7 @@ onMounted(() => {
 
 .guide-text {
   font-size: 12px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin-top: -8px;
   margin-bottom: 12px;
 }
@@ -453,7 +454,7 @@ onMounted(() => {
   position: sticky;
   top: 20px;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 16px;
 }
@@ -461,20 +462,20 @@ onMounted(() => {
 .preview-sticky-card h4 {
   margin: 0 0 12px 0;
   font-size: 14px;
-  color: #1e293b;
+  color: var(--ws-text);
 }
 
 .mini-storefront-frame {
   border: 1px solid #cbd5e1;
   border-radius: 8px;
   overflow: hidden;
-  background: #fafafa;
+  background: var(--ws-surface-muted);
 }
 
 .frame-banner {
   position: relative;
   height: 100px;
-  background: #1e293b;
+  background: var(--ws-text);
 }
 
 .frame-banner img {
@@ -509,20 +510,20 @@ onMounted(() => {
   justify-content: space-around;
   padding: 8px;
   background: white;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--ws-border-subtle);
   font-size: 11px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 
 .frame-section {
   padding: 10px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .frame-section h6 {
   margin: 0 0 6px 0;
   font-size: 11px;
-  color: #64748b;
+  color: var(--ws-text-muted);
 }
 
 .certs-chips {
@@ -533,7 +534,7 @@ onMounted(() => {
 
 .chip {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 3px;
@@ -543,7 +544,7 @@ onMounted(() => {
   margin: 0;
   padding-left: 16px;
   font-size: 11px;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 /* Mobile & Tablet Responsive Layout */

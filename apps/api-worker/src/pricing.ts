@@ -1,4 +1,4 @@
-import { check } from './security';
+import { check } from './security.ts';
 
 export function quantity(value: unknown): number {
   check((typeof value === 'string' && /^\d+$/.test(value)) || typeof value === 'number', 422, 'INVALID_QUANTITY', '수량은 양의 정수여야 합니다.');
@@ -23,7 +23,7 @@ export function priceListing(listing: any, value: unknown) {
   const qty = quantity(value);
   const moq = quantity(listing.moq);
   check(qty >= moq, 422, 'BELOW_MOQ', `최소 주문 수량은 ${moq}입니다.`);
-  const step = quantity(listing.order_step || listing.step_quantity || 1);
+  const step = quantity(listing.order_step || listing.step_quantity || listing.quantity_step || 1);
   check((qty - moq) % step === 0, 422, 'INVALID_ORDER_STEP', `최소 주문 수량부터 ${step} 단위로 주문하세요.`);
   const tier = [...(listing.price_tiers || [])].sort((a, b) => Number(b.min_quantity) - Number(a.min_quantity)).find(t => qty >= Number(t.min_quantity) && (!t.max_quantity || qty <= Number(t.max_quantity)));
   check(tier, 422, 'NO_PRICE_TIER', '해당 수량의 가격은 공급사에 견적을 요청하세요.');

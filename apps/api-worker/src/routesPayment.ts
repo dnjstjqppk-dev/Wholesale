@@ -2,9 +2,9 @@
 // apps/api-worker/src/routesPayment.ts
 // Production B2B Escrow & Live Payment Gateway Engine (Toss Payments / Stripe / Virtual Accounts)
 
-import { jsonResponse, problemResponse } from './response';
-import { getAuthContext } from './security';
-import { orders, virtualAccounts, paymentIntents, logAudit, BUYER_ORG_ID, notifications } from './store';
+import { jsonResponse, problemResponse } from './response.ts';
+import { getAuthContext, check, verifyWebhook, configFor } from './security.ts';
+import { orders, virtualAccounts, paymentIntents, logAudit, BUYER_ORG_ID, notifications } from './store.ts';
 
 export async function handlePayment(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request);
@@ -12,6 +12,7 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
   // 1. GET /v1/payments/virtual-account/:orderId
   const vaMatch = url.pathname.match(/^\/v1\/payments\/virtual-account\/([^\/]+)$/);
   if (vaMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = vaMatch[1];
     let va = virtualAccounts.get(orderId);
     if (!va) {
@@ -19,6 +20,7 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
       if (!order) {
         return problemResponse(404, 'ORDER_NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
       }
+      check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 가상계좌를 조회할 수 있습니다.');
       // Auto-issue dedicated B2B escrow virtual account
       const randomAcc = `562-${Math.floor(100000 + Math.random() * 900000)}-${Math.floor(10000 + Math.random() * 90000)}`;
       va = {
@@ -45,12 +47,14 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
 
   // 2. POST /v1/payments/create-intent (Stripe / Toss Payments Session Initiation)
   if (url.pathname === '/v1/payments/create-intent' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const orderId = body.order_id || 'ord-20261018-001';
     const order = orders.get(orderId);
     if (!order) {
       return problemResponse(404, 'ORDER_NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 결제할 수 있습니다.');
 
     const stage = body.stage || 'DOWNPAYMENT_30';
     const amountMinor = stage === 'BALANCE_70' ? order.balance_minor : order.downpayment_minor;
@@ -76,6 +80,7 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
 
   // 3. POST /v1/payments/confirm (Instant Corporate Card / Direct Payment Confirmation)
   if (url.pathname === '/v1/payments/confirm' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const intentId = body.intent_id;
     const intent = paymentIntents.get(intentId);
@@ -85,6 +90,7 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
     if (!order) {
       return problemResponse(404, 'ORDER_NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 결제할 수 있습니다.');
 
     const stage = intent ? intent.stage : (body.stage || 'DOWNPAYMENT_30');
     const amountMinor = stage === 'BALANCE_70' ? order.balance_minor : order.downpayment_minor;
@@ -153,11 +159,13 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
   // 4. POST /v1/payments/virtual-account/:orderId/simulate-deposit (Bank Wire Webhook Simulator)
   const depositMatch = url.pathname.match(/^\/v1\/payments\/virtual-account\/([^\/]+)\/simulate-deposit$/);
   if (depositMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orderId = depositMatch[1];
     const order = orders.get(orderId);
     if (!order) {
       return problemResponse(404, 'ORDER_NOT_FOUND', 'Order Not Found', `Order ${orderId} does not exist`);
     }
+    check(ctx.org.id === order.buyer_organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 주문의 구매기업만 입금 확인할 수 있습니다.');
 
     const body = (await request.json().catch(() => ({}))) as any;
     const stage = body.stage || (order.payment_status === 'PARTIALLY_PAID_30' ? 'BALANCE_70' : 'DOWNPAYMENT_30');
@@ -217,8 +225,14 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
 
   // 5. POST /v1/payments/webhook (Toss Payments / Stripe Webhook Receiver)
   if (url.pathname === '/v1/payments/webhook' && request.method === 'POST') {
-    const signature = request.headers.get('TossPayments-Signature') || request.headers.get('Stripe-Signature') || 'valid-test-sig';
-    const body = (await request.json().catch(() => ({}))) as any;
+    const webhookSecret = configFor(request).PAYMENT_WEBHOOK_SECRET;
+    check(webhookSecret && webhookSecret.length >= 16, 503, 'WEBHOOK_NOT_CONFIGURED', 'Payment webhook secret is not configured');
+    const rawBody = await request.text();
+    const timestamp = request.headers.get('X-Webhook-Timestamp') || '';
+    const signature = request.headers.get('X-Webhook-Signature') || request.headers.get('TossPayments-Signature') || request.headers.get('Stripe-Signature') || '';
+    const verified = await verifyWebhook(rawBody, timestamp, signature, webhookSecret);
+    check(verified, 401, 'INVALID_WEBHOOK_SIGNATURE', 'Webhook signature verification failed');
+    const body = (JSON.parse(rawBody || '{}')) as any;
 
     const eventType = body.eventType || body.type || 'PAYMENT_STATUS_CHANGED';
     const orderId = body.data?.orderId || body.order_id || 'ord-20261018-001';
@@ -237,7 +251,7 @@ export async function handlePayment(request: Request, url: URL): Promise<Respons
     return jsonResponse({
       received: true,
       event_type: eventType,
-      signature_verified: !!signature,
+      signature_verified: true,
       processed_at: new Date().toISOString(),
     });
   }

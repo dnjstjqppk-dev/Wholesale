@@ -10,14 +10,14 @@
         :class="{ active: activeTab === 'disputes' }"
         @click="activeTab = 'disputes'"
       >
-        ⚖️ 일반 무역 분쟁 중재 ({{ disputes.length }}건)
+        <WsIcon name="alert" :size="15" /> 일반 무역 분쟁 중재 ({{ disputes.length }}건)
       </button>
       <button
         class="tab-btn"
         :class="{ active: activeTab === 'trade_assurance' }"
         @click="activeTab = 'trade_assurance'"
       >
-        🛡️ Trade Assurance 보증금 청구 심사 ({{ claims.length }}건)
+        <WsIcon name="shield" :size="15" /> Trade Assurance 보증금 청구 심사 ({{ claims.length }}건)
       </button>
     </div>
 
@@ -26,7 +26,7 @@
     </div>
 
     <div v-else-if="error" class="error-banner">
-      ⚠️ {{ error }}
+      <WsIcon name="alert" :size="15" /> {{ error }}
     </div>
 
     <!-- TAB 1: General Disputes -->
@@ -114,7 +114,7 @@
               </div>
               <div class="claim-btn-group">
                 <button class="btn-arbitrate" :disabled="submitting" @click="approveGuaranteePayout(c)">
-                  {{ submitting ? '지급 처리 중...' : '🛡️ 보증금 지급 승인 (Approve Payout)' }}
+                  <WsIcon v-if="!(submitting)" name="shield" :size="14" /> {{ submitting ? '지급 처리 중...' : '보증금 지급 승인 (Approve Payout)' }}
                 </button>
                 <button class="btn-reject" :disabled="submitting" @click="rejectGuaranteeClaim(c)">
                   청구 기각 (Reject)
@@ -123,7 +123,7 @@
             </div>
           </div>
           <div v-else-if="c.arbitration_status === 'APPROVED_PAYOUT'" class="resolved-note">
-            🛡️ 보증 배상금 지급 확정: 바이어에게 ${{ ((c.adjudicated_payout_minor || c.claim_amount_minor) / 100).toFixed(2) }} USD 지급 분개가 완료되었습니다.
+            <WsIcon name="shield" :size="15" /> 보증 배상금 지급 확정: 바이어에게 ${{ ((c.adjudicated_payout_minor || c.claim_amount_minor) / 100).toFixed(2) }} USD 지급 분개가 완료되었습니다.
           </div>
           <div v-else class="resolved-note text-red-400">
             ✕ 청구 기각: 제출된 증빙 자료가 계약 허용 오차 범위 내로 판정되어 보증금 지급이 기각되었습니다.
@@ -137,6 +137,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const activeTab = ref<'disputes' | 'trade_assurance'>('disputes');
 const loading = ref(true);
@@ -245,20 +246,20 @@ async function rejectGuaranteeClaim(c: any) {
 <style scoped>
 .dispute-admin-page { max-width: 1000px; margin: 0 auto; }
 h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: #94A3B8; font-size: 13px; margin-bottom: 20px; }
+.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin-bottom: 20px; }
 
 /* Tabs */
 .tab-header {
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
-  border-bottom: 1px solid #3A506B;
+  border-bottom: 1px solid var(--ws-admin-line);
   padding-bottom: 8px;
 }
 .tab-btn {
-  background: #1C2541;
-  border: 1px solid #3A506B;
-  color: #94A3B8;
+  background: var(--ws-admin-panel);
+  border: 1px solid var(--ws-admin-line);
+  color: var(--ws-admin-dim);
   padding: 8px 16px;
   border-radius: 6px;
   font-size: 13px;
@@ -267,8 +268,8 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
   transition: all 0.2s;
 }
 .tab-btn.active {
-  background: #C2410C;
-  border-color: #C2410C;
+  background: var(--ws-brand);
+  border-color: var(--ws-brand);
   color: #FFF;
 }
 .claim-btn-group {
@@ -276,7 +277,7 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
   gap: 8px;
 }
 .btn-reject {
-  background: #475569;
+  background: var(--ws-text-2);
   color: #FFF;
   border: none;
   padding: 10px 14px;
@@ -285,27 +286,27 @@ h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
   cursor: pointer;
   white-space: nowrap;
 }
-.loading-state, .empty-state { padding: 40px; text-align: center; color: #94A3B8; }
+.loading-state, .empty-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
 .error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
 .dispute-list { display: flex; flex-direction: column; gap: 20px; }
-.disp-card { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 24px; }
-.card-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #3A506B; padding-bottom: 12px; margin-bottom: 16px; }
-.disp-id { font-weight: 700; color: #38BDF8; font-size: 16px; margin-right: 12px; }
-.ord-ref { font-size: 13px; color: #94A3B8; }
+.disp-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 24px; }
+.card-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-admin-line); padding-bottom: 12px; margin-bottom: 16px; }
+.disp-id { font-weight: 700; color: var(--ws-admin-link); font-size: 16px; margin-right: 12px; }
+.ord-ref { font-size: 13px; color: var(--ws-admin-dim); }
 .status-tag { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
 .status-tag.under_arbitration { background: #854D0E; color: #FEF08A; }
 .status-tag.resolved { background: #065F46; color: #A7F3D0; }
 .parties { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; margin-bottom: 16px; color: #CBD5E1; }
 .claim-val { color: #EF4444; font-variant-numeric: tabular-nums; }
-.reason-box { background: #0B132B; border: 1px solid #3A506B; border-radius: 6px; padding: 14px; font-size: 13px; color: #CBD5E1; margin-bottom: 20px; }
+.reason-box { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); border-radius: 6px; padding: 14px; font-size: 13px; color: #CBD5E1; margin-bottom: 20px; }
 .reason-box p { margin: 4px 0; }
-.arbitration-box { background: #1E293B; border: 1px solid #475569; border-radius: 6px; padding: 16px; }
+.arbitration-box { background: var(--ws-admin-bg); border: 1px solid var(--ws-text-2); border-radius: 6px; padding: 16px; }
 .arbitration-box h4 { margin: 0 0 12px 0; font-size: 14px; color: #FFF; }
 .split-inputs { display: grid; grid-template-columns: 1fr 1fr auto; gap: 14px; align-items: flex-end; }
-.split-inputs label { display: block; font-size: 12px; font-weight: 600; color: #94A3B8; margin-bottom: 4px; }
-.split-inputs input { width: 100%; padding: 8px 10px; background: #0F172A; border: 1px solid #3A506B; color: #FFF; border-radius: 4px; box-sizing: border-box; }
-.btn-arbitrate { background: #C2410C; color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.limit-note { font-size: 11px; color: #94A3B8; margin-top: 8px; }
+.split-inputs label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-admin-dim); margin-bottom: 4px; }
+.split-inputs input { width: 100%; padding: 8px 10px; background: var(--ws-admin-bg); border: 1px solid var(--ws-admin-line); color: #FFF; border-radius: 4px; box-sizing: border-box; }
+.btn-arbitrate { background: var(--ws-brand); color: #FFF; border: none; padding: 10px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.limit-note { font-size: 11px; color: var(--ws-admin-dim); margin-top: 8px; }
 .resolved-note { color: #34D399; font-weight: 600; font-size: 13px; padding-top: 10px; }
 
 @media (max-width: 768px) {

@@ -6,14 +6,14 @@
         <p class="subtitle">PG사 승인 내역과 플랫폼 내부 복식원장(차변=대변) 간 일일 대사 배치를 실행하고 불일치(Discrepancy)를 전수 검증합니다.</p>
       </div>
       <button class="btn-batch" :disabled="reconciling" @click="runReconciliation">
-        {{ reconciling ? '대사 배치 가동 중...' : '⚡ 일일 결제 대사 배치 실행 (POST /v1/settlements/reconcile)' }}
+        <WsIcon v-if="!(reconciling)" name="bolt" :size="14" /> {{ reconciling ? '대사 배치 가동 중...' : '일일 결제 대사 배치 실행 (POST /v1/settlements/reconcile)' }}
       </button>
     </div>
 
     <div v-if="loading" class="loading-state">대사 기록을 불러오는 중입니다...</div>
 
     <div class="card">
-      <h3>📊 일일 결제 대사 실행 리포트</h3>
+      <h3><WsIcon name="trend" :size="15" /> 일일 결제 대사 실행 리포트</h3>
       <table class="rec-table">
         <thead>
           <tr>
@@ -49,6 +49,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const reconciling = ref(false);
@@ -95,20 +96,20 @@ onMounted(() => {
 .reconciliation-page { max-width: 1100px; display: flex; flex-direction: column; gap: 20px; }
 .head-row { display: flex; justify-content: space-between; align-items: center; }
 h2 { margin: 0 0 4px 0; font-size: 20px; color: #FFF; }
-.subtitle { color: #94A3B8; font-size: 13px; margin: 0; }
+.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
 .btn-batch { background: #059669; color: #FFF; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
-.loading-state { padding: 40px; text-align: center; color: #94A3B8; }
-.card { background: #1C2541; border: 1px solid #3A506B; border-radius: 8px; padding: 24px; }
+.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
+.card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 24px; }
 .card h3 { margin: 0 0 16px 0; font-size: 16px; color: #FFF; }
 .rec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .rec-table th, .rec-table td { padding: 10px 8px; border-bottom: 1px solid #2B3A55; text-align: left; }
-.rec-table th { color: #94A3B8; background: #0B132B; }
+.rec-table th { color: var(--ws-admin-dim); background: var(--ws-admin-panel-2); }
 .bold { font-weight: 700; color: #FFF; }
 .num { font-variant-numeric: tabular-nums; font-weight: 700; }
 .num.zero { color: #10B981; }
 .num.err { color: #EF4444; }
 .st-pill { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
 .st-pill.balanced { background: #064E3B; color: #6EE7B7; }
-.time { color: #94A3B8; font-size: 12px; }
+.time { color: var(--ws-admin-dim); font-size: 12px; }
 </style>
 

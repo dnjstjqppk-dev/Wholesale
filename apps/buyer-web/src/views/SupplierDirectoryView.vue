@@ -53,7 +53,7 @@
           </label>
           <label class="checkbox-label">
             <input v-model="tradeAssuranceOnly" type="checkbox" @change="applyFilters" />
-            <span>🛡️ Trade Assurance (에스크로 보호)</span>
+            <span><WsIcon name="shield" :size="15" /> Trade Assurance (에스크로 보호)</span>
           </label>
         </div>
 
@@ -103,7 +103,7 @@
               :class="{ active: viewMode === 'list' }"
               @click="viewMode = 'list'"
             >
-              ☰ 목록형
+              <WsIcon name="menu" :size="15" /> 목록형
             </button>
           </div>
         </div>
@@ -123,7 +123,7 @@
               <img :src="sup.banner_image" :alt="sup.company_name" class="cover-img" />
               <div class="badges-overlay">
                 <span v-if="sup.is_verified_supplier" class="badge-verified">✓ Verified Supplier</span>
-                <span v-if="sup.trade_assurance" class="badge-ta">🛡️ Trade Assurance</span>
+                <span v-if="sup.trade_assurance" class="badge-ta"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
               </div>
             </div>
 
@@ -139,10 +139,10 @@
 
               <!-- Metrics -->
               <div class="metric-tags">
-                <span class="tag">⭐ {{ sup.rating }} ({{ sup.reviews_count }})</span>
-                <span class="tag">⚡ 응답률: {{ sup.response_rate }}</span>
-                <span class="tag">🕒 업력: {{ sup.years_in_business }}년</span>
-                <span class="tag">🏭 면적: {{ sup.factory_size }}</span>
+                <span class="tag">★ {{ sup.rating }} ({{ sup.reviews_count }})</span>
+                <span class="tag"><WsIcon name="bolt" :size="15" /> 응답률: {{ sup.response_rate }}</span>
+                <span class="tag"><WsIcon name="clock" :size="15" /> 업력: {{ sup.years_in_business }}년</span>
+                <span class="tag"><WsIcon name="factory" :size="15" /> 면적: {{ sup.factory_size }}</span>
               </div>
 
               <!-- Main Products -->
@@ -194,12 +194,12 @@
                 </h3>
                 <div class="badges">
                   <span v-if="sup.is_verified_supplier" class="badge-verified">✓ Verified</span>
-                  <span v-if="sup.trade_assurance" class="badge-ta">🛡️ Trade Assurance</span>
+                  <span v-if="sup.trade_assurance" class="badge-ta"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
                 </div>
               </div>
               <p class="slogan">{{ sup.slogan }}</p>
               <div class="meta-row">
-                <span>평점: <strong>⭐ {{ sup.rating }}</strong></span>
+                <span>평점: <strong>★ {{ sup.rating }}</strong></span>
                 <span>응답률: <strong>{{ sup.response_rate }}</strong></span>
                 <span>업력: <strong>{{ sup.years_in_business }}년</strong></span>
                 <span>연매출: <strong>{{ sup.total_revenue_usd }}</strong></span>
@@ -235,6 +235,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const currentLocale = ref<string>((route.params.locale as string) || 'ko');
@@ -323,7 +324,7 @@ onMounted(async () => {
 }
 
 .directory-hero {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, var(--ws-text) 0%, var(--ws-text) 100%);
   color: white;
   border-radius: 12px;
   padding: 40px 32px;
@@ -343,7 +344,7 @@ onMounted(async () => {
 
 .hero-inner p {
   font-size: 15px;
-  color: #94a3b8;
+  color: var(--ws-admin-dim);
   margin: 0 0 24px 0;
   line-height: 1.5;
 }
@@ -363,7 +364,7 @@ onMounted(async () => {
 }
 
 .btn-search {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -374,7 +375,7 @@ onMounted(async () => {
 }
 
 .btn-search:hover {
-  background: #e65c00;
+  background: var(--ws-brand-hover);
 }
 
 .directory-body {
@@ -393,10 +394,10 @@ onMounted(async () => {
 .filter-group h4 {
   font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ws-text);
   margin: 0 0 12px 0;
   padding-bottom: 6px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--ws-border-subtle);
 }
 
 .category-options {
@@ -410,17 +411,17 @@ onMounted(async () => {
   padding: 6px 10px;
   border-radius: 6px;
   cursor: pointer;
-  color: #475569;
+  color: var(--ws-text-2);
   transition: all 0.2s;
 }
 
 .cat-radio:hover {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
 }
 
 .cat-radio.active {
-  background: #ffedd5;
-  color: #c2410c;
+  background: var(--ws-brand-light);
+  color: var(--ws-brand);
   font-weight: 700;
 }
 
@@ -429,7 +430,7 @@ onMounted(async () => {
   align-items: center;
   gap: 8px;
   font-size: 13px;
-  color: #334155;
+  color: var(--ws-text-2);
   margin-bottom: 8px;
   cursor: pointer;
 }
@@ -465,12 +466,12 @@ onMounted(async () => {
 }
 
 .btn-reset {
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 8px;
   border-radius: 6px;
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   cursor: pointer;
 }
 
@@ -484,12 +485,12 @@ onMounted(async () => {
   align-items: center;
   margin-bottom: 20px;
   padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--ws-border-subtle);
 }
 
 .counts {
   font-size: 14px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 
 .view-switch {
@@ -498,7 +499,7 @@ onMounted(async () => {
 }
 
 .btn-icon {
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   border: 1px solid #cbd5e1;
   padding: 6px 12px;
   border-radius: 4px;
@@ -507,9 +508,9 @@ onMounted(async () => {
 }
 
 .btn-icon.active {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
-  border-color: #d64000;
+  border-color: var(--ws-brand);
 }
 
 .supplier-grid {
@@ -520,7 +521,7 @@ onMounted(async () => {
 
 .supplier-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   overflow: hidden;
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
@@ -531,7 +532,7 @@ onMounted(async () => {
 .card-cover {
   position: relative;
   height: 160px;
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
 }
 
 .cover-img {
@@ -558,7 +559,7 @@ onMounted(async () => {
 }
 
 .badge-ta {
-  background: #cc3d00;
+  background: var(--ws-brand);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -580,17 +581,17 @@ onMounted(async () => {
 }
 
 .company-name a {
-  color: #0f172a;
+  color: var(--ws-text);
   text-decoration: none;
 }
 
 .company-name a:hover {
-  color: #d64000;
+  color: var(--ws-brand);
 }
 
 .company-slogan {
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 0 0 12px 0;
   line-height: 1.4;
 }
@@ -603,12 +604,12 @@ onMounted(async () => {
 }
 
 .metric-tags .tag {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 .main-products {
@@ -617,7 +618,7 @@ onMounted(async () => {
 }
 
 .main-products .label {
-  color: #64748b;
+  color: var(--ws-text-muted);
   display: block;
   margin-bottom: 4px;
 }
@@ -629,8 +630,8 @@ onMounted(async () => {
 }
 
 .prod-badge {
-  background: #f1f5f9;
-  color: #1e293b;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text);
   font-size: 11px;
   padding: 2px 6px;
   border-radius: 4px;
@@ -639,13 +640,13 @@ onMounted(async () => {
 .cert-row {
   margin-top: auto;
   padding-top: 10px;
-  border-top: 1px solid #f1f5f9;
+  border-top: 1px solid var(--ws-surface-muted);
   font-size: 11px;
   margin-bottom: 14px;
 }
 
 .cert-row .agency {
-  color: #475569;
+  color: var(--ws-text-2);
   display: block;
   margin-bottom: 4px;
 }
@@ -658,7 +659,7 @@ onMounted(async () => {
 
 .cert-item {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   padding: 1px 5px;
   border-radius: 3px;
 }
@@ -677,14 +678,14 @@ onMounted(async () => {
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 .btn-inquire {
   flex: 1;
   text-align: center;
   padding: 8px;
-  background: #d64000;
+  background: var(--ws-brand);
   border-radius: 6px;
   font-size: 12px;
   font-weight: 600;
@@ -702,7 +703,7 @@ onMounted(async () => {
 .supplier-row-card {
   display: flex;
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 16px;
   gap: 16px;
@@ -734,7 +735,7 @@ onMounted(async () => {
 }
 
 .row-title-bar a {
-  color: #0f172a;
+  color: var(--ws-text);
   text-decoration: none;
 }
 
@@ -743,13 +744,13 @@ onMounted(async () => {
   flex-wrap: wrap;
   gap: 14px;
   font-size: 12px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 6px 0;
 }
 
 .prods-inline {
   font-size: 12px;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 .row-actions {

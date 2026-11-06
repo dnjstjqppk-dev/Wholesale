@@ -2,7 +2,7 @@
   <div v-if="item" class="modal-overlay" @click.self="$emit('close')">
     <div class="inquiry-modal-card">
       <div class="inquiry-modal-head">
-        <h3>💬 공급사 1:1 직통 문의 및 견적 요청 (Direct Inquiry)</h3>
+        <h3><WsIcon name="chat" :size="15" /> 공급사 1:1 직통 문의 및 견적 요청 (Direct Inquiry)</h3>
         <button class="close-btn" @click="$emit('close')">✕</button>
       </div>
       <div class="inquiry-modal-body">
@@ -33,7 +33,7 @@
 
         <div class="form-actions">
           <button class="btn-submit-inquiry" :disabled="sending" @click="onSubmit">
-            {{ sending ? '1:1 대화방 개설 중...' : '📨 1:1 문의 발송 및 메신저 열기' }}
+            <WsIcon v-if="!(sending)" name="send" :size="14" /> {{ sending ? '1:1 대화방 개설 중...' : '1:1 문의 발송 및 메신저 열기' }}
           </button>
           <button class="btn-cancel" @click="$emit('close')">취소</button>
         </div>
@@ -46,6 +46,7 @@
 import { ref, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const props = defineProps<{ item: any }>();
 const emit = defineEmits<{
@@ -99,17 +100,17 @@ async function onSubmit() {
 
 <style scoped>
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.inquiry-modal-card { background: #FFF; width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-.inquiry-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid #E2E8F0; background: #F8FAFC; }
-.inquiry-modal-head h3 { margin: 0; font-size: 16px; font-weight: 700; color: #1E293B; }
-.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #64748B; }
+.inquiry-modal-card { background: var(--ws-surface); width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+.inquiry-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--ws-border-subtle); background: var(--ws-surface-muted); }
+.inquiry-modal-head h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--ws-text); }
+.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--ws-text-muted); }
 .inquiry-modal-body { padding: 24px; }
-.target-item-preview { background: #F1F5F9; border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+.target-item-preview { background: var(--ws-surface-muted); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
 .form-row { margin-bottom: 16px; }
-.form-row label { display: block; font-size: 13px; font-weight: 700; color: #334155; margin-bottom: 6px; }
+.form-row label { display: block; font-size: 13px; font-weight: 700; color: var(--ws-text-2); margin-bottom: 6px; }
 .inquiry-input, .inquiry-textarea { width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 13px; outline: none; box-sizing: border-box; }
-.inquiry-input:focus, .inquiry-textarea:focus { border-color: #D64000; }
+.inquiry-input:focus, .inquiry-textarea:focus { border-color: var(--ws-brand); }
 .form-actions { display: flex; gap: 12px; margin-top: 24px; }
-.btn-submit-inquiry { flex: 1; background: #D64000; color: #FFF; border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
-.btn-cancel { padding: 12px 20px; background: #F1F5F9; border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; color: #475569; }
+.btn-submit-inquiry { flex: 1; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.btn-cancel { padding: 12px 20px; background: var(--ws-surface-muted); border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--ws-text-2); }
 </style>

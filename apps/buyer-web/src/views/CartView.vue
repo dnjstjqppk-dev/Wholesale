@@ -10,7 +10,7 @@
     </div>
 
     <div v-else-if="items.length === 0" class="empty-cart">
-      <div class="empty-icon">🛒</div>
+      <div class="empty-icon"><WsIcon name="cart" :size="15" /></div>
       <h3>장바구니에 담긴 도매 품목이 없습니다.</h3>
       <p>수량별 할인 구간이 제공되는 도매 카탈로그에서 상품을 탐색하세요.</p>
       <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="btn-primary">
@@ -23,9 +23,9 @@
       <div class="cart-items">
         <div v-for="item in items" :key="item.id" class="cart-item-card">
           <div class="supplier-info">
-            <span class="badge-sup">🏢 {{ item.supplier_name }}</span>
+            <span class="badge-sup"><WsIcon name="building" :size="15" /> {{ item.supplier_name }}</span>
             <span class="badge-verified">✓ Verified Manufacturer</span>
-            <span class="badge-ta">🛡️ Trade Assurance</span>
+            <span class="badge-ta"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
           </div>
 
           <div class="item-main">
@@ -97,7 +97,7 @@
           </div>
 
           <div class="trade-assurance-banner">
-            <span class="shield">🛡️</span>
+            <span class="shield"><WsIcon name="shield" :size="15" /></span>
             <div>
               <strong>100% 무역 안심 보호 (Trade Assurance)</strong>
               <p>선급금 30%는 에스크로에 안전 보관되며 검수 및 선적 완료 전 공급사에 지급되지 않습니다.</p>
@@ -118,6 +118,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -218,12 +219,12 @@ function proceedToCheckout() {
 .cart-header h2 {
   font-size: 22px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
   margin: 0 0 6px;
 }
 .subtitle {
   font-size: 13px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin: 0 0 24px;
 }
 
@@ -239,8 +240,8 @@ function proceedToCheckout() {
   gap: 16px;
 }
 .cart-item-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 16px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
@@ -250,25 +251,25 @@ function proceedToCheckout() {
   align-items: center;
   gap: 10px;
   font-size: 12px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
   margin-bottom: 14px;
 }
 .badge-sup {
   font-weight: 700;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 .badge-verified {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 4px;
 }
 .badge-ta {
-  background: #FFF7ED;
-  color: #CC3D00;
+  background: var(--ws-brand-light);
+  color: var(--ws-brand);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -286,7 +287,7 @@ function proceedToCheckout() {
   height: 80px;
   border-radius: 6px;
   overflow: hidden;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
 }
 .thumb-img {
   width: 100%;
@@ -297,20 +298,20 @@ function proceedToCheckout() {
   margin: 0 0 6px;
   font-size: 14px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
   line-height: 1.35;
 }
 .sku-tag {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-bottom: 4px;
 }
 .tier-hint {
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .tier-hint strong {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 
 .qty-controls {
@@ -320,7 +321,7 @@ function proceedToCheckout() {
 }
 .qty-controls label {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-weight: 600;
 }
 .qty-stepper {
@@ -330,7 +331,7 @@ function proceedToCheckout() {
   overflow: hidden;
 }
 .qty-stepper button {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: none;
   width: 28px;
   height: 28px;
@@ -346,7 +347,7 @@ function proceedToCheckout() {
 }
 .unit-label {
   font-size: 11px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 
 .item-subtotal {
@@ -356,22 +357,22 @@ function proceedToCheckout() {
 }
 .price-label {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .price-val {
   font-size: 16px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .btn-remove {
   background: none;
   border: none;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
   font-size: 16px;
   cursor: pointer;
 }
 .btn-remove:hover {
-  color: #DC2626;
+  color: var(--ws-danger);
 }
 
 /* Summary Card */
@@ -380,8 +381,8 @@ function proceedToCheckout() {
   top: 20px;
 }
 .summary-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.04);
@@ -389,30 +390,30 @@ function proceedToCheckout() {
 .summary-card h3 {
   font-size: 16px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
   margin: 0 0 16px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 .summary-row {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #475569;
+  color: var(--ws-text-2);
   margin-bottom: 10px;
 }
 .summary-row .val {
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .summary-row.highlight {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   padding: 8px 10px;
   border-radius: 6px;
-  border-left: 3px solid #CC3D00;
+  border-left: 3px solid var(--ws-brand);
 }
 .summary-row .orange {
-  color: #CC3D00;
+  color: var(--ws-brand);
   font-weight: 800;
 }
 .trade-assurance-banner {
@@ -426,19 +427,19 @@ function proceedToCheckout() {
 }
 .trade-assurance-banner strong {
   font-size: 12px;
-  color: #15803D;
+  color: var(--ws-success);
   display: block;
 }
 .trade-assurance-banner p {
   margin: 2px 0 0;
   font-size: 10px;
-  color: #166534;
+  color: var(--ws-success);
   line-height: 1.4;
 }
 .btn-checkout {
   width: 100%;
-  background: #FF6A00;
-  color: #FFF;
+  background: var(--ws-brand-hover);
+  color: var(--ws-surface);
   border: none;
   padding: 14px;
   border-radius: 6px;
@@ -447,12 +448,12 @@ function proceedToCheckout() {
   cursor: pointer;
 }
 .btn-checkout:hover {
-  background: #E55E00;
+  background: var(--ws-brand-hover);
 }
 
 .empty-cart, .cart-state-box {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 60px 20px;
   text-align: center;
@@ -463,8 +464,8 @@ function proceedToCheckout() {
 }
 .btn-primary {
   display: inline-block;
-  background: #FF6A00;
-  color: #FFF;
+  background: var(--ws-brand-hover);
+  color: var(--ws-surface);
   padding: 10px 20px;
   border-radius: 6px;
   text-decoration: none;
@@ -507,7 +508,7 @@ function proceedToCheckout() {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
-    background: #F8FAFC;
+    background: var(--ws-surface-muted);
     padding: 8px 12px;
     border-radius: 6px;
   }

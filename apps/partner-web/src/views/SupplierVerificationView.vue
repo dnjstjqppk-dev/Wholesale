@@ -5,7 +5,7 @@
 
     <!-- Existing Verifications Status -->
     <div class="status-section">
-      <h3>📋 기업 실사 심사 이력 및 현재 상태</h3>
+      <h3><WsIcon name="file" :size="15" /> 기업 실사 심사 이력 및 현재 상태</h3>
       <div v-for="v in verifications" :key="v.id" class="verif-card">
         <div class="v-top">
           <div>
@@ -15,20 +15,20 @@
           <span class="status-badge" :class="v.status.toLowerCase()">{{ v.status }}</span>
         </div>
         <div class="v-metrics">
-          <span>🏭 공장 면적: {{ v.facilities_sqm?.toLocaleString() }} m²</span>
-          <span>⚙️ 생산 라인: {{ v.production_lines }}개</span>
-          <span>🔬 QC 검수원: {{ v.qc_inspectors }}명</span>
-          <span>📜 보유 인증: {{ (v.certificates || []).join(', ') }}</span>
+          <span><WsIcon name="factory" :size="15" /> 공장 면적: {{ v.facilities_sqm?.toLocaleString() }} m²</span>
+          <span><WsIcon name="gear" :size="15" /> 생산 라인: {{ v.production_lines }}개</span>
+          <span><WsIcon name="search" :size="15" /> QC 검수원: {{ v.qc_inspectors }}명</span>
+          <span><WsIcon name="file" :size="15" /> 보유 인증: {{ (v.certificates || []).join(', ') }}</span>
         </div>
         <div v-if="v.rejection_reason" class="reject-alert">
-          ⚠️ 반려 사유: {{ v.rejection_reason }}
+          <WsIcon name="alert" :size="15" /> 반려 사유: {{ v.rejection_reason }}
         </div>
       </div>
     </div>
 
     <!-- Submit New / Updated Verification Form -->
     <form class="form-card" @submit.prevent="submitVerification">
-      <h3>📤 신규 공장 실사 성적서 및 인증서 제출</h3>
+      <h3><WsIcon name="upload" :size="15" /> 신규 공장 실사 성적서 및 인증서 제출</h3>
       <div class="form-grid">
         <div class="field">
           <label>법인 상호명 (Legal Name)</label>
@@ -39,7 +39,7 @@
           <div class="biz-input-row">
             <input v-model="form.business_number" type="text" placeholder="123-45-67890" required />
             <button type="button" class="btn-nts-verify" :disabled="verifyingNts" @click="verifyWithNTS">
-              {{ verifyingNts ? '조회 중...' : '🔍 국세청 실시간 진위 확인' }}
+              <WsIcon v-if="!(verifyingNts)" name="search" :size="14" /> {{ verifyingNts ? '조회 중...' : '국세청 실시간 진위 확인' }}
             </button>
           </div>
           <div v-if="ntsResult" class="nts-badge-box" :class="{ valid: ntsResult.is_valid, invalid: !ntsResult.is_valid }">
@@ -89,7 +89,7 @@
       </div>
 
       <button type="submit" class="btn-submit" :disabled="submitting">
-        {{ submitting ? '플랫폼 심사팀으로 제출 중...' : '🛡️ Verified Supplier 실사 심사 요청 제출' }}
+        <WsIcon v-if="!(submitting)" name="shield" :size="14" /> {{ submitting ? '플랫폼 심사팀으로 제출 중...' : 'Verified Supplier 실사 심사 요청 제출' }}
       </button>
     </form>
   </div>
@@ -98,6 +98,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest, getCurrentUser } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const verifications = ref<any[]>([]);
 const submitting = ref(false);
@@ -177,36 +178,36 @@ onMounted(() => {
 
 <style scoped>
 .verif-page { max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-h2 { margin: 0; font-size: 20px; color: #172B4D; }
-.subtitle { margin: 0; font-size: 13px; color: #64748B; }
-.status-section, .form-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 24px; }
-.status-section h3, .form-card h3 { margin: 0 0 16px 0; font-size: 16px; color: #172B4D; }
-.verif-card { border: 1px solid #E2E8F0; border-radius: 6px; padding: 14px; margin-bottom: 10px; background: #F8FAFC; }
+h2 { margin: 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { margin: 0; font-size: 13px; color: var(--ws-text-muted); }
+.status-section, .form-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
+.status-section h3, .form-card h3 { margin: 0 0 16px 0; font-size: 16px; color: var(--ws-text); }
+.verif-card { border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 14px; margin-bottom: 10px; background: var(--ws-surface-muted); }
 .v-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.biz-no { font-size: 12px; color: #64748B; margin-left: 10px; }
+.biz-no { font-size: 12px; color: var(--ws-text-muted); margin-left: 10px; }
 .status-badge { padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 800; }
-.status-badge.approved { background: #DCFCE7; color: #15803D; }
-.status-badge.pending { background: #FEF3C7; color: #B45309; }
-.status-badge.rejected { background: #FEE2E2; color: #B91C1C; }
-.v-metrics { display: flex; gap: 16px; font-size: 12px; color: #334155; }
-.reject-alert { margin-top: 8px; color: #B91C1C; font-size: 12px; font-weight: 700; }
+.status-badge.approved { background: var(--ws-success-bg); color: var(--ws-success); }
+.status-badge.pending { background: var(--ws-warning-bg); color: var(--ws-warning); }
+.status-badge.rejected { background: var(--ws-danger-bg); color: var(--ws-danger); }
+.v-metrics { display: flex; gap: 16px; font-size: 12px; color: var(--ws-text-2); }
+.reject-alert { margin-top: 8px; color: var(--ws-danger); font-size: 12px; font-weight: 700; }
 
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
 .field { display: flex; flex-direction: column; gap: 6px; }
 .field.span-2 { grid-column: span 2; }
-.field label { font-size: 12px; font-weight: 700; color: #334155; }
+.field label { font-size: 12px; font-weight: 700; color: var(--ws-text-2); }
 .field input, .field select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 9px 12px; font-size: 13px; }
 .biz-input-row { display: flex; gap: 8px; }
 .biz-input-row input { flex: 1; }
-.btn-nts-verify { background: #0284C7; color: #FFF; border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
+.btn-nts-verify { background: #0284C7; color: var(--ws-surface); border: none; border-radius: 6px; padding: 8px 12px; font-size: 12px; font-weight: 700; cursor: pointer; white-space: nowrap; }
 .btn-nts-verify:disabled { opacity: 0.6; }
 .nts-badge-box { border-radius: 6px; padding: 10px 12px; font-size: 12px; margin-top: 4px; }
-.nts-badge-box.valid { background: #F0FDF4; border: 1px solid #BBF7D0; color: #166534; }
-.nts-badge-box.invalid { background: #FEF2F2; border: 1px solid #FECACA; color: #991B1B; }
+.nts-badge-box.valid { background: #F0FDF4; border: 1px solid #BBF7D0; color: var(--ws-success); }
+.nts-badge-box.invalid { background: #FEF2F2; border: 1px solid #FECACA; color: var(--ws-danger); }
 .nts-stat { font-weight: 800; display: block; margin-bottom: 4px; }
 .nts-meta { display: flex; flex-wrap: wrap; gap: 10px; font-size: 11px; }
-.nts-meta code { background: #DCFCE7; padding: 1px 4px; border-radius: 3px; }
-.btn-submit { background: #C2410C; color: #FFF; border: none; padding: 12px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
+.nts-meta code { background: var(--ws-success-bg); padding: 1px 4px; border-radius: 3px; }
+.btn-submit { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
 
 @media (max-width: 640px) {
   .v-top { flex-direction: column; align-items: flex-start; gap: 6px; }

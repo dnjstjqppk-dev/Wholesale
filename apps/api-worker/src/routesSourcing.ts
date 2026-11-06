@@ -2,7 +2,9 @@
 // apps/api-worker/src/routesSourcing.ts
 // RFQs, Supplier Quotes, Inquiries 1:1 Messenger, Partner Dashboard & Inventory
 
-import { jsonResponse, problemResponse } from './response';
+import { jsonResponse, problemResponse } from './response.ts';
+import { parsePagination, paginate, matchesQuery } from './pagination.ts';
+import { moneyMinor } from './pricing.ts';
 import {
   rfqs,
   quotes,
@@ -20,8 +22,8 @@ import {
   processedIdempotencyKeys,
   users,
   organizations,
-} from './store';
-import { getAuthContext } from './jwt';
+} from './store.ts';
+import { getAuthContext, check, requireRole, digest, contractCanonicalBody } from './security.ts';
 
 export async function handleSourcing(request: Request, url: URL): Promise<Response | null> {
   const ctx = await getAuthContext(request, users, organizations);
@@ -35,6 +37,14 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
       if (cat && cat !== 'ALL') {
         items = items.filter(r => r.category === cat);
       }
+      const rfqQuery = url.searchParams.get('q');
+      const rfqStatus = url.searchParams.get('status');
+      if (rfqStatus) {
+        items = items.filter(r => r.status === rfqStatus);
+      }
+      if (rfqQuery) {
+        items = items.filter(r => matchesQuery([r.title, r.category, r.id], rfqQuery));
+      }
       // Public RFQ Contact Masking Invariant (S5)
       const maskedItems = items.map(r => ({
         ...r,
@@ -42,11 +52,13 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
         buyer_contact: '[PROTECTED]',
         is_contact_masked: true,
       }));
-      return jsonResponse({ items: maskedItems, total_count: maskedItems.length });
+      const rfqPage = paginate(maskedItems, parsePagination(url));
+      return jsonResponse({ items: rfqPage.items, total_count: rfqPage.total_count, page: rfqPage.page, page_size: rfqPage.page_size, total_pages: rfqPage.total_pages, has_next: rfqPage.has_next });
     }
 
     if (request.method === 'POST') {
       const body = (await request.json().catch(() => ({}))) as any;
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
       if (!body.title || !body.quantity) {
         return problemResponse(400, 'INVALID_BODY', 'Missing RFQ Fields', 'title and quantity are required');
       }
@@ -93,7 +105,10 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
     if (!rfq) {
       return problemResponse(404, 'NOT_FOUND', 'RFQ Not Found', `RFQ ${rfqId} does not exist`);
     }
-    const rfqQuotes = Array.from(quotes.values()).filter(q => q.rfq_id === rfqId);
+    const allRfqQuotes = Array.from(quotes.values()).filter(q => q.rfq_id === rfqId);
+    const rfqQuotes = !ctx ? [] : (ctx.user.role === 'PLATFORM_ADMIN' || ctx.org.id === rfq.buyer_organization_id)
+      ? allRfqQuotes
+      : allRfqQuotes.filter(q => q.supplier_organization_id === ctx.org.id);
     return jsonResponse({
       ...rfq,
       buyerEmail: undefined,
@@ -107,8 +122,13 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // GET & POST /v1/sourcing/rfqs/:id/quotes
   const rfqQuoteMatch = url.pathname.match(/^\/v1\/sourcing\/rfqs\/([^\/]+)\/quotes$/);
   if (rfqQuoteMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const rfqId = rfqQuoteMatch[1];
-    const rfqQuotes = Array.from(quotes.values()).filter(q => q.rfq_id === rfqId);
+    const rfq = rfqs.get(rfqId);
+    const allRfqQuotes = Array.from(quotes.values()).filter(q => q.rfq_id === rfqId);
+    const rfqQuotes = (ctx.user.role === 'PLATFORM_ADMIN' || (rfq && ctx.org.id === rfq.buyer_organization_id))
+      ? allRfqQuotes
+      : allRfqQuotes.filter(q => q.supplier_organization_id === ctx.org.id);
     return jsonResponse({
       rfq_id: rfqId,
       items: rfqQuotes,
@@ -116,6 +136,8 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
     });
   }
   if (rfqQuoteMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const rfqId = rfqQuoteMatch[1];
     const rfq = rfqs.get(rfqId);
     if (!rfq) {
@@ -212,22 +234,28 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // GET /v1/sourcing/quotes/:id
   const quoteGetMatch = url.pathname.match(/^\/v1\/sourcing\/quotes\/([^\/]+)$/);
   if (quoteGetMatch && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const quoteId = quoteGetMatch[1];
     const quote = quotes.get(quoteId);
     if (!quote) {
       return problemResponse(404, 'NOT_FOUND', 'Quote Not Found', `Quote ${quoteId} does not exist`);
     }
+    const quoteRfq = rfqs.get(quote.rfq_id);
+    check(ctx.user.role === 'PLATFORM_ADMIN' || ctx.org.id === quote.supplier_organization_id || (quoteRfq && ctx.org.id === quoteRfq.buyer_organization_id), 403, 'FORBIDDEN', '해당 견적의 거래 당사자만 조회할 수 있습니다.');
     return jsonResponse(quote);
   }
 
   // POST /v1/sourcing/quotes/:id/accept (Idempotency Key Validated)
   const quoteAcceptMatch = url.pathname.match(/^\/v1\/sourcing\/quotes\/([^\/]+)\/accept$/);
   if (quoteAcceptMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const quoteId = quoteAcceptMatch[1];
     const quote = quotes.get(quoteId);
     if (!quote) {
       return problemResponse(404, 'NOT_FOUND', 'Quote Not Found', `Quote ${quoteId} does not exist`);
     }
+    const acceptRfq = rfqs.get(quote.rfq_id);
+    check(ctx.user.role === 'PLATFORM_ADMIN' || (acceptRfq && ctx.org.id === acceptRfq.buyer_organization_id), 403, 'FORBIDDEN', '해당 RFQ의 구매기업만 견적을 수락할 수 있습니다.');
 
     const idempKey = request.headers.get('Idempotency-Key');
     if (!idempKey) {
@@ -238,11 +266,10 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
     }
     processedIdempotencyKeys.add(idempKey);
 
-    const unitPrice = parseFloat(quote.unit_price);
     const qty = quote.quantity;
-    const totalAmountMinor = Math.round(unitPrice * qty * 100);
-    const downpaymentMinor = Math.round(totalAmountMinor * 0.30); // 30%
-    const balanceMinor = totalAmountMinor - downpaymentMinor;     // 70%
+    const totalAmountMinor = moneyMinor(quote.unit_price, qty, quote.currency || 'USD');
+    const downpaymentMinor = Math.floor((totalAmountMinor * 30 + 50) / 100);
+    const balanceMinor = totalAmountMinor - downpaymentMinor;
 
     const orderId = `ord-${Date.now()}`;
     const orderNumber = `ORD-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(100 + Math.random() * 900)}`;
@@ -269,14 +296,26 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
       settlement_status: 'HELD_ESCROW',
       shipped_quantity: 0,
       is_contract_signed: false,
-      contract_hash: '9f833777d9498425d978a3c8e5473724c96576d4df43a3db18e27c1f8a8dc4e5',
+      contract_hash: '', // computed below from canonical terms
       incoterms: quote.incoterms,
       created_at: new Date().toISOString(),
     };
+    newOrder.contract_hash = await digest(contractCanonicalBody({
+      order_number: newOrder.order_number,
+      buyer_organization_id: newOrder.buyer_organization_id,
+      supplier_organization_id: newOrder.supplier_organization_id,
+      ordered_quantity: newOrder.ordered_quantity,
+      unit_price: newOrder.unit_price,
+      total_amount_minor: newOrder.total_amount_minor,
+      currency: newOrder.currency,
+      incoterms: newOrder.incoterms,
+    }));
     orders.set(orderId, newOrder);
     quote.status = 'ACCEPTED';
 
     // Create settlement record
+    const setFeeMinor = Math.floor((totalAmountMinor * 5 + 50) / 100);
+    const setNetMinor = totalAmountMinor - setFeeMinor;
     settlements.set(`set-${orderId}`, {
       id: `set-${orderId}`,
       order_id: orderId,
@@ -284,8 +323,8 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
       supplier_organization_id: quote.supplier_organization_id,
       supplier_name: quote.supplier_name,
       gross_minor: totalAmountMinor,
-      fee_minor: Math.round(totalAmountMinor * 0.05),
-      net_minor: totalAmountMinor - Math.round(totalAmountMinor * 0.05),
+      fee_minor: setFeeMinor,
+      net_minor: setNetMinor,
       currency: quote.currency,
       status: 'HELD_ESCROW',
       created_at: new Date().toISOString(),
@@ -307,11 +346,15 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // GET & POST /v1/inquiries
   if (url.pathname === '/v1/inquiries') {
     if (request.method === 'GET') {
-      const items = Array.from(inquiries.values());
-      return jsonResponse({ inquiries: items, total_count: items.length });
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+      const allThreads = Array.from(inquiries.values());
+      const items = ctx.user.role === 'PLATFORM_ADMIN' ? allThreads : allThreads.filter(t => t.buyer_organization_id === ctx.org.id || t.supplier_organization_id === ctx.org.id);
+      const inqPage = paginate(items, parsePagination(url));
+      return jsonResponse({ inquiries: inqPage.items, total_count: inqPage.total_count, page: inqPage.page, page_size: inqPage.page_size, total_pages: inqPage.total_pages, has_next: inqPage.has_next });
     }
     if (request.method === 'POST') {
       const body = (await request.json().catch(() => ({}))) as any;
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
       const inqId = `inq-${Date.now()}`;
       const newThread = {
         id: inqId,
@@ -355,11 +398,13 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // GET & POST /v1/inquiries/:id/messages
   const inqMsgMatch = url.pathname.match(/^\/v1\/inquiries\/([^\/]+)\/messages$/);
   if (inqMsgMatch) {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const inqId = inqMsgMatch[1];
     const thread = inquiries.get(inqId);
     if (!thread) {
       return problemResponse(404, 'NOT_FOUND', 'Inquiry Not Found', `Inquiry thread ${inqId} does not exist`);
     }
+    check(thread.buyer_organization_id === ctx.org.id || thread.supplier_organization_id === ctx.org.id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '해당 문의 당사자만 접근할 수 있습니다.');
 
     if (request.method === 'GET') {
       return jsonResponse({ inquiry_id: inqId, messages: thread.messages });
@@ -373,9 +418,9 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
       const newMsg = {
         id: `msg-${Date.now()}`,
-        sender_id: body.sender_id || ctx?.user?.id || 'user-supplier-001',
-        sender_name: body.sender_name || ctx?.user?.full_name || 'Precision Korea Sales Manager',
-        sender_role: body.sender_role || ctx?.user?.role || 'SUPPLIER_SALES',
+        sender_id: ctx.user.id,
+        sender_name: ctx.user.full_name,
+        sender_role: ctx.user.role,
         message_type: body.message_type || (body.quote_card ? 'QUOTE_OFFER' : body.contract_card ? 'CONTRACT_SIGN' : body.payment_card ? 'PAYMENT_REQUEST' : 'TEXT'),
         content: body.content,
         attachment_url: body.attachment_url,
@@ -395,6 +440,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
   // POST /v1/inquiries/translate & /v1/inquiries/:id/translate (Real-Time Trade AI Translator)
   if ((url.pathname === '/v1/inquiries/translate' || url.pathname.endsWith('/translate')) && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const body = (await request.json().catch(() => ({}))) as any;
     const text = (body.text || '').trim();
     const targetLang = (body.target_lang || 'ko').toLowerCase();
@@ -470,6 +516,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // ================= PARTNER DASHBOARD & INVENTORY =================
   // GET /v1/partner/dashboard
   if (url.pathname === '/v1/partner/dashboard' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const partnerListings = Array.from(listings.values()).filter(l => l.organization_id === SUPPLIER_ORG_ID);
     const partnerOrders = Array.from(orders.values()).filter(o => o.supplier_organization_id === SUPPLIER_ORG_ID);
     const partnerRfqs = Array.from(rfqs.values());
@@ -503,11 +550,14 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
   // GET /v1/partner/inventory, /v1/inventory/balances & POST /v1/inventory/adjustments
   if ((url.pathname === '/v1/partner/inventory' || url.pathname === '/v1/inventory/balances') && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const items = Array.from(inventoryBalances.values());
     return jsonResponse({ inventory: items, balances: items, total_count: items.length });
   }
 
   if (url.pathname === '/v1/inventory/adjustments' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const skuId = body.sku_id;
     const item = inventoryBalances.get(skuId);
@@ -535,7 +585,9 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // POST /v1/organizations/:id/verifications (Submit Verification)
   const orgVerifMatch = url.pathname.match(/^\/v1\/organizations\/([^\/]+)\/verifications$/);
   if (orgVerifMatch && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const orgId = orgVerifMatch[1];
+    check(ctx.org.id === orgId || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '본인 기업에 대해서만 실사를 신청할 수 있습니다.');
     const body = (await request.json().catch(() => ({}))) as any;
 
     const verifId = `verif-${Date.now()}`;
@@ -579,7 +631,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
         company_name: 'Precision Korea Co., Ltd. (글로벌정밀산업)',
         slogan: 'Precision OEM/ODM Manufacturing Excellence',
         banner_image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80',
-        video_tour_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        video_tour_url: '',
         certifications: [
           { name: 'ISO 9001:2015', issued_by: 'SGS Korea', valid_thru: '2027-12-31' },
           { name: 'CE Compliance', issued_by: 'TÜV Rheinland', valid_thru: '2028-06-30' },
@@ -594,6 +646,8 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
     }
     if (request.method === 'PUT') {
       const body = (await request.json().catch(() => ({}))) as any;
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+      check(ctx.org.id === supplierOrgId || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '본인 스토어프론트만 편집할 수 있습니다.');
       let data = supplierStorefronts.get(supplierOrgId);
       if (!data) {
         data = { organization_id: supplierOrgId, ...body };
@@ -677,6 +731,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
   // GET & POST /v1/partner/marketing (Keyword Advertising - KWA)
   if (url.pathname === '/v1/partner/marketing') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const supplierOrgId = ctx?.org?.id || SUPPLIER_ORG_ID;
 
     if (request.method === 'GET') {
@@ -740,11 +795,13 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
   // PUT & DELETE /v1/partner/marketing/campaigns/:id
   const kwaMatch = url.pathname.match(/^\/v1\/partner\/marketing\/campaigns\/([^\/]+)$/);
   if (kwaMatch) {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const campId = kwaMatch[1];
     const camp = kwaCampaigns.get(campId);
     if (!camp) {
       return problemResponse(404, 'NOT_FOUND', 'Campaign Not Found', `KWA campaign ${campId} does not exist`);
     }
+    check(camp.supplier_org_id === ctx.org.id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '본인 캠페인만 관리할 수 있습니다.');
 
     if (request.method === 'PUT') {
       const body = (await request.json().catch(() => ({}))) as any;
@@ -764,6 +821,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
 
   // GET /v1/partner/analytics (Seller Performance & Traffic Intelligence)
   if (url.pathname === '/v1/partner/analytics' && request.method === 'GET') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
     const range = url.searchParams.get('range') || '30d';
 
     const supplierOrgId = ctx?.org?.id || SUPPLIER_ORG_ID;

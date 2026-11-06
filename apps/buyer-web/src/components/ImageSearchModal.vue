@@ -2,7 +2,7 @@
   <div v-if="modelValue" class="modal-overlay" @click.self="closeModal">
     <div class="modal-card">
       <div class="modal-head">
-        <h3>📷 AI 비전 이미지로 도매 품목/공급사 찾기</h3>
+        <h3><WsIcon name="camera" :size="15" /> AI 비전 이미지로 도매 품목/공급사 찾기</h3>
         <button class="close-btn" @click="closeModal">✕</button>
       </div>
       <div class="modal-body">
@@ -18,7 +18,7 @@
             <p class="drop-text">{{ selectedFileName }} ({{ selectedFileSize }})</p>
           </template>
           <template v-else>
-            <span class="upload-icon">📁</span>
+            <span class="upload-icon"><WsIcon name="file" :size="15" /></span>
             <p class="drop-text">제품 샘플 사진이나 도면(JPG/PNG/WEBP)을 클릭하여 업로드하세요</p>
             <span class="sub-text">AI 비전 엔진이 형상, 재질, 치수와 유사한 인증 도매 상품을 실시간 매칭합니다</span>
           </template>
@@ -33,7 +33,7 @@
             @keyup.enter="runVisionSearch"
           />
           <button class="btn-analyze" :disabled="searching" @click="runVisionSearch">
-            {{ searching ? '분석 중...' : '🔍 AI 비전 매칭 실행' }}
+            <WsIcon v-if="!(searching)" name="search" :size="14" /> {{ searching ? '분석 중...' : 'AI 비전 매칭 실행' }}
           </button>
         </div>
 
@@ -68,6 +68,7 @@
 import { ref } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 defineProps<{ modelValue: boolean }>();
 const emit = defineEmits<{
@@ -144,30 +145,30 @@ function onApply() {
 
 <style scoped>
 .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.modal-card { background: #FFF; width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #E2E8F0; }
-.modal-head h3 { margin: 0; font-size: 16px; color: #1E293B; }
-.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: #64748B; }
+.modal-card { background: var(--ws-surface); width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--ws-border-subtle); }
+.modal-head h3 { margin: 0; font-size: 16px; color: var(--ws-text); }
+.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--ws-text-muted); }
 .modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.drop-zone { display: block; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 24px 20px; text-align: center; cursor: pointer; background: #F8FAFC; transition: border-color 0.2s; }
-.drop-zone:hover { border-color: #D64000; background: #FFF7ED; }
+.drop-zone { display: block; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 24px 20px; text-align: center; cursor: pointer; background: var(--ws-surface-muted); transition: border-color 0.2s; }
+.drop-zone:hover { border-color: var(--ws-brand); background: var(--ws-brand-light); }
 .hidden-file-input { display: none; }
 .preview-img { max-height: 140px; border-radius: 6px; margin-bottom: 8px; object-fit: contain; }
 .upload-icon { font-size: 32px; display: block; margin-bottom: 8px; }
-.drop-text { font-size: 14px; font-weight: 700; color: #1E293B; margin: 0 0 4px 0; }
-.sub-text { font-size: 12px; color: #64748B; }
+.drop-text { font-size: 14px; font-weight: 700; color: var(--ws-text); margin: 0 0 4px 0; }
+.sub-text { font-size: 12px; color: var(--ws-text-muted); }
 
 .keyword-override { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .keyword-override input { flex: 1; border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
-.btn-analyze { background: #1E293B; color: #FFF; border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.btn-analyze { background: var(--ws-text); color: var(--ws-surface); border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 
 .sim-result { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 14px; }
-.success-msg { color: #166534; font-size: 13px; margin: 0 0 10px 0; }
+.success-msg { color: var(--ws-success); font-size: 13px; margin: 0 0 10px 0; }
 .matched-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.matched-item { display: flex; align-items: center; gap: 8px; background: #FFF; padding: 8px; border-radius: 6px; border: 1px solid #DCFCE7; cursor: pointer; }
-.matched-item:hover { border-color: #D64000; }
+.matched-item { display: flex; align-items: center; gap: 8px; background: var(--ws-surface); padding: 8px; border-radius: 6px; border: 1px solid var(--ws-success-bg); cursor: pointer; }
+.matched-item:hover { border-color: var(--ws-brand); }
 .matched-thumb { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
-.m-title { font-size: 12px; font-weight: 700; color: #0F172A; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.m-meta { font-size: 11px; color: #475569; }
-.btn-search-sim { width: 100%; background: #D64000; color: #FFF; border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.m-title { font-size: 12px; font-weight: 700; color: var(--ws-text); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
+.m-meta { font-size: 11px; color: var(--ws-text-2); }
+.btn-search-sim { width: 100%; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
 </style>

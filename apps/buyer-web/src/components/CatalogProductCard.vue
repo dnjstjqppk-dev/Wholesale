@@ -8,7 +8,7 @@
         class="card-img"
       />
       <span class="cat-pill">{{ item.category }}</span>
-      <span v-if="item.trade_assurance" class="ta-pill">🛡️ Trade Assurance</span>
+      <span v-if="item.trade_assurance" class="ta-pill"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
       <span v-if="item.customization" class="oem-pill">OEM/ODM</span>
     </div>
 
@@ -62,10 +62,10 @@
       <!-- Action Buttons -->
       <div class="card-action-bar">
         <button class="btn-inquiry" @click="$emit('inquiry', item)">
-          💬 1:1 문의
+          <WsIcon name="chat" :size="15" /> 1:1 문의
         </button>
         <button class="btn-cart" @click="addToCart(item)" :disabled="addingCart">
-          🛒 {{ addingCart ? '담는 중...' : '카트 담기' }}
+          <WsIcon name="cart" :size="15" /> {{ addingCart ? '담는 중...' : '카트 담기' }}
         </button>
         <router-link
           :to="`/${locale}/${currency}/products/${item.id}`"
@@ -82,6 +82,7 @@
 import { ref } from 'vue';
 import { formatCurrency, SupportedCurrency } from '../i18n';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const props = defineProps<{
   item: any;
@@ -121,7 +122,7 @@ async function addToCart(item: any) {
 
 <style scoped>
 .b2b-product-card {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border: 1px solid #E5E7EB;
   border-radius: 8px;
   overflow: hidden;
@@ -131,11 +132,11 @@ async function addToCart(item: any) {
 }
 .b2b-product-card:hover {
   box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
-  border-color: #D64000;
+  border-color: var(--ws-brand);
 }
 .card-thumb {
   height: 180px;
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   position: relative;
   overflow: hidden;
   cursor: pointer;
@@ -154,7 +155,7 @@ async function addToCart(item: any) {
   top: 8px;
   left: 8px;
   background: rgba(15, 23, 42, 0.75);
-  color: #FFF;
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -165,7 +166,7 @@ async function addToCart(item: any) {
   bottom: 8px;
   left: 8px;
   background: rgba(15, 23, 42, 0.85);
-  color: #38BDF8;
+  color: var(--ws-info);
   font-size: 9px;
   font-weight: 700;
   padding: 2px 6px;
@@ -175,8 +176,8 @@ async function addToCart(item: any) {
   position: absolute;
   top: 8px;
   right: 8px;
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
@@ -196,7 +197,7 @@ async function addToCart(item: any) {
   margin-bottom: 8px;
 }
 .supplier-name {
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-weight: 600;
   white-space: nowrap;
   overflow: hidden;
@@ -204,22 +205,22 @@ async function addToCart(item: any) {
   max-width: 140px;
 }
 .verified-gold {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 10px;
   font-weight: 800;
   padding: 1px 4px;
   border-radius: 3px;
 }
 .years {
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
   font-size: 11px;
   margin-left: auto;
 }
 .product-title {
   font-size: 13px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
   text-decoration: none;
   line-height: 1.4;
   margin-bottom: 10px;
@@ -230,11 +231,11 @@ async function addToCart(item: any) {
   height: 38px;
 }
 .product-title:hover {
-  color: #D64000;
+  color: var(--ws-brand);
 }
 .tier-matrix-table {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 12px;
@@ -257,17 +258,17 @@ async function addToCart(item: any) {
 }
 .tier-val {
   font-weight: 700;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .product-meta {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-bottom: 12px;
 }
 .highlight {
-  color: #16A34A;
+  color: var(--ws-success);
   font-weight: 700;
 }
 .card-action-bar {
@@ -287,24 +288,24 @@ async function addToCart(item: any) {
   box-sizing: border-box;
 }
 .btn-inquiry {
-  background: #FFF;
+  background: var(--ws-surface);
   border: 1px solid #CBD5E1;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 .btn-cart {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border: 1px solid #FDBA74;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .btn-start-order {
-  background: #FF6A00;
-  color: #FFF;
+  background: var(--ws-brand-hover);
+  color: var(--ws-surface);
   border: none;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .btn-start-order:hover {
-  background: #E55E00;
+  background: var(--ws-brand-hover);
 }
 </style>

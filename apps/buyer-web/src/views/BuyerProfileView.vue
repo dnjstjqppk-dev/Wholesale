@@ -5,6 +5,7 @@
         <h2>구매 기업 프로필 및 조직 권한 관리 (Corporate Profile & Sub-Accounts)</h2>
         <p class="subtitle">
           기업 기본 식별 정보(EIN/VAT, 사업자등록증), 비과세 인증서, 조직 내 역할 분리(SoD) 계정 및 배송지 주소록을 통합 관리합니다.
+          <router-link to="/onboarding" class="onboarding-link">온보딩 체크리스트 보기</router-link>
         </p>
       </div>
       <div class="role-badge-box">
@@ -50,7 +51,7 @@
       <section class="card-section">
         <div class="section-head">
           <div class="title-with-icon">
-            <span class="sec-icon">🏢</span>
+            <span class="sec-icon"><WsIcon name="building" :size="15" /></span>
             <h3>기업 식별 정보 및 면세 증빙 (EIN/VAT & Tax Exemption)</h3>
           </div>
           <button v-if="!editingProfile" class="btn-secondary" @click="editingProfile = true">
@@ -150,7 +151,7 @@
       <section class="card-section">
         <div class="section-head">
           <div class="title-with-icon">
-            <span class="sec-icon">👥</span>
+            <span class="sec-icon"><WsIcon name="users" :size="15" /></span>
             <h3>서브 계정 및 구매 승인 권한 (Sub-Accounts & SoD Matrix)</h3>
           </div>
           <button class="btn-primary" @click="showAddSubModal = true">
@@ -208,7 +209,7 @@
       <section class="card-section">
         <div class="section-head">
           <div class="title-with-icon">
-            <span class="sec-icon">📍</span>
+            <span class="sec-icon"><WsIcon name="pin" :size="15" /></span>
             <h3>화물 배송지 및 청구 주소록 (Organization Addresses)</h3>
           </div>
           <button class="btn-primary" @click="showAddAddressModal = true">
@@ -343,7 +344,8 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
-import { apiRequest, getCurrentUser, switchBuyerUser, setAuthSession, UserSession } from '../api';
+import { apiRequest, getCurrentUser, switchBuyerUser, UserSession } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const currentUser = ref<UserSession>(getCurrentUser());
 const loading = ref(true);
@@ -536,27 +538,17 @@ async function deleteAddress(id: string) {
 }
 
 async function switchRole(role: 'BUYER_PURCHASER' | 'BUYER_APPROVER' | 'BUYER_FINANCE') {
+  // Role switching always re-authenticates via standard login (no demo switcher endpoint).
   try {
-    const res = await apiRequest<{ access_token: string; user: any; organization: any }>('/auth/profile/switch-role', {
-      method: 'POST',
-      body: JSON.stringify({ role }),
-    });
-    const session: UserSession = {
-      ...res.user,
-      organization: res.organization,
-    };
-    setAuthSession(res.access_token, session);
-    currentUser.value = session;
-    showToast(`접속 역할이 '${formatRoleName(role)}'(으)로 전환되었습니다.`);
-  } catch {
-    // Local fallback
     if (role === 'BUYER_PURCHASER') {
       await switchBuyerUser('buyer@wholesale.internal');
     } else {
       await switchBuyerUser('approver@wholesale.internal');
     }
     currentUser.value = getCurrentUser();
-    showToast(`접속 역할이 전환되었습니다.`);
+    showToast(`접속 역할이 '${formatRoleName(role)}'(으)로 전환되었습니다.`);
+  } catch (err: any) {
+    showToast(`역할 전환 실패: ${err.message}`, 'error');
   }
 }
 
@@ -583,18 +575,25 @@ onMounted(() => {
 .page-header h2 {
   font-size: 24px;
   font-weight: 700;
-  color: #111827;
+  color: var(--ws-text);
   margin: 0 0 6px 0;
 }
 
 .subtitle {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin: 0;
 }
+.onboarding-link {
+  color: var(--ws-brand);
+  font-weight: 700;
+  text-decoration: none;
+  margin-left: 4px;
+}
+.onboarding-link:hover { text-decoration: underline; }
 
 .role-badge-box {
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 12px 16px;
@@ -604,7 +603,7 @@ onMounted(() => {
 
 .role-label {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin-right: 6px;
 }
 
@@ -616,9 +615,9 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.role-purchaser { background: #dbeafe; color: #1e40af; }
-.role-approver { background: #fef3c7; color: #92400e; }
-.role-finance { background: #d1fae5; color: #065f46; }
+.role-purchaser { background: var(--ws-info-bg); color: var(--ws-info); }
+.role-approver { background: var(--ws-warning-bg); color: #92400e; }
+.role-finance { background: #d1fae5; color: var(--ws-success); }
 
 .role-switch-btns {
   display: flex;
@@ -629,21 +628,21 @@ onMounted(() => {
 .btn-switch {
   font-size: 11px;
   padding: 4px 8px;
-  background: #ffffff;
-  border: 1px solid #d1d5db;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-switch:hover {
-  background: #f3f4f6;
+  background: var(--ws-surface-muted);
 }
 
 .btn-switch.active {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
-  border-color: #d64000;
+  border-color: var(--ws-brand);
   font-weight: 600;
 }
 
@@ -657,13 +656,13 @@ onMounted(() => {
 
 .toast-banner.success {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   border: 1px solid #a7f3d0;
 }
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
@@ -674,7 +673,7 @@ onMounted(() => {
 }
 
 .card-section {
-  background: #ffffff;
+  background: var(--ws-surface);
   border: 1px solid #e5e7eb;
   border-radius: 10px;
   padding: 24px;
@@ -686,7 +685,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
 }
 
@@ -703,13 +702,13 @@ onMounted(() => {
 .section-head h3 {
   font-size: 18px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--ws-text);
   margin: 0;
 }
 
 .section-desc {
   font-size: 13px;
-  color: #4b5563;
+  color: var(--ws-text-2);
   line-height: 1.5;
   margin-bottom: 16px;
 }
@@ -723,13 +722,13 @@ onMounted(() => {
 .info-item label {
   display: block;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin-bottom: 4px;
 }
 
 .info-item .val {
   font-size: 14px;
-  color: #111827;
+  color: var(--ws-text);
 }
 
 .tax-badge {
@@ -739,7 +738,7 @@ onMounted(() => {
   padding: 3px 8px;
   border-radius: 4px;
   background: #d1fae5;
-  color: #065f46;
+  color: var(--ws-success);
 }
 
 .edit-form .form-row {
@@ -758,19 +757,19 @@ onMounted(() => {
 .form-group label {
   font-size: 12px;
   font-weight: 600;
-  color: #374151;
+  color: var(--ws-text-2);
 }
 
 .form-group input,
 .form-group select {
   padding: 8px 12px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   font-size: 14px;
 }
 
 .btn-primary {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
   border: none;
   padding: 8px 16px;
@@ -780,13 +779,13 @@ onMounted(() => {
 }
 
 .btn-primary:hover {
-  background: #e65c00;
+  background: var(--ws-brand-hover);
 }
 
 .btn-secondary {
-  background: #ffffff;
-  color: #374151;
-  border: 1px solid #d1d5db;
+  background: var(--ws-surface);
+  color: var(--ws-text-2);
+  border: 1px solid var(--ws-border-subtle);
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 600;
@@ -794,9 +793,9 @@ onMounted(() => {
 }
 
 .btn-cancel {
-  background: #f3f4f6;
-  color: #4b5563;
-  border: 1px solid #d1d5db;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
+  border: 1px solid var(--ws-border-subtle);
   padding: 8px 16px;
   border-radius: 6px;
   font-weight: 600;
@@ -816,16 +815,16 @@ onMounted(() => {
 }
 
 .data-table th {
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   padding: 10px 12px;
   font-weight: 600;
-  color: #4b5563;
+  color: var(--ws-text-2);
   border-bottom: 1px solid #e5e7eb;
 }
 
 .data-table td {
   padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .user-cell {
@@ -835,12 +834,12 @@ onMounted(() => {
 
 .user-name {
   font-weight: 600;
-  color: #111827;
+  color: var(--ws-text);
 }
 
 .user-email {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .role-tag {
@@ -851,13 +850,13 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.role-tag.BUYER_PURCHASER { background: #e0f2fe; color: #0369a1; }
-.role-tag.BUYER_APPROVER { background: #fef3c7; color: #b45309; }
-.role-tag.BUYER_FINANCE { background: #dcfce7; color: #15803d; }
+.role-tag.BUYER_PURCHASER { background: #e0f2fe; color: var(--ws-info); }
+.role-tag.BUYER_APPROVER { background: var(--ws-warning-bg); color: var(--ws-warning); }
+.role-tag.BUYER_FINANCE { background: var(--ws-success-bg); color: var(--ws-success); }
 
 .status-pill.active {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   padding: 2px 8px;
   border-radius: 9999px;
   font-size: 11px;
@@ -874,14 +873,14 @@ onMounted(() => {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
-  background: #fafafa;
+  background: var(--ws-surface-muted);
   position: relative;
   display: flex;
   flex-direction: column;
 }
 
 .address-card.is-default {
-  border-color: #d64000;
+  border-color: var(--ws-brand);
   background: #fffbf7;
 }
 
@@ -899,14 +898,14 @@ onMounted(() => {
   border-radius: 4px;
 }
 
-.type-badge.SHIPPING { background: #e0e7ff; color: #3730a3; }
+.type-badge.SHIPPING { background: #e0e7ff; color: var(--ws-info); }
 .type-badge.BILLING { background: #f3e8ff; color: #6b21a8; }
 
 .default-badge {
   font-size: 11px;
   font-weight: 700;
   background: #fed7aa;
-  color: #9a3412;
+  color: var(--ws-brand-hover);
   padding: 2px 6px;
   border-radius: 4px;
 }
@@ -916,18 +915,18 @@ onMounted(() => {
   background: transparent;
   border: none;
   font-size: 18px;
-  color: #9ca3af;
+  color: var(--ws-admin-dim);
   cursor: pointer;
 }
 
 .btn-del:hover {
-  color: #ef4444;
+  color: var(--ws-danger);
 }
 
 .addr-body {
   font-size: 13px;
   line-height: 1.4;
-  color: #374151;
+  color: var(--ws-text-2);
 }
 
 .modal-backdrop {

@@ -2,7 +2,8 @@
 // apps/api-worker/src/store.ts
 // Cloudflare Edge State & Local Authority Store (Alibaba.com B2B Marketplace Engine)
 
-import { SEED_PRODUCTS, CATEGORIES, WholesaleProduct } from './seedProducts';
+import { SEED_PRODUCTS, CATEGORIES } from './seedProducts.ts';
+import type { WholesaleProduct } from './seedProducts.ts';
 
 export { CATEGORIES };
 export type { WholesaleProduct };
@@ -15,7 +16,7 @@ export const users = new Map<string, any>([
   ['buyer@wholesale.internal', {
     id: 'user-buyer-001',
     email: 'buyer@wholesale.internal',
-    password: 'Password123!',
+    password_hash: 'pbkdf2-sha256$100000$a1b2c3d4e5f60718293a4b5c6d7e8f90$8a48748bba8009f9c5a58b81e1dd3e522835ff2b37113debe0a6b5f3b4417dca',
     full_name: 'Metro Wholesale Purchaser',
     active_organization_id: BUYER_ORG_ID,
     role: 'BUYER_PURCHASER',
@@ -23,7 +24,7 @@ export const users = new Map<string, any>([
   ['approver@wholesale.internal', {
     id: 'user-buyer-002',
     email: 'approver@wholesale.internal',
-    password: 'Password123!',
+    password_hash: 'pbkdf2-sha256$100000$b2c3d4e5f60718293a4b5c6d7e8f90a1$2303b45344a038dde71fa456012fe9d4e033cadd4f9341178b7470b5b99c328c',
     full_name: 'Metro Procurement Director (Approver)',
     active_organization_id: BUYER_ORG_ID,
     role: 'BUYER_APPROVER',
@@ -31,7 +32,7 @@ export const users = new Map<string, any>([
   ['supplier@wholesale.internal', {
     id: 'user-supplier-001',
     email: 'supplier@wholesale.internal',
-    password: 'Password123!',
+    password_hash: 'pbkdf2-sha256$100000$c3d4e5f60718293a4b5c6d7e8f90a1b2$2309e933e76651c4f6da564f325cdd3ef11fc31424d8b9b03913f43101e00ef7',
     full_name: 'Precision Korea Sales Manager',
     active_organization_id: SUPPLIER_ORG_ID,
     role: 'SUPPLIER_SALES',
@@ -39,7 +40,7 @@ export const users = new Map<string, any>([
   ['admin@wholesale.internal', {
     id: 'user-admin-001',
     email: 'admin@wholesale.internal',
-    password: 'Password123!',
+    password_hash: 'pbkdf2-sha256$100000$d4e5f60718293a4b5c6d7e8f90a1b2c3$b5b03d0458b28590e63393855c862466c68a99f68ed069f3d4a89f77aee48a02',
     full_name: 'Super Platform Administrator',
     active_organization_id: ADMIN_ORG_ID,
     role: 'PLATFORM_ADMIN',
@@ -47,7 +48,7 @@ export const users = new Map<string, any>([
   ['finance@wholesale.internal', {
     id: 'user-admin-002',
     email: 'finance@wholesale.internal',
-    password: 'Password123!',
+    password_hash: 'pbkdf2-sha256$100000$e5f60718293a4b5c6d7e8f90a1b2c3d4$1dc50acd4e2b125d82bb4025ea157a164ff17d14b9b578ba813df1384657b19d',
     full_name: 'Treasury & Finance Director',
     active_organization_id: ADMIN_ORG_ID,
     role: 'PLATFORM_ADMIN',
@@ -170,7 +171,7 @@ export const orders = new Map<string, any>([
     settlement_status: 'HELD_ESCROW',
     shipped_quantity: 0,
     is_contract_signed: false,
-    contract_hash: 'c67469723725e6e026620593dd2a466a9d184ffbe6cf2ab82a725e1a3d02b557',
+    contract_hash: 'd894068d3c4878f3f197482f249ff8118ac60e1e6572c3a98ebc2d2c7f638309',
     incoterms: 'FOB Busan Port',
     shipping_address: '450 Lexington Ave, New York, NY 10017, USA',
     created_at: new Date(Date.now() - 86400000 * 2).toISOString(),
@@ -402,7 +403,7 @@ export const supplierStorefronts = new Map<string, any>([
     export_percentage: '85%',
     main_markets: ['North America (45%)', 'Europe (30%)', 'East Asia (25%)'],
     banner_image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=1600&q=80',
-    video_tour_url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+    video_tour_url: '',
     certifications: [
       { name: 'ISO 9001:2015', issued_by: 'SGS Korea', valid_thru: '2027-12-31' },
       { name: 'CE Compliance', issued_by: 'TÜV Rheinland', valid_thru: '2028-06-30' },

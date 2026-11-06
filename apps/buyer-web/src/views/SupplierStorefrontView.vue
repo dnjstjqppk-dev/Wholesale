@@ -21,7 +21,7 @@
           </div>
           <div class="store-actions-row">
             <button class="btn-audit-report" @click="openAuditModal">
-              📄 TÜV Rheinland 공인 실사 보고서 (Audit Report) 확인
+              <WsIcon name="file" :size="15" /> TÜV Rheinland 공인 실사 보고서 (Audit Report) 확인
             </button>
           </div>
         </div>
@@ -30,12 +30,12 @@
       <!-- Factory Tour & Video Section -->
       <section class="section-card factory-tour-card">
         <div class="card-head">
-          <span class="icon">🏭</span>
+          <span class="icon"><WsIcon name="factory" :size="15" /></span>
           <h3>제조 공장 실사 및 생산 설비 현황 (Factory Tour & QC)</h3>
           <div class="head-badges-row">
             <span class="iso-pill">ISO 9001:2015 공인</span>
             <button class="btn-view-audit-link" @click="openAuditModal">
-              🔍 공인 실사 성적서 원본 열람 & 다운로드
+              <WsIcon name="search" :size="15" /> 공인 실사 성적서 원본 열람 & 다운로드
             </button>
           </div>
         </div>
@@ -44,7 +44,7 @@
             <h4>주요 보유 공작기계 및 자동화 설비</h4>
             <ul class="equip-list">
               <li v-for="(eq, idx) in storefront.production_equipment" :key="idx">
-                <span class="eq-name">⚙️ {{ eq.name }}</span>
+                <span class="eq-name"><WsIcon name="gear" :size="15" /> {{ eq.name }}</span>
                 <span class="eq-count">{{ eq.count }}대 가동 중</span>
               </li>
             </ul>
@@ -65,7 +65,7 @@
       <!-- Featured Product Showcase -->
       <section class="section-card">
         <div class="card-head">
-          <span class="icon">⭐</span>
+          <span class="icon">★</span>
           <h3>공급사 주력 도매 상품 쇼케이스 (Featured Products)</h3>
         </div>
         <div class="showcase-grid">
@@ -119,7 +119,7 @@
 
             <!-- Audit Sections -->
             <div class="audit-sections-list">
-              <h4>📋 공인 현장 실사 5대 항목 평가 결과</h4>
+              <h4><WsIcon name="file" :size="15" /> 공인 현장 실사 5대 항목 평가 결과</h4>
               <div v-for="(sec, idx) in auditData.assessment_sections" :key="idx" class="audit-sec-item">
                 <div class="sec-head">
                   <span class="sec-name">{{ sec.name }}</span>
@@ -134,7 +134,7 @@
 
             <!-- On-Site Photos -->
             <div class="audit-photos-wrap">
-              <h4>📸 검사관 현장 실사 촬영 사진 (On-site Inspection Photos)</h4>
+              <h4><WsIcon name="camera" :size="15" /> 검사관 현장 실사 촬영 사진 (On-site Inspection Photos)</h4>
               <div class="photos-grid">
                 <img v-for="(p, idx) in auditData.facility_photos" :key="idx" :src="p" alt="Inspection Photo" />
               </div>
@@ -143,7 +143,7 @@
             <!-- Modal Footer with Download Action -->
             <div class="audit-modal-footer">
               <button class="btn-download-pdf" @click="downloadAuditReport">
-                📥 공인 실사 보고서 원본 다운로드 (PDF / Official Seal)
+                <WsIcon name="download" :size="15" /> 공인 실사 보고서 원본 다운로드 (PDF / Official Seal)
               </button>
               <button class="btn-close-bottom" @click="showAuditModal = false">
                 닫기
@@ -161,6 +161,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -261,13 +262,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  color: #FFF;
+  color: var(--ws-surface);
   box-sizing: border-box;
 }
 .store-badge {
   display: inline-block;
-  background: #16A34A;
-  color: #FFF;
+  background: var(--ws-success);
+  color: var(--ws-surface);
   font-size: 11px;
   font-weight: 800;
   padding: 2px 8px;
@@ -289,15 +290,15 @@ onMounted(() => {
   display: flex;
   gap: 20px;
   font-size: 12px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 .store-quick-meta strong {
-  color: #FFF;
+  color: var(--ws-surface);
 }
 
 .section-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 20px;
 }
@@ -305,7 +306,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 10px;
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 12px;
   margin-bottom: 16px;
 }
@@ -313,12 +314,12 @@ onMounted(() => {
   margin: 0;
   font-size: 16px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .iso-pill {
   margin-left: auto;
   background: #EFF6FF;
-  color: #1E40AF;
+  color: var(--ws-info);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
@@ -333,7 +334,7 @@ onMounted(() => {
 .tour-left h4, .tour-right h4 {
   font-size: 13px;
   font-weight: 700;
-  color: #334155;
+  color: var(--ws-text-2);
   margin: 0 0 10px;
 }
 .equip-list {
@@ -347,14 +348,14 @@ onMounted(() => {
 .equip-list li {
   display: flex;
   justify-content: space-between;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 8px 12px;
   border-radius: 6px;
   font-size: 12px;
 }
 .eq-name {
   font-weight: 600;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .eq-count {
   color: #0284C7;
@@ -374,7 +375,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #166534;
+  color: var(--ws-success);
 }
 .cert-chip strong {
   font-size: 12px;
@@ -386,7 +387,7 @@ onMounted(() => {
   gap: 16px;
 }
 .showcase-card {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
@@ -394,11 +395,11 @@ onMounted(() => {
 }
 .showcase-card:hover {
   transform: translateY(-2px);
-  border-color: #CC3D00;
+  border-color: var(--ws-brand);
 }
 .thumb-wrap {
   height: 160px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
 }
 .thumb-wrap img {
   width: 100%;
@@ -412,7 +413,7 @@ onMounted(() => {
   margin: 0 0 6px;
   font-size: 12px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -420,17 +421,17 @@ onMounted(() => {
 .card-desc .price {
   font-size: 15px;
   font-weight: 800;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .card-desc .moq {
   font-size: 10px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-top: 4px;
 }
 
 .state-box {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   padding: 60px 20px;
   text-align: center;
   border-radius: 8px;
@@ -440,8 +441,8 @@ onMounted(() => {
   margin-top: 14px;
 }
 .btn-audit-report {
-  background: #C2410C;
-  color: #FFFFFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   padding: 8px 16px;
   border-radius: 6px;
@@ -451,7 +452,7 @@ onMounted(() => {
   box-shadow: 0 2px 8px rgba(194, 65, 12, 0.4);
 }
 .btn-audit-report:hover {
-  background: #9A3412;
+  background: var(--ws-brand-hover);
 }
 .head-badges-row {
   display: flex;
@@ -459,9 +460,9 @@ onMounted(() => {
   gap: 10px;
 }
 .btn-view-audit-link {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border: 1px solid #FDBA74;
-  color: #C2410C;
+  color: var(--ws-brand);
   font-size: 12px;
   font-weight: 700;
   padding: 4px 10px;
@@ -469,7 +470,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-view-audit-link:hover {
-  background: #FFEDD5;
+  background: var(--ws-brand-light);
 }
 
 /* Modal */
@@ -484,7 +485,7 @@ onMounted(() => {
   padding: 20px;
 }
 .audit-modal-card {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   width: 100%;
   max-width: 820px;
   max-height: 90vh;
@@ -497,16 +498,16 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--ws-border-subtle);
 }
 .audit-header-title h3 {
   margin: 6px 0 0;
   font-size: 16px;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .tuv-badge {
   background: #0284C7;
-  color: #FFFFFF;
+  color: var(--ws-surface);
   font-size: 11px;
   font-weight: 800;
   padding: 2px 6px;
@@ -516,7 +517,7 @@ onMounted(() => {
   background: none;
   border: none;
   font-size: 18px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   cursor: pointer;
 }
 .audit-modal-body {
@@ -525,21 +526,21 @@ onMounted(() => {
 .audit-loading {
   padding: 40px;
   text-align: center;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .audit-summary-banner {
   display: grid;
   grid-template-columns: 200px 1fr;
   gap: 20px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   padding: 16px;
   border-radius: 8px;
   margin-bottom: 20px;
 }
 .audit-grade-box {
-  background: #16A34A;
-  color: #FFFFFF;
+  background: var(--ws-success);
+  color: var(--ws-surface);
   border-radius: 8px;
   padding: 14px;
   display: flex;
@@ -568,11 +569,11 @@ onMounted(() => {
   grid-template-columns: 1fr;
   gap: 6px;
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .seal-line code {
   font-size: 11px;
-  background: #E2E8F0;
+  background: var(--ws-border-subtle);
   padding: 2px 4px;
   border-radius: 3px;
 }
@@ -582,14 +583,14 @@ onMounted(() => {
 .audit-sections-list h4 {
   font-size: 14px;
   margin: 0 0 10px;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .audit-sec-item {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   padding: 10px 14px;
   margin-bottom: 8px;
-  background: #FFFFFF;
+  background: var(--ws-surface);
 }
 .sec-head {
   display: flex;
@@ -599,7 +600,7 @@ onMounted(() => {
 .sec-name {
   font-size: 13px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .sec-score-wrap {
   display: flex;
@@ -612,8 +613,8 @@ onMounted(() => {
   color: #0284C7;
 }
 .sec-status-pill {
-  background: #DCFCE7;
-  color: #166534;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
@@ -622,12 +623,12 @@ onMounted(() => {
 .sec-details {
   margin: 6px 0 0;
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .audit-photos-wrap h4 {
   font-size: 14px;
   margin: 0 0 10px;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .photos-grid {
   display: grid;
@@ -640,18 +641,18 @@ onMounted(() => {
   height: 120px;
   object-fit: cover;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
 }
 .audit-modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ws-border-subtle);
   padding-top: 16px;
 }
 .btn-download-pdf {
   background: #0284C7;
-  color: #FFFFFF;
+  color: var(--ws-surface);
   border: none;
   padding: 10px 20px;
   border-radius: 6px;
@@ -660,9 +661,9 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-close-bottom {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: 1px solid #CBD5E1;
-  color: #475569;
+  color: var(--ws-text-2);
   padding: 10px 16px;
   border-radius: 6px;
   font-size: 13px;

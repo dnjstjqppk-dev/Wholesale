@@ -8,7 +8,7 @@
         :class="{ active: orderMode === 'MATRIX' }"
         @click="orderMode = 'MATRIX'"
       >
-        📊 다차원 SKU 일괄 발주 (Multi-SKU Matrix)
+        <WsIcon name="trend" :size="15" /> 다차원 SKU 일괄 발주 (Multi-SKU Matrix)
       </button>
       <button
         type="button"
@@ -16,7 +16,7 @@
         :class="{ active: orderMode === 'SINGLE' }"
         @click="orderMode = 'SINGLE'"
       >
-        ⚡ 단일 규격 빠른 주문 (Single)
+        <WsIcon name="bolt" :size="15" /> 단일 규격 빠른 주문 (Single)
       </button>
     </div>
 
@@ -73,7 +73,7 @@
         <div class="agg-item">
           <span>최소 발주(MOQ {{ product?.moq || 100 }}) 상태:</span>
           <span :class="effectiveOrderQty >= (Number(product?.moq) || 100) ? 'moq-ok' : 'moq-warn'">
-            {{ effectiveOrderQty >= (Number(product?.moq) || 100) ? '✓ MOQ 충족' : `⚠️ ${(Number(product?.moq) || 100) - effectiveOrderQty}개 부족` }}
+            <WsIcon v-if="effectiveOrderQty < (Number(product?.moq) || 100)" name="alert" :size="14" /> {{ effectiveOrderQty >= (Number(product?.moq) || 100) ? '✓ MOQ 충족' : `${(Number(product?.moq) || 100) - effectiveOrderQty}개 부족` }}
           </span>
         </div>
       </div>
@@ -127,7 +127,7 @@
     <!-- Live Landed Cost Calculator Widget -->
     <div class="landed-cost-widget">
       <div class="widget-header" @click="showLandedCost = !showLandedCost">
-        <span class="w-icon">🚢</span>
+        <span class="w-icon"><WsIcon name="truck" :size="15" /></span>
         <strong>예상 총 도입원가 (Landed Cost) 산출기</strong>
         <span class="toggle-icon">{{ showLandedCost ? '▲ 닫기' : '▼ 계산하기' }}</span>
       </div>
@@ -166,9 +166,9 @@
 
         <div v-if="landedCostData" class="landed-results">
           <div class="cargo-specs-bar">
-            <span>📦 화물 용적: <strong>{{ landedCargoSpec?.total_cbm || '0.50' }} CBM</strong></span>
-            <span>⚖️ 총 중량: <strong>{{ landedCargoSpec?.gross_weight_kg || '45.0' }} kg</strong></span>
-            <span v-if="landedCargoSpec?.is_fcl_recommended" class="fcl-rec-pill">💡 FCL 컨테이너 추천</span>
+            <span><WsIcon name="package" :size="15" /> 화물 용적: <strong>{{ landedCargoSpec?.total_cbm || '0.50' }} CBM</strong></span>
+            <span><WsIcon name="alert" :size="15" /> 총 중량: <strong>{{ landedCargoSpec?.gross_weight_kg || '45.0' }} kg</strong></span>
+            <span v-if="landedCargoSpec?.is_fcl_recommended" class="fcl-rec-pill"><WsIcon name="bolt" :size="15" /> FCL 컨테이너 추천</span>
           </div>
           <div class="res-row">
             <span>해상/항공 추정 운임 ({{ selectedIncoterms }}):</span>
@@ -201,19 +201,19 @@
     <!-- Action Buttons -->
     <div class="action-buttons-group">
       <button class="btn-add-cart" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
-        🛒 {{ addingCart ? '담는 중...' : (orderMode === 'MATRIX' ? '선택 규격 일괄 장바구니 담기' : '도매 장바구니 담기') }}
+        <WsIcon name="cart" :size="15" /> {{ addingCart ? '담는 중...' : (orderMode === 'MATRIX' ? '선택 규격 일괄 장바구니 담기' : '도매 장바구니 담기') }}
       </button>
       <button class="btn-start-trade-order" :disabled="!!quantityError" @click="handleInstantOrder">
-        📝 {{ orderMode === 'MATRIX' ? '선택 규격 일괄 발주서 작성' : '즉시 도매 발주서 생성' }}
+        <WsIcon name="pencil" :size="15" /> {{ orderMode === 'MATRIX' ? '선택 규격 일괄 발주서 작성' : '즉시 도매 발주서 생성' }}
       </button>
     </div>
 
     <div class="secondary-actions-group">
       <button class="btn-sample-request" :disabled="requestingSample" @click="handleSampleOrder">
-        📦 {{ requestingSample ? '주문 처리 중...' : `유료 샘플 신청 (${formatMoney(product?.sample_price || 25)})` }}
+        <WsIcon name="package" :size="15" /> {{ requestingSample ? '주문 처리 중...' : `유료 샘플 신청 (${formatMoney(product?.sample_price || 25)})` }}
       </button>
       <button class="btn-inquiry" @click="$emit('open-inquiry')">
-        💬 공급사 1:1 견적 문의
+        <WsIcon name="chat" :size="15" /> 공급사 1:1 견적 문의
       </button>
     </div>
   </div>
@@ -224,6 +224,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const props = defineProps<{
   product: any;
@@ -488,7 +489,7 @@ onMounted(() => {
 
 <style scoped>
 .order-calculator-card {
-  background: #FFFFFF;
+  background: var(--ws-surface);
   border: 1px solid #FED7AA;
   border-radius: 10px;
   padding: 20px;
@@ -500,10 +501,10 @@ onMounted(() => {
 .order-mode-tabs {
   display: flex;
   gap: 8px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 4px;
   border-radius: 8px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
 }
 .mode-tab-btn {
   flex: 1;
@@ -512,14 +513,14 @@ onMounted(() => {
   font-weight: 700;
   border: none;
   background: transparent;
-  color: #64748B;
+  color: var(--ws-text-muted);
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s;
 }
 .mode-tab-btn.active {
-  background: #C2410C;
-  color: #FFFFFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   box-shadow: 0 2px 4px rgba(194, 65, 12, 0.2);
 }
 .sku-matrix-container {
@@ -529,9 +530,9 @@ onMounted(() => {
 }
 .matrix-hint {
   font-size: 11px;
-  color: #64748B;
-  background: #FFF7ED;
-  border: 1px solid #FFEDD5;
+  color: var(--ws-text-muted);
+  background: var(--ws-brand-light);
+  border: 1px solid var(--ws-brand-light);
   padding: 8px 12px;
   border-radius: 6px;
 }
@@ -541,18 +542,18 @@ onMounted(() => {
   font-size: 12px;
 }
 .sku-matrix-table th {
-  background: #F8FAFC;
-  color: #475569;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
   font-weight: 700;
   text-align: left;
   padding: 8px 10px;
-  border-bottom: 2px solid #E2E8F0;
+  border-bottom: 2px solid var(--ws-border-subtle);
 }
 .sku-matrix-table th.th-qty {
   text-align: right;
 }
 .sku-row {
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 .sku-row:hover {
   background: #FFFDF9;
@@ -567,26 +568,26 @@ onMounted(() => {
   gap: 2px;
 }
 .sku-name {
-  color: #0F172A;
+  color: var(--ws-text);
   font-size: 12px;
 }
 .sku-code {
   font-family: monospace;
   font-size: 10px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 .sku-price {
   font-weight: 700;
-  color: #C2410C;
+  color: var(--ws-brand);
 }
 .sku-unit {
   font-size: 10px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .stock-pill {
   font-size: 11px;
-  color: #15803D;
-  background: #DCFCE7;
+  color: var(--ws-success);
+  background: var(--ws-success-bg);
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 600;
@@ -602,7 +603,7 @@ onMounted(() => {
   overflow: hidden;
 }
 .m-step-btn {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: none;
   width: 28px;
   height: 28px;
@@ -611,7 +612,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .m-step-btn:hover {
-  background: #E2E8F0;
+  background: var(--ws-border-subtle);
 }
 .m-qty-input {
   width: 60px;
@@ -620,29 +621,29 @@ onMounted(() => {
   text-align: center;
   font-size: 12px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .matrix-aggregate-bar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   font-size: 12px;
 }
 .agg-qty {
-  color: #C2410C;
+  color: var(--ws-brand);
   font-size: 14px;
   margin-left: 6px;
 }
 .moq-ok {
-  color: #15803D;
+  color: var(--ws-success);
   font-weight: 700;
 }
 .moq-warn {
-  color: #DC2626;
+  color: var(--ws-danger);
   font-weight: 700;
 }
 .calc-row {
@@ -653,7 +654,7 @@ onMounted(() => {
 .qty-field label {
   font-size: 13px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
   display: block;
   margin-bottom: 6px;
 }
@@ -666,7 +667,7 @@ onMounted(() => {
   width: fit-content;
 }
 .step-btn {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: none;
   width: 36px;
   height: 36px;
@@ -675,7 +676,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .step-btn:hover {
-  background: #E2E8F0;
+  background: var(--ws-border-subtle);
 }
 .qty-input-wrap input {
   width: 80px;
@@ -684,14 +685,14 @@ onMounted(() => {
   text-align: center;
   font-size: 15px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .unit-text {
   padding: 0 10px;
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-weight: 600;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   height: 36px;
   display: flex;
   align-items: center;
@@ -701,21 +702,21 @@ onMounted(() => {
   flex-direction: column;
   gap: 2px;
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   text-align: right;
 }
 .rules-hint strong {
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .calc-err {
-  color: #DC2626;
+  color: var(--ws-danger);
   font-size: 12px;
   font-weight: 700;
   margin: 0;
 }
 .calc-summary-panel {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 14px;
   display: flex;
@@ -726,25 +727,25 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   font-size: 13px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .summary-line .num {
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .summary-line .highlight {
   color: #0284C7;
 }
 .summary-line.total {
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ws-border-subtle);
   padding-top: 8px;
   font-size: 14px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .total-price {
   font-size: 18px;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 
 /* Landed Cost Widget */
@@ -761,7 +762,7 @@ onMounted(() => {
   gap: 8px;
   cursor: pointer;
   font-size: 13px;
-  color: #1E40AF;
+  color: var(--ws-info);
 }
 .toggle-icon {
   margin-left: auto;
@@ -770,8 +771,8 @@ onMounted(() => {
 }
 .widget-body {
   padding: 12px 14px;
-  border-top: 1px solid #DBEAFE;
-  background: #FFF;
+  border-top: 1px solid var(--ws-info-bg);
+  background: var(--ws-surface);
 }
 .landed-form-grid {
   display: grid;
@@ -781,7 +782,7 @@ onMounted(() => {
 }
 .landed-form-grid label {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   display: block;
   margin-bottom: 2px;
 }
@@ -793,7 +794,7 @@ onMounted(() => {
   font-size: 12px;
 }
 .landed-results {
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 10px;
   border-radius: 6px;
   display: flex;
@@ -804,17 +805,17 @@ onMounted(() => {
 .res-row {
   display: flex;
   justify-content: space-between;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .res-row.total-landed {
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--ws-border-subtle);
   padding-top: 6px;
   margin-top: 4px;
   font-weight: 800;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .unit-landed {
-  color: #2563EB;
+  color: var(--ws-info);
 }
 
 /* Buttons */
@@ -824,9 +825,9 @@ onMounted(() => {
   gap: 10px;
 }
 .btn-add-cart {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border: 1px solid #FED7AA;
-  color: #CC3D00;
+  color: var(--ws-brand);
   padding: 12px;
   border-radius: 6px;
   font-size: 13px;
@@ -834,8 +835,8 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-start-trade-order {
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   padding: 12px;
   border-radius: 6px;
@@ -844,7 +845,7 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-start-trade-order:hover {
-  background: #C2410C;
+  background: var(--ws-brand);
 }
 .secondary-actions-group {
   display: grid;
@@ -852,9 +853,9 @@ onMounted(() => {
   gap: 10px;
 }
 .btn-sample-request {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: 1px solid #CBD5E1;
-  color: #334155;
+  color: var(--ws-text-2);
   padding: 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -862,9 +863,9 @@ onMounted(() => {
   cursor: pointer;
 }
 .btn-inquiry {
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   border: 1px solid #CBD5E1;
-  color: #475569;
+  color: var(--ws-text-2);
   padding: 10px;
   border-radius: 6px;
   font-size: 12px;
@@ -875,18 +876,18 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   padding: 8px 12px;
   border-radius: 6px;
-  border: 1px solid #FFEDD5;
+  border: 1px solid var(--ws-brand-light);
   font-size: 11px;
-  color: #9A3412;
+  color: var(--ws-brand-hover);
   margin-bottom: 8px;
   align-items: center;
 }
 .fcl-rec-pill {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   padding: 2px 6px;
   border-radius: 4px;
   font-weight: 700;

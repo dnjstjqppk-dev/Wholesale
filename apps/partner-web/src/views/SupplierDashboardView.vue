@@ -5,7 +5,7 @@
         <h2>공급사 파트너 영업/생산 종합 대시보드 (Seller Central)</h2>
         <p class="subtitle">실시간 카탈로그, RFQ 입찰, 수주 생산, 재고 원장 및 에스크로 정산 지표가 API 서버와 동기화됩니다.</p>
       </div>
-      <button class="btn-refresh" @click="loadDashboard">↻ 실시간 지표 새로고침</button>
+      <button class="btn-refresh" @click="loadDashboard"><WsIcon name="refresh" :size="15" /> 실시간 지표 새로고침</button>
     </div>
 
     <div v-if="loading" class="loading-box">대시보드 지표를 서버에서 불러오는 중입니다...</div>
@@ -56,7 +56,7 @@
         <!-- Recent Received Orders -->
         <div class="panel-card">
           <div class="panel-head">
-            <h3>📦 최근 수주 도매 주문</h3>
+            <h3><WsIcon name="package" :size="15" /> 최근 수주 도매 주문</h3>
             <router-link to="/fulfillment">전체 주문 관리 →</router-link>
           </div>
           <table class="mini-table">
@@ -78,7 +78,7 @@
         <!-- Warehouse Inventory Quick Status -->
         <div class="panel-card">
           <div class="panel-head">
-            <h3>🏭 창고 가용 재고 원장 요약</h3>
+            <h3><WsIcon name="factory" :size="15" /> 창고 가용 재고 원장 요약</h3>
             <router-link to="/inventory">재고 입고/조정 →</router-link>
           </div>
           <table class="mini-table">
@@ -104,6 +104,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const loading = ref(true);
 const stats = ref<any>({
@@ -140,37 +141,37 @@ onMounted(() => {
 
 <style scoped>
 .dash-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #172B4D; }
-.subtitle { color: #64748B; font-size: 13px; margin: 0; }
-.btn-refresh { background: #FFF; border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-box { padding: 40px; text-align: center; background: #FFF; border-radius: 8px; border: 1px solid #D8E0EB; }
+h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
+.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
+.btn-refresh { background: var(--ws-surface); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
+.loading-box { padding: 40px; text-align: center; background: var(--ws-surface); border-radius: 8px; border: 1px solid var(--ws-border); }
 
 .verification-banner { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
 .banner-left { display: flex; align-items: center; gap: 14px; }
-.shield { background: #15803D; color: #FFF; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; }
-.banner-left h4 { margin: 0 0 4px 0; color: #14532D; font-size: 15px; }
-.banner-left p { margin: 0; color: #166534; font-size: 12px; }
-.btn-outline { background: #FFF; border: 1px solid #86EFAC; color: #15803D; padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; text-decoration: none; }
+.shield { background: var(--ws-success); color: var(--ws-surface); width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+.banner-left h4 { margin: 0 0 4px 0; color: var(--ws-success); font-size: 15px; }
+.banner-left p { margin: 0; color: var(--ws-success); font-size: 12px; }
+.btn-outline { background: var(--ws-surface); border: 1px solid #86EFAC; color: var(--ws-success); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; text-decoration: none; }
 
 .kpi-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
-.kpi-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
-.kpi-card .label { font-size: 12px; color: #64748B; font-weight: 600; }
-.kpi-card .value { font-size: 24px; font-weight: 800; color: #172B4D; font-variant-numeric: tabular-nums; }
-.kpi-card .value.highlight { color: #C2410C; }
-.kpi-card .sub-link { font-size: 11px; color: #2563EB; text-decoration: none; font-weight: 600; margin-top: 4px; }
+.kpi-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 18px; display: flex; flex-direction: column; gap: 6px; }
+.kpi-card .label { font-size: 12px; color: var(--ws-text-muted); font-weight: 600; }
+.kpi-card .value { font-size: 24px; font-weight: 800; color: var(--ws-text); font-variant-numeric: tabular-nums; }
+.kpi-card .value.highlight { color: var(--ws-brand); }
+.kpi-card .sub-link { font-size: 11px; color: var(--ws-info); text-decoration: none; font-weight: 600; margin-top: 4px; }
 
 .dash-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-.panel-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 20px; }
+.panel-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 20px; }
 .panel-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
-.panel-head h3 { margin: 0; font-size: 15px; color: #172B4D; }
-.panel-head a { font-size: 12px; color: #C2410C; text-decoration: none; font-weight: 700; }
+.panel-head h3 { margin: 0; font-size: 15px; color: var(--ws-text); }
+.panel-head a { font-size: 12px; color: var(--ws-brand); text-decoration: none; font-weight: 700; }
 .mini-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.mini-table th, .mini-table td { border-bottom: 1px solid #F1F5F9; padding: 8px 6px; text-align: left; }
-.mini-table th { color: #64748B; background: #F8FAFC; }
-.bold { font-weight: 700; color: #0F172A; }
+.mini-table th, .mini-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 8px 6px; text-align: left; }
+.mini-table th { color: var(--ws-text-muted); background: var(--ws-surface-muted); }
+.bold { font-weight: 700; color: var(--ws-text); }
 .num { font-variant-numeric: tabular-nums; font-weight: 700; }
-.avail { color: #15803D; font-weight: 800; }
-.badge { background: #EFF6FF; color: #1D4ED8; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.avail { color: var(--ws-success); font-weight: 800; }
+.badge { background: #EFF6FF; color: var(--ws-info); padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
 
 @media (max-width: 1024px) {
   .kpi-grid { grid-template-columns: repeat(3, 1fr); }

@@ -174,13 +174,13 @@ onMounted(() => {
 .head-text h2 {
   font-size: 22px;
   font-weight: 800;
-  color: #0f172a;
+  color: var(--ws-text);
   margin: 0 0 4px 0;
 }
 
 .subtitle {
   font-size: 13px;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin: 0;
 }
 
@@ -204,7 +204,7 @@ onMounted(() => {
 }
 
 .btn-period.active {
-  background: #0f172a;
+  background: var(--ws-text);
   color: white;
 }
 
@@ -222,7 +222,7 @@ onMounted(() => {
 
 .kpi-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 20px;
   display: flex;
@@ -233,7 +233,7 @@ onMounted(() => {
 .kpi-title {
   font-size: 12px;
   font-weight: 600;
-  color: #64748b;
+  color: var(--ws-text-muted);
   margin-bottom: 8px;
 }
 
@@ -245,13 +245,13 @@ onMounted(() => {
 
 .kpi-sub {
   font-size: 11px;
-  color: #94a3b8;
+  color: var(--ws-admin-dim);
   margin-top: auto;
 }
 
 .card-section {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 24px;
 }
@@ -259,9 +259,9 @@ onMounted(() => {
 .card-section h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--ws-text);
   margin: 0 0 16px 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 
@@ -280,24 +280,24 @@ onMounted(() => {
 
 .channel-name {
   font-weight: 600;
-  color: #334155;
+  color: var(--ws-text-2);
 }
 
 .channel-metric {
-  color: #64748b;
+  color: var(--ws-text-muted);
   font-family: monospace;
 }
 
 .progress-track {
   height: 8px;
-  background: #f1f5f9;
+  background: var(--ws-surface-muted);
   border-radius: 9999px;
   overflow: hidden;
 }
 
 .progress-bar {
   height: 100%;
-  background: #3b82f6;
+  background: var(--ws-info);
   border-radius: 9999px;
 }
 
@@ -309,21 +309,21 @@ onMounted(() => {
 }
 
 .data-table th {
-  background: #f8fafc;
+  background: var(--ws-surface-muted);
   padding: 10px 14px;
-  color: #475569;
-  border-bottom: 1px solid #e2e8f0;
+  color: var(--ws-text-2);
+  border-bottom: 1px solid var(--ws-border-subtle);
   font-weight: 600;
 }
 
 .data-table td {
   padding: 12px 14px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .tag-rate {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
@@ -332,11 +332,11 @@ onMounted(() => {
 
 .state-box {
   background: white;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 10px;
   padding: 60px;
   text-align: center;
-  color: #64748b;
+  color: var(--ws-text-muted);
 }
 
 /* Mobile & Tablet Responsive Layout */

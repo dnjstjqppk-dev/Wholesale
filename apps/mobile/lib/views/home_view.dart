@@ -53,7 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 120,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Color(0xFFD64000), Color(0xFFCC3D00)],
+                      colors: [Color(0xFFC2410C), Color(0xFFCC3D00)],
                     ),
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -118,7 +118,7 @@ class _CatIcon extends StatelessWidget {
       children: [
         CircleAvatar(
           backgroundColor: const Color(0xFFF0F0F0),
-          child: Icon(icon, color: const Color(0xFFD64000)),
+          child: Icon(icon, color: const Color(0xFFC2410C)),
         ),
         const SizedBox(height: 4),
         Text(label, style: const TextStyle(fontSize: 11)),

@@ -6,7 +6,7 @@
         <!-- Categories Quick Menu -->
         <aside class="hero-categories">
           <div class="category-header">
-            <span class="icon">📁</span>
+            <span class="icon"><WsIcon name="file" :size="15" /></span>
             <strong>주요 산업 대분류</strong>
           </div>
           <ul class="cat-list">
@@ -29,7 +29,7 @@
         <!-- Main Banner Carousel -->
         <div class="hero-banner">
           <div class="banner-slide">
-            <div class="banner-badge">🛡️ Alibaba Trade Assurance 보안 연동</div>
+            <div class="banner-badge"><WsIcon name="shield" :size="15" /> Alibaba Trade Assurance 보안 연동</div>
             <h1 class="banner-title">글로벌 무역 안심 거래<br>선급금 30% 에스크로 보호</h1>
             <p class="banner-desc">
               계약서 전자서명부터 제3자 품질 검수, 선적 선하증권(B/L) 확인까지<br>
@@ -47,21 +47,21 @@
 
           <div class="hero-guarantees">
             <div class="guarantee-item">
-              <span class="g-icon">🔒</span>
+              <span class="g-icon"><WsIcon name="lock" :size="15" /></span>
               <div>
                 <strong>에스크로 안심 결제</strong>
                 <p>납품 완료 시까지 정산금 플랫폼 보관</p>
               </div>
             </div>
             <div class="guarantee-item">
-              <span class="g-icon">🚢</span>
+              <span class="g-icon"><WsIcon name="truck" :size="15" /></span>
               <div>
                 <strong>Incoterms® 2020 지원</strong>
                 <p>FOB / CIF / DDP 실시간 운임 견적</p>
               </div>
             </div>
             <div class="guarantee-item">
-              <span class="g-icon">🔍</span>
+              <span class="g-icon"><WsIcon name="search" :size="15" /></span>
               <div>
                 <strong>공장 실사 및 품질 검수</strong>
                 <p>SGS / TÜV 인증 제조사만 입점</p>
@@ -73,7 +73,7 @@
         <!-- Fast RFQ Widget & User Box -->
         <div class="hero-rfq-box">
           <div class="user-greeting-card">
-            <div class="user-avatar-circle">🏢</div>
+            <div class="user-avatar-circle"><WsIcon name="building" :size="15" /></div>
             <div class="user-info">
               <span class="welcome-text">환영합니다, 구매사님!</span>
               <strong class="user-name">Metro Wholesale</strong>
@@ -111,7 +111,7 @@
                 </select>
               </div>
               <button type="submit" class="btn-fast-rfq" :disabled="submittingRfq">
-                {{ submittingRfq ? '발행 중...' : '견적 요청서 즉시 발행 ⚡' }}
+                {{ submittingRfq ? '발행 중...' : '견적 요청서 즉시 발행' }} <WsIcon v-if="!submittingRfq" name="bolt" :size="14" />
               </button>
             </form>
           </div>
@@ -123,7 +123,7 @@
     <section class="section-block">
       <div class="section-header">
         <div class="title-with-icon">
-          <span class="section-icon">🏆</span>
+          <span class="section-icon"><WsIcon name="star" :size="15" /></span>
           <div>
             <h2>Top Ranking: 글로벌 도매 인기 랭킹</h2>
             <p>월간 발주량 및 바이어 재구매율 기준 최상위 도매 품목</p>
@@ -144,7 +144,7 @@
           <div class="card-media">
             <span class="rank-badge" :class="`rank-${idx + 1}`">Top {{ idx + 1 }}</span>
             <img :src="product.thumbnail || product.images[0]" :alt="product.title" class="product-img" />
-            <span v-if="product.trade_assurance" class="ta-badge">🛡️ Trade Assurance</span>
+            <span v-if="product.trade_assurance" class="ta-badge"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
           </div>
           <div class="card-body">
             <h4 class="product-title" :title="product.title">{{ product.title }}</h4>
@@ -154,7 +154,7 @@
             </div>
             <div class="meta-row">
               <span class="moq">MOQ: {{ product.moq }} {{ product.unit }}</span>
-              <span class="rating">⭐ {{ product.rating }} ({{ product.reviews_count }})</span>
+              <span class="rating">★ {{ product.rating }} ({{ product.reviews_count }})</span>
             </div>
             <div class="supplier-info">
               <span class="sup-flag">🇰🇷</span>
@@ -171,7 +171,7 @@
         <div class="box-head">
           <div class="head-text">
             <span class="badge-red">빠른 선적</span>
-            <h3>⚡ Ready to Ship (즉시 출고관)</h3>
+            <h3><WsIcon name="bolt" :size="15" /> Ready to Ship (즉시 출고관)</h3>
             <p>공장 실재고 보유, 48시간 내 선적항 발송 가능 품목</p>
           </div>
           <router-link :to="`/${currentLocale}/${currentCurrency}/catalog?incoterm=FOB`" class="btn-sm">
@@ -199,7 +199,7 @@
         <div class="box-head">
           <div class="head-text">
             <span class="badge-blue">사전 품질 확인</span>
-            <h3>🧪 Sample Center (샘플 전용관)</h3>
+            <h3><WsIcon name="flask" :size="16" /> Sample Center (샘플 전용관)</h3>
             <p>대량 발주 전 1~5개 단위 유료 규격 샘플 지원</p>
           </div>
           <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="btn-sm">
@@ -228,7 +228,7 @@
     <section class="section-block verified-suppliers-section">
       <div class="section-header">
         <div class="title-with-icon">
-          <span class="section-icon">🏭</span>
+          <span class="section-icon"><WsIcon name="factory" :size="15" /></span>
           <div>
             <h2>Verified Supplier: 인증 제조기업 쇼케이스</h2>
             <p>SGS / TÜV 제3자 현장 실사 및 ISO 9001 품질 인증 제조사</p>
@@ -270,10 +270,10 @@
           </div>
           <div class="sup-actions">
             <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers/11111111-1111-1111-1111-111111111111`" class="btn-storefront">
-              공장 VR 투어 및 전용관 열기 🏭
+              공장 VR 투어 및 전용관 열기 <WsIcon name="factory" :size="15" />
             </router-link>
             <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="btn-inquiry">
-              제조사 1:1 직통 문의 💬
+              제조사 1:1 직통 문의 <WsIcon name="chat" :size="15" />
             </router-link>
           </div>
         </div>
@@ -297,7 +297,7 @@
     <section class="section-block category-shelves-section">
       <div class="section-header">
         <div class="title-with-icon">
-          <span class="section-icon">📦</span>
+          <span class="section-icon"><WsIcon name="package" :size="15" /></span>
           <div>
             <h2>5대 핵심 산업 카테고리 기획전</h2>
             <p>산업기계, 전자부품, 패키징, 주방생활, 화학원자재 25개 소분류 직거래</p>
@@ -326,7 +326,7 @@
         >
           <div class="card-media">
             <img :src="item.thumbnail || item.images[0]" :alt="item.title" class="product-img" />
-            <span v-if="item.trade_assurance" class="ta-badge">🛡️ Trade Assurance</span>
+            <span v-if="item.trade_assurance" class="ta-badge"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
           </div>
           <div class="card-body">
             <span class="sub-badge">{{ item.sub_category }}</span>
@@ -351,6 +351,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiRequest } from '../api';
 import { formatCurrency, SupportedLocale, SupportedCurrency } from '../i18n';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -459,8 +460,8 @@ onMounted(() => {
 
 /* Hero Section */
 .hero-section {
-  background: #FFF;
-  border-bottom: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border-bottom: 1px solid var(--ws-border-subtle);
   padding: 16px 0 24px;
 }
 .hero-container {
@@ -474,14 +475,14 @@ onMounted(() => {
 
 /* Category Sidebar */
 .hero-categories {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   overflow: hidden;
 }
 .category-header {
-  background: #0F172A;
-  color: #FFF;
+  background: var(--ws-text);
+  color: var(--ws-surface);
   padding: 12px 16px;
   display: flex;
   align-items: center;
@@ -494,16 +495,16 @@ onMounted(() => {
   margin: 0;
 }
 .cat-item {
-  border-bottom: 1px solid #F1F5F9;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 .cat-item:hover, .cat-item.active {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
 }
 .cat-link {
   display: flex;
   align-items: center;
   padding: 12px 16px;
-  color: #334155;
+  color: var(--ws-text-2);
   text-decoration: none;
   font-size: 13px;
   font-weight: 500;
@@ -511,19 +512,19 @@ onMounted(() => {
 }
 .cat-link .arrow {
   margin-left: auto;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
   font-weight: bold;
 }
 .cat-item:hover .cat-link {
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 
 /* Hero Banner */
 .hero-banner {
-  background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+  background: linear-gradient(135deg, var(--ws-text) 0%, var(--ws-text) 100%);
   border-radius: 8px;
   padding: 32px 36px 20px;
-  color: #FFF;
+  color: var(--ws-surface);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -533,7 +534,7 @@ onMounted(() => {
   display: inline-block;
   background: rgba(234, 88, 12, 0.2);
   color: #FB923C;
-  border: 1px solid #CC3D00;
+  border: 1px solid var(--ws-brand);
   padding: 4px 12px;
   border-radius: 9999px;
   font-size: 12px;
@@ -558,8 +559,8 @@ onMounted(() => {
   margin-bottom: 24px;
 }
 .btn-primary {
-  background: #FF6A00;
-  color: #FFF;
+  background: var(--ws-brand-hover);
+  color: var(--ws-surface);
   padding: 10px 20px;
   border-radius: 6px;
   text-decoration: none;
@@ -567,11 +568,11 @@ onMounted(() => {
   font-size: 14px;
 }
 .btn-primary:hover {
-  background: #E55E00;
+  background: var(--ws-brand-hover);
 }
 .btn-secondary {
   background: rgba(255, 255, 255, 0.1);
-  color: #FFF;
+  color: var(--ws-surface);
   border: 1px solid rgba(255, 255, 255, 0.25);
   padding: 10px 20px;
   border-radius: 6px;
@@ -600,12 +601,12 @@ onMounted(() => {
 .guarantee-item strong {
   display: block;
   font-size: 12px;
-  color: #F8FAFC;
+  color: var(--ws-surface-muted);
 }
 .guarantee-item p {
   margin: 2px 0 0;
   font-size: 11px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 
 /* Fast RFQ Box */
@@ -615,8 +616,8 @@ onMounted(() => {
   gap: 14px;
 }
 .user-greeting-card {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 14px;
   display: flex;
@@ -639,16 +640,16 @@ onMounted(() => {
 }
 .welcome-text {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .user-name {
   font-size: 13px;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .badge-buyer {
   display: inline-block;
-  background: #DCFCE7;
-  color: #166534;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 6px;
@@ -658,7 +659,7 @@ onMounted(() => {
 }
 
 .quick-rfq-card {
-  background: #FFF;
+  background: var(--ws-surface);
   border: 1px solid #FED7AA;
   border-radius: 8px;
   padding: 16px;
@@ -671,8 +672,8 @@ onMounted(() => {
   margin-bottom: 4px;
 }
 .badge-fast {
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 6px;
@@ -682,11 +683,11 @@ onMounted(() => {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .card-sub {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin: 0 0 12px;
 }
 .fast-rfq-form {
@@ -707,8 +708,8 @@ onMounted(() => {
   gap: 8px;
 }
 .btn-fast-rfq {
-  background: #CC3D00;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   padding: 10px;
   border-radius: 6px;
@@ -718,7 +719,7 @@ onMounted(() => {
   margin-top: 4px;
 }
 .btn-fast-rfq:hover {
-  background: #C2410C;
+  background: var(--ws-brand);
 }
 
 /* Sections */
@@ -733,7 +734,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-end;
   margin-bottom: 16px;
-  border-bottom: 2px solid #F1F5F9;
+  border-bottom: 2px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 .title-with-icon {
@@ -748,15 +749,15 @@ onMounted(() => {
   font-size: 18px;
   font-weight: 800;
   margin: 0;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .title-with-icon p {
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin: 4px 0 0;
 }
 .more-link {
-  color: #CC3D00;
+  color: var(--ws-brand);
   font-weight: 700;
   font-size: 13px;
   text-decoration: none;
@@ -769,8 +770,8 @@ onMounted(() => {
   gap: 14px;
 }
 .product-card {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   overflow: hidden;
   cursor: pointer;
@@ -779,13 +780,13 @@ onMounted(() => {
 .product-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0,0,0,0.06);
-  border-color: #CC3D00;
+  border-color: var(--ws-brand);
 }
 .card-media {
   position: relative;
   width: 100%;
   padding-top: 100%;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
 }
 .product-img {
   position: absolute;
@@ -799,23 +800,23 @@ onMounted(() => {
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #DC2626;
-  color: #FFF;
+  background: var(--ws-danger);
+  color: var(--ws-surface);
   font-size: 10px;
   font-weight: 800;
   padding: 2px 6px;
   border-radius: 4px;
   z-index: 2;
 }
-.rank-1 { background: #DC2626; }
-.rank-2 { background: #CC3D00; }
+.rank-1 { background: var(--ws-danger); }
+.rank-2 { background: var(--ws-brand); }
 .rank-3 { background: #F59E0B; }
 .ta-badge {
   position: absolute;
   bottom: 6px;
   left: 6px;
   background: rgba(15, 23, 42, 0.85);
-  color: #38BDF8;
+  color: var(--ws-info);
   font-size: 9px;
   font-weight: 700;
   padding: 2px 6px;
@@ -830,7 +831,7 @@ onMounted(() => {
 .product-title {
   font-size: 12px;
   font-weight: 600;
-  color: #1E293B;
+  color: var(--ws-text);
   margin: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -844,25 +845,25 @@ onMounted(() => {
 .price-tier-row .price {
   font-size: 15px;
   font-weight: 800;
-  color: #CC3D00;
+  color: var(--ws-brand);
 }
 .price-tier-row .unit {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .meta-row {
   display: flex;
   justify-content: space-between;
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .supplier-info {
   display: flex;
   align-items: center;
   gap: 4px;
   font-size: 11px;
-  color: #475569;
-  border-top: 1px solid #F1F5F9;
+  color: var(--ws-text-2);
+  border-top: 1px solid var(--ws-surface-muted);
   padding-top: 6px;
   margin-top: 4px;
 }
@@ -879,8 +880,8 @@ onMounted(() => {
   gap: 20px;
 }
 .col-box {
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 20px;
 }
@@ -891,8 +892,8 @@ onMounted(() => {
   margin-bottom: 16px;
 }
 .badge-red {
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: var(--ws-danger-bg);
+  color: var(--ws-danger);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -900,7 +901,7 @@ onMounted(() => {
 }
 .badge-blue {
   background: #E0E7FF;
-  color: #3730A3;
+  color: var(--ws-info);
   font-size: 10px;
   font-weight: 700;
   padding: 2px 6px;
@@ -910,16 +911,16 @@ onMounted(() => {
   margin: 6px 0 2px;
   font-size: 16px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .head-text p {
   margin: 0;
   font-size: 12px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .btn-sm {
   font-size: 12px;
-  color: #CC3D00;
+  color: var(--ws-brand);
   text-decoration: none;
   font-weight: 700;
 }
@@ -929,7 +930,7 @@ onMounted(() => {
   gap: 12px;
 }
 .mini-card {
-  border: 1px solid #F1F5F9;
+  border: 1px solid var(--ws-surface-muted);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
@@ -956,17 +957,17 @@ onMounted(() => {
 .mini-price {
   font-size: 12px;
   font-weight: 700;
-  color: #CC3D00;
+  color: var(--ws-brand);
   margin-top: 2px;
 }
 .mini-moq {
   font-size: 10px;
-  color: #94A3B8;
+  color: var(--ws-admin-dim);
 }
 
 /* Verified Supplier Showcase */
 .supplier-showcase-card {
-  background: #FFF;
+  background: var(--ws-surface);
   border: 1px solid #CBD5E1;
   border-radius: 8px;
   padding: 24px;
@@ -985,18 +986,18 @@ onMounted(() => {
   margin: 0;
   font-size: 18px;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .v-pill {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
   font-size: 11px;
   font-weight: 700;
   padding: 2px 8px;
   border-radius: 9999px;
 }
 .sup-tagline {
-  color: #475569;
+  color: var(--ws-text-2);
   font-size: 13px;
   margin: 0 0 16px;
 }
@@ -1004,7 +1005,7 @@ onMounted(() => {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 12px;
   border-radius: 6px;
   margin-bottom: 20px;
@@ -1012,20 +1013,20 @@ onMounted(() => {
 .stat strong {
   display: block;
   font-size: 14px;
-  color: #0F172A;
+  color: var(--ws-text);
   font-weight: 800;
 }
 .stat span {
   font-size: 10px;
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .sup-actions {
   display: flex;
   gap: 10px;
 }
 .btn-storefront {
-  background: #0F172A;
-  color: #FFF;
+  background: var(--ws-text);
+  color: var(--ws-surface);
   padding: 8px 16px;
   border-radius: 6px;
   text-decoration: none;
@@ -1033,8 +1034,8 @@ onMounted(() => {
   font-weight: 700;
 }
 .btn-inquiry {
-  background: #FFF7ED;
-  color: #CC3D00;
+  background: var(--ws-brand-light);
+  color: var(--ws-brand);
   border: 1px solid #FED7AA;
   padding: 8px 16px;
   border-radius: 6px;
@@ -1048,7 +1049,7 @@ onMounted(() => {
   gap: 10px;
 }
 .sup-p-card {
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 6px;
   overflow: hidden;
   cursor: pointer;
@@ -1056,7 +1057,7 @@ onMounted(() => {
   flex-direction: column;
 }
 .sup-p-card:hover {
-  border-color: #CC3D00;
+  border-color: var(--ws-brand);
 }
 .sup-p-card img {
   width: 100%;
@@ -1073,7 +1074,7 @@ onMounted(() => {
 }
 .sup-p-card .p-price {
   font-size: 12px;
-  color: #CC3D00;
+  color: var(--ws-brand);
   padding: 0 6px 6px;
 }
 
@@ -1085,7 +1086,7 @@ onMounted(() => {
   overflow-x: auto;
 }
 .cat-tab-btn {
-  background: #FFF;
+  background: var(--ws-surface);
   border: 1px solid #CBD5E1;
   padding: 8px 16px;
   border-radius: 9999px;
@@ -1097,9 +1098,9 @@ onMounted(() => {
   gap: 6px;
 }
 .cat-tab-btn.active {
-  background: #CC3D00;
-  color: #FFF;
-  border-color: #CC3D00;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
+  border-color: var(--ws-brand);
 }
 .shelf-product-grid {
   display: grid;
@@ -1108,8 +1109,8 @@ onMounted(() => {
 }
 .sub-badge {
   display: inline-block;
-  background: #F1F5F9;
-  color: #475569;
+  background: var(--ws-surface-muted);
+  color: var(--ws-text-2);
   font-size: 10px;
   padding: 2px 6px;
   border-radius: 4px;

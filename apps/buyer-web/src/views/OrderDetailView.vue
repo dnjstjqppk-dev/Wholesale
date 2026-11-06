@@ -28,7 +28,7 @@
           <p class="supplier-text">
             공급사: <strong>{{ order.supplier_name }}</strong>
             <span class="badge-verified">✓ Verified Supplier</span>
-            <span class="badge-ta">🛡️ Trade Assurance</span>
+            <span class="badge-ta"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
           </p>
         </div>
         <div class="header-right">
@@ -133,12 +133,12 @@
             <div class="box-head-row">
               <h4>무역 공식 증빙 서류 (Document Center)</h4>
               <button class="btn-upload-doc" @click="showUploadModal = true">
-                ☁️ 클라우드 R2/S3 서류 업로드
+                <WsIcon name="upload" :size="15" /> 클라우드 R2/S3 서류 업로드
               </button>
             </div>
             <div class="doc-list">
               <div class="doc-item">
-                <span class="doc-icon">📄</span>
+                <span class="doc-icon"><WsIcon name="file" :size="15" /></span>
                 <div class="doc-info">
                   <span class="doc-title">상업 송장 (Commercial Invoice)</span>
                   <span class="doc-sub">CI-{{ order.order_number }}.pdf</span>
@@ -146,7 +146,7 @@
                 <button class="btn-download" @click="downloadDoc('Commercial Invoice')">다운로드</button>
               </div>
               <div class="doc-item">
-                <span class="doc-icon">📦</span>
+                <span class="doc-icon"><WsIcon name="package" :size="15" /></span>
                 <div class="doc-info">
                   <span class="doc-title">포장 명세서 (Packing List)</span>
                   <span class="doc-sub">PL-{{ order.order_number }}.pdf</span>
@@ -154,7 +154,7 @@
                 <button class="btn-download" @click="downloadDoc('Packing List')">다운로드</button>
               </div>
               <div class="doc-item">
-                <span class="doc-icon">🚢</span>
+                <span class="doc-icon"><WsIcon name="truck" :size="15" /></span>
                 <div class="doc-info">
                   <span class="doc-title">선하증권 (Ocean Bill of Lading)</span>
                   <span class="doc-sub">BL-MAERSK-998821.pdf</span>
@@ -162,7 +162,7 @@
                 <button class="btn-download" @click="downloadDoc('Bill of Lading')">다운로드</button>
               </div>
               <div class="doc-item">
-                <span class="doc-icon">🔍</span>
+                <span class="doc-icon"><WsIcon name="search" :size="15" /></span>
                 <div class="doc-info">
                   <span class="doc-title">SGS 국제 품질 검수 성적서 (Inspection Report)</span>
                   <span class="doc-sub">SGS-AQL-2.5-PASS.pdf</span>
@@ -172,7 +172,7 @@
 
               <!-- Dynamically Uploaded Documents from Cloud Storage -->
               <div v-for="d in uploadedDocumentsList" :key="d.id" class="doc-item dynamic">
-                <span class="doc-icon">📎</span>
+                <span class="doc-icon"><WsIcon name="file" :size="15" /></span>
                 <div class="doc-info">
                   <span class="doc-title">{{ d.file_name }}</span>
                   <span class="doc-sub">R2 Vault: {{ d.sha256_hash?.slice(0, 16) }}... ({{ (d.file_size_bytes / 1024).toFixed(1) }} KB)</span>
@@ -185,7 +185,7 @@
           <!-- Real-Time Customs Declaration Manifest -->
           <div class="card-box customs-box">
             <div class="box-head-row">
-              <h4>🏛️ 수출입 세관 통관 필증 원장 (Customs Manifest)</h4>
+              <h4><WsIcon name="building" :size="15" /> 수출입 세관 통관 필증 원장 (Customs Manifest)</h4>
               <span class="customs-badge" :class="customsManifest?.customs_status?.toLowerCase() || 'cleared'">
                 {{ customsManifest?.customs_status || 'CLEARED' }}
               </span>
@@ -218,7 +218,7 @@
             </div>
             <div class="customs-foot">
               <span>수출 승인 면허: <code>{{ customsManifest?.export_license_number || 'EL-2026-KR-7711' }}</code></span>
-              <button class="btn-sm-view" @click="openCustomsCert">📄 세관 필증 원본 열람</button>
+              <button class="btn-sm-view" @click="openCustomsCert"><WsIcon name="file" :size="15" /> 세관 필증 원본 열람</button>
             </div>
           </div>
         </div>
@@ -228,7 +228,7 @@
           <!-- Active Trade Assurance Claim Notice -->
           <div v-if="activeClaim" class="claim-status-card">
             <div class="claim-badge-row">
-              <span class="claim-icon">🛡️</span>
+              <span class="claim-icon"><WsIcon name="shield" :size="15" /></span>
               <span class="claim-title">Trade Assurance 무역 안심 보증 심사 진행 중</span>
               <span class="claim-stat-tag">{{ activeClaim.arbitration_status }}</span>
             </div>
@@ -247,7 +247,7 @@
                 :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`"
                 class="btn-full primary"
               >
-                ✍️ 전자계약서 확인 및 서명하기
+                <WsIcon name="pencil" :size="15" /> 전자계약서 확인 및 서명하기
               </router-link>
             </div>
 
@@ -271,7 +271,7 @@
                 :disabled="approvingInspection"
                 @click="approveInspection"
               >
-                {{ approvingInspection ? '승인 중...' : '🔍 제3자 품질 검수(SGS) 합격 승인' }}
+                <WsIcon v-if="!(approvingInspection)" name="search" :size="14" /> {{ approvingInspection ? '승인 중...' : '제3자 품질 검수(SGS) 합격 승인' }}
               </button>
             </div>
 
@@ -307,7 +307,7 @@
                   class="btn-full danger"
                   @click="showClaimModal = true"
                 >
-                  🛡️ 100% Trade Assurance 보증 클레임 신청
+                  <WsIcon name="shield" :size="15" /> 100% Trade Assurance 보증 클레임 신청
                 </button>
                 <router-link
                   :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/dispute`"
@@ -358,7 +358,7 @@
       <div class="claim-modal">
         <div class="modal-head">
           <div class="head-left">
-            <span class="cert-icon">🛡️</span>
+            <span class="cert-icon"><WsIcon name="shield" :size="15" /></span>
             <div>
               <h3>100% 무역 안심 보증 (Trade Assurance) 클레임 접수</h3>
               <p>주문번호: {{ order?.order_number }} | 보증 한도: ${{ ((order?.total_amount_minor || 420000) / 100).toLocaleString() }}</p>
@@ -402,7 +402,7 @@
             :disabled="submittingClaim || claimAmount <= 0"
             @click="fileTradeAssuranceClaim"
           >
-            {{ submittingClaim ? '클레임 심사 접수 중...' : '🛡️ Trade Assurance 보증 심사 정식 제출' }}
+            <WsIcon v-if="!(submittingClaim)" name="shield" :size="14" /> {{ submittingClaim ? '클레임 심사 접수 중...' : 'Trade Assurance 보증 심사 정식 제출' }}
           </button>
         </div>
       </div>
@@ -413,7 +413,7 @@
       <div class="claim-modal payment-modal">
         <div class="modal-head">
           <div class="head-left">
-            <span class="cert-icon">💳</span>
+            <span class="cert-icon"><WsIcon name="card" :size="15" /></span>
             <div>
               <h3>무역 에스크로 안전 결제 (B2B Escrow Checkout)</h3>
               <p>주문: {{ order?.order_number }} | 결제 단계: <strong>{{ paymentStage === 'DOWNPAYMENT_30' ? '1차 선급금 (30%)' : '2차 잔금 (70%)' }}</strong></p>
@@ -436,21 +436,21 @@
               :class="{ active: selectedPaymentTab === 'VIRTUAL_ACCOUNT' }"
               @click="selectedPaymentTab = 'VIRTUAL_ACCOUNT'"
             >
-              🏛️ 신탁 가상계좌 (B2B Wire)
+              <WsIcon name="building" :size="15" /> 신탁 가상계좌 (B2B Wire)
             </button>
             <button
               class="pay-tab"
               :class="{ active: selectedPaymentTab === 'CARD' }"
               @click="selectedPaymentTab = 'CARD'"
             >
-              💳 기업 법인카드 (Toss / Stripe)
+              <WsIcon name="card" :size="15" /> 기업 법인카드 (Toss / Stripe)
             </button>
             <button
               class="pay-tab"
               :class="{ active: selectedPaymentTab === 'SWIFT' }"
               @click="selectedPaymentTab = 'SWIFT'"
             >
-              🌐 해외 전신환 (SWIFT)
+              <WsIcon name="globe" :size="15" /> 해외 전신환 (SWIFT)
             </button>
           </div>
 
@@ -481,7 +481,7 @@
                 :disabled="simulatingDeposit"
                 @click="simulateBankDeposit"
               >
-                {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '⚡ 은행 입금 통보 시뮬레이터 (Bank Webhook Test)' }}
+                <WsIcon v-if="!(simulatingDeposit)" name="bolt" :size="14" /> {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '은행 입금 통보 시뮬레이터 (Bank Webhook Test)' }}
               </button>
             </div>
           </div>
@@ -511,7 +511,7 @@
               :disabled="confirmingCard"
               @click="confirmCardPayment"
             >
-              {{ confirmingCard ? 'PG사 결제 승인 중...' : '💳 기업 법인카드 에스크로 결제 승인' }}
+              <WsIcon v-if="!(confirmingCard)" name="card" :size="14" /> {{ confirmingCard ? 'PG사 결제 승인 중...' : '기업 법인카드 에스크로 결제 승인' }}
             </button>
           </div>
 
@@ -522,7 +522,7 @@
               <p><strong>SWIFT / BIC Code:</strong> <code>SHBKKRSEXXX</code></p>
               <p><strong>Beneficiary Account:</strong> <code>USD-ESCROW-88192-KR</code></p>
               <p><strong>Payment Reference (Mandatory):</strong> <code>{{ order?.order_number }}</code></p>
-              <p class="swift-alert">⚠️ 국제 송금 시 필히 무역 발주번호(<code>{{ order?.order_number }}</code>)를 전문에 기재해야 자동 매칭됩니다.</p>
+              <p class="swift-alert"><WsIcon name="alert" :size="15" /> 국제 송금 시 필히 무역 발주번호(<code>{{ order?.order_number }}</code>)를 전문에 기재해야 자동 매칭됩니다.</p>
             </div>
           </div>
         </div>
@@ -538,7 +538,7 @@
       <div class="claim-modal">
         <div class="modal-head">
           <div class="head-left">
-            <span class="cert-icon">☁️</span>
+            <span class="cert-icon"><WsIcon name="upload" :size="15" /></span>
             <div>
               <h3>클라우드 R2/S3 무역 공식 서류 업로드</h3>
               <p>주문번호: {{ order?.order_number }} | 영구 클라우드 스토리지 보관 및 SHA-256 검증</p>
@@ -566,7 +566,7 @@
           </div>
 
           <div class="upload-dropzone">
-            <span class="dz-icon">📄</span>
+            <span class="dz-icon"><WsIcon name="file" :size="15" /></span>
             <p class="dz-title">파일을 드래그하거나 선택하세요</p>
             <span class="dz-sub">PDF, PNG, JPG, CAD 도면 (최대 50MB, 암호화 저장)</span>
           </div>
@@ -579,7 +579,7 @@
             :disabled="uploadingDoc || !uploadFileName"
             @click="handleFileUpload"
           >
-            {{ uploadingDoc ? '클라우드 업로드 중...' : '☁️ 클라우드 스토리지 전송 및 원장 등록' }}
+            <WsIcon v-if="!(uploadingDoc)" name="upload" :size="14" /> {{ uploadingDoc ? '클라우드 업로드 중...' : '클라우드 스토리지 전송 및 원장 등록' }}
           </button>
         </div>
       </div>
@@ -591,6 +591,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const currentLocale = ref<string>((route.params.locale as string) || 'ko');
@@ -929,7 +930,7 @@ onMounted(() => {
 }
 
 .breadcrumb a {
-  color: #d64000;
+  color: var(--ws-brand);
   text-decoration: none;
   font-weight: 600;
   font-size: 14px;
@@ -945,13 +946,13 @@ onMounted(() => {
 
 .toast-banner.success {
   background: #ecfdf5;
-  color: #065f46;
+  color: var(--ws-success);
   border: 1px solid #a7f3d0;
 }
 
 .toast-banner.error {
   background: #fef2f2;
-  color: #991b1b;
+  color: var(--ws-danger);
   border: 1px solid #fecaca;
 }
 
@@ -982,12 +983,12 @@ onMounted(() => {
 
 .ord-date {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .supplier-text {
   font-size: 14px;
-  color: #374151;
+  color: var(--ws-text-2);
   margin: 0;
   display: flex;
   align-items: center;
@@ -1004,7 +1005,7 @@ onMounted(() => {
 }
 
 .badge-ta {
-  background: #cc3d00;
+  background: var(--ws-brand);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -1019,13 +1020,13 @@ onMounted(() => {
 .total-label {
   display: block;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .total-amount {
   font-size: 26px;
   font-weight: 800;
-  color: #d64000;
+  color: var(--ws-brand);
 }
 
 .timeline-card {
@@ -1040,7 +1041,7 @@ onMounted(() => {
   margin: 0 0 20px 0;
   font-size: 16px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--ws-text);
 }
 
 .timeline-steps {
@@ -1055,7 +1056,7 @@ onMounted(() => {
   gap: 10px;
   padding: 12px;
   border-radius: 8px;
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   border: 1px solid #e5e7eb;
 }
 
@@ -1065,15 +1066,15 @@ onMounted(() => {
 }
 
 .timeline-step.current {
-  background: #fff7ed;
-  border-color: #d64000;
+  background: var(--ws-brand-light);
+  border-color: var(--ws-brand);
 }
 
 .step-num {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #d1d5db;
+  background: var(--ws-border-subtle);
   color: white;
   display: flex;
   align-items: center;
@@ -1088,7 +1089,7 @@ onMounted(() => {
 }
 
 .timeline-step.current .step-num {
-  background: #d64000;
+  background: var(--ws-brand);
 }
 
 .step-info {
@@ -1099,12 +1100,12 @@ onMounted(() => {
 .step-title {
   font-size: 12px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--ws-text);
 }
 
 .step-status {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .detail-grid {
@@ -1125,21 +1126,21 @@ onMounted(() => {
   margin: 0 0 14px 0;
   font-size: 15px;
   font-weight: 700;
-  color: #1f2937;
-  border-bottom: 1px solid #f3f4f6;
+  color: var(--ws-text);
+  border-bottom: 1px solid var(--ws-surface-muted);
   padding-bottom: 10px;
 }
 
 .item-info h5 {
   font-size: 16px;
   margin: 0 0 8px 0;
-  color: #111827;
+  color: var(--ws-text);
 }
 
 .item-info p {
   margin: 4px 0;
   font-size: 13px;
-  color: #4b5563;
+  color: var(--ws-text-2);
 }
 
 .financial-table {
@@ -1150,7 +1151,7 @@ onMounted(() => {
 
 .financial-table td {
   padding: 8px 0;
-  border-bottom: 1px solid #f9fafb;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .financial-table .total-row td {
@@ -1168,7 +1169,7 @@ onMounted(() => {
   display: flex;
   align-items: center;
   padding: 10px 12px;
-  background: #f9fafb;
+  background: var(--ws-surface-muted);
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   gap: 12px;
@@ -1187,17 +1188,17 @@ onMounted(() => {
 .doc-title {
   font-size: 13px;
   font-weight: 600;
-  color: #1f2937;
+  color: var(--ws-text);
 }
 
 .doc-sub {
   font-size: 11px;
-  color: #9ca3af;
+  color: var(--ws-admin-dim);
 }
 
 .btn-download {
   background: white;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--ws-border-subtle);
   padding: 4px 10px;
   border-radius: 4px;
   font-size: 12px;
@@ -1205,18 +1206,18 @@ onMounted(() => {
 }
 
 .actions-console {
-  border-top: 4px solid #d64000;
+  border-top: 4px solid var(--ws-brand);
 }
 
 .action-block {
   margin-bottom: 16px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--ws-surface-muted);
 }
 
 .action-desc {
   font-size: 13px;
-  color: #4b5563;
+  color: var(--ws-text-2);
   margin: 0 0 10px 0;
 }
 
@@ -1235,18 +1236,18 @@ onMounted(() => {
 }
 
 .btn-full.primary {
-  background: #d64000;
+  background: var(--ws-brand);
   color: white;
 }
 
 .btn-full.success {
-  background: #16a34a;
+  background: var(--ws-success);
   color: white;
 }
 
 .btn-full.danger {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--ws-danger-bg);
+  color: var(--ws-danger);
   border: 1px solid #f87171;
 }
 
@@ -1258,7 +1259,7 @@ onMounted(() => {
 
 .dispute-desc {
   font-size: 12px;
-  color: #6b7280;
+  color: var(--ws-text-muted);
   margin: 0 0 8px 0;
 }
 
@@ -1286,7 +1287,7 @@ onMounted(() => {
 }
 
 .tracking-event.active .event-dot {
-  background: #d64000;
+  background: var(--ws-brand);
   box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
 }
 
@@ -1297,17 +1298,17 @@ onMounted(() => {
 }
 
 .event-time {
-  color: #9ca3af;
+  color: var(--ws-admin-dim);
   font-size: 11px;
 }
 
 .event-desc {
-  color: #1f2937;
+  color: var(--ws-text);
   margin: 2px 0;
 }
 
 .event-loc {
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .state-box {
@@ -1316,7 +1317,7 @@ onMounted(() => {
   border-radius: 10px;
   padding: 60px;
   text-align: center;
-  color: #6b7280;
+  color: var(--ws-text-muted);
 }
 
 .dispute-btn-group {
@@ -1328,7 +1329,7 @@ onMounted(() => {
   display: block;
   text-align: center;
   font-size: 12px;
-  color: #DC2626;
+  color: var(--ws-danger);
   text-decoration: none;
   font-weight: 600;
   margin-top: 4px;
@@ -1354,41 +1355,41 @@ onMounted(() => {
   border-radius: 4px;
 }
 .customs-badge.cleared {
-  background: #DCFCE7;
-  color: #15803D;
+  background: var(--ws-success-bg);
+  color: var(--ws-success);
 }
 .customs-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   padding: 12px;
   border-radius: 6px;
-  border: 1px solid #E2E8F0;
+  border: 1px solid var(--ws-border-subtle);
   margin-bottom: 12px;
 }
 .cg-item {
   font-size: 12px;
 }
 .cg-lbl {
-  color: #64748B;
+  color: var(--ws-text-muted);
   display: block;
   font-size: 11px;
 }
 .cg-val {
   font-weight: 600;
-  color: #1E293B;
+  color: var(--ws-text);
 }
 .customs-foot {
   display: flex;
   justify-content: space-between;
   align-items: center;
   font-size: 12px;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .btn-sm-view {
   background: #E0F2FE;
-  color: #0369A1;
+  color: var(--ws-info);
   border: none;
   border-radius: 4px;
   padding: 4px 10px;
@@ -1413,13 +1414,13 @@ onMounted(() => {
 }
 .claim-title {
   font-weight: 700;
-  color: #991B1B;
+  color: var(--ws-danger);
   font-size: 13px;
 }
 .claim-stat-tag {
   margin-left: auto;
-  background: #FEE2E2;
-  color: #B91C1C;
+  background: var(--ws-danger-bg);
+  color: var(--ws-danger);
   font-weight: 800;
   font-size: 10px;
   padding: 2px 6px;
@@ -1432,7 +1433,7 @@ onMounted(() => {
 }
 .claim-desc {
   font-size: 11px;
-  color: #991B1B;
+  color: var(--ws-danger);
   margin: 4px 0 0;
   line-height: 1.4;
 }
@@ -1449,7 +1450,7 @@ onMounted(() => {
   padding: 16px;
 }
 .claim-modal {
-  background: #FFF;
+  background: var(--ws-surface);
   border-radius: 12px;
   max-width: 580px;
   width: 100%;
@@ -1464,7 +1465,7 @@ onMounted(() => {
   display: block;
   font-size: 12px;
   font-weight: 700;
-  color: #1E293B;
+  color: var(--ws-text);
   margin-bottom: 4px;
 }
 .form-select, .form-input, .form-textarea {
@@ -1477,7 +1478,7 @@ onMounted(() => {
 }
 .input-hint {
   font-size: 11px;
-  color: #64748B;
+  color: var(--ws-text-muted);
   margin-top: 4px;
   display: block;
 }
@@ -1494,8 +1495,8 @@ onMounted(() => {
 }
 .btn-submit-claim {
   padding: 8px 16px;
-  background: #DC2626;
-  color: #FFF;
+  background: var(--ws-danger);
+  color: var(--ws-surface);
   border: none;
   border-radius: 6px;
   font-weight: 700;
@@ -1510,7 +1511,7 @@ onMounted(() => {
 /* Commercial Escrow Payment Modal & Tabs */
 .btn-upload-doc {
   background: #F0FDF4;
-  color: #15803D;
+  color: var(--ws-success);
   border: 1px solid #BBF7D0;
   border-radius: 4px;
   padding: 4px 10px;
@@ -1519,11 +1520,11 @@ onMounted(() => {
   cursor: pointer;
 }
 .doc-item.dynamic {
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   border-left: 3px solid #0284C7;
 }
 .pay-amount-banner {
-  background: #FFF7ED;
+  background: var(--ws-brand-light);
   border: 1px solid #FED7AA;
   border-radius: 8px;
   padding: 14px 16px;
@@ -1535,39 +1536,39 @@ onMounted(() => {
 .p-lbl {
   font-size: 13px;
   font-weight: 600;
-  color: #9A3412;
+  color: var(--ws-brand-hover);
 }
 .p-val {
   font-size: 20px;
   font-weight: 800;
-  color: #C2410C;
+  color: var(--ws-brand);
 }
 .pay-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
-  border-bottom: 1px solid #E2E8F0;
+  border-bottom: 1px solid var(--ws-border-subtle);
   padding-bottom: 8px;
 }
 .pay-tab {
-  background: #F1F5F9;
+  background: var(--ws-surface-muted);
   border: 1px solid #CBD5E1;
   border-radius: 6px;
   padding: 8px 12px;
   font-size: 12px;
   font-weight: 700;
-  color: #475569;
+  color: var(--ws-text-2);
   cursor: pointer;
   transition: all 0.2s;
 }
 .pay-tab.active {
-  background: #C2410C;
-  color: #FFF;
-  border-color: #C2410C;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
+  border-color: var(--ws-brand);
 }
 .va-details-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 16px;
   display: flex;
@@ -1582,10 +1583,10 @@ onMounted(() => {
   font-size: 13px;
 }
 .va-lbl {
-  color: #64748B;
+  color: var(--ws-text-muted);
 }
 .va-val {
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .bank-sim-box {
   background: #F0FDF4;
@@ -1596,13 +1597,13 @@ onMounted(() => {
 }
 .sim-note {
   font-size: 11px;
-  color: #166534;
+  color: var(--ws-success);
   margin: 0 0 10px 0;
 }
 .btn-simulate-wire {
   width: 100%;
-  background: #15803D;
-  color: #FFF;
+  background: var(--ws-success);
+  color: var(--ws-surface);
   border: none;
   border-radius: 6px;
   padding: 10px;
@@ -1620,8 +1621,8 @@ onMounted(() => {
 }
 .btn-submit-pay {
   width: 100%;
-  background: #C2410C;
-  color: #FFF;
+  background: var(--ws-brand);
+  color: var(--ws-surface);
   border: none;
   border-radius: 6px;
   padding: 12px;
@@ -1634,8 +1635,8 @@ onMounted(() => {
   opacity: 0.6;
 }
 .swift-box {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface-muted);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 16px;
   font-size: 13px;
@@ -1644,13 +1645,13 @@ onMounted(() => {
   gap: 8px;
 }
 .swift-box code {
-  background: #E2E8F0;
+  background: var(--ws-border-subtle);
   padding: 2px 6px;
   border-radius: 4px;
-  color: #0F172A;
+  color: var(--ws-text);
 }
 .swift-alert {
-  color: #C2410C;
+  color: var(--ws-brand);
   font-size: 11px;
   margin-top: 6px;
 }
@@ -1659,7 +1660,7 @@ onMounted(() => {
   border-radius: 8px;
   padding: 30px;
   text-align: center;
-  background: #F8FAFC;
+  background: var(--ws-surface-muted);
   margin-top: 10px;
 }
 .dz-icon {
@@ -1670,11 +1671,11 @@ onMounted(() => {
 .dz-title {
   margin: 0 0 4px;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--ws-text);
   font-size: 13px;
 }
 .dz-sub {
-  color: #64748B;
+  color: var(--ws-text-muted);
   font-size: 11px;
 }
 

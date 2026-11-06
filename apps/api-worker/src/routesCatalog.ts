@@ -2,9 +2,10 @@
 // apps/api-worker/src/routesCatalog.ts
 // Catalog, Categories, Rich Filtering, CSV Bulk Upload, Image Vision Search & FX Rates
 
-import { jsonResponse, problemResponse } from './response';
-import { listings, CATEGORIES, SUPPLIER_ORG_ID, importJobs, logAudit, users, organizations } from './store';
-import { getAuthContext } from './jwt';
+import { jsonResponse, problemResponse } from './response.ts';
+import { parsePagination, paginate } from './pagination.ts';
+import { listings, CATEGORIES, SUPPLIER_ORG_ID, importJobs, logAudit, users, organizations } from './store.ts';
+import { getAuthContext, check, requireRole } from './security.ts';
 
 export const FX_RATES = {
   base: 'USD',
@@ -242,6 +243,8 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
 
   // POST /v1/catalog/bulk-upload (Dry-run & Atomic Commit)
   if (url.pathname === '/v1/catalog/bulk-upload' && request.method === 'POST') {
+    check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+    requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
     const body = (await request.json().catch(() => ({}))) as any;
     const csvContent = body.csv_content || '';
     const isDryRun = body.dry_run === true || body.dry_run === 'true';
@@ -288,7 +291,7 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
       const rowProduct = {
         id: crypto.randomUUID(),
         sku_id: crypto.randomUUID(),
-        organization_id: ctx?.org?.id || SUPPLIER_ORG_ID,
+        organization_id: ctx.org.id,
         supplier_name: ctx?.org?.legal_name || 'Precision Korea Co., Ltd. (글로벌정밀산업)',
         supplier_country: 'KR',
         title,
@@ -305,13 +308,13 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         lead_time_days: parseInt(cols[6], 10) || 14,
         sample_price: String((basePrice * 1.5).toFixed(2)),
         sample_lead_time_days: 3,
-        status: 'PUBLISHED',
+        status: 'UNDER_REVIEW',
         rating: 5.0,
         reviews_count: 0,
         response_rate: '100%',
         years_in_business: 10,
-        trade_assurance: true,
-        verified_supplier: true,
+        trade_assurance: false,
+        verified_supplier: ctx.org.is_verified_supplier === true,
         customization: {
           custom_logo_moq: moq * 2,
           custom_packaging_moq: moq * 5,
@@ -548,9 +551,14 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         { label: '대량 공급 (1,000+)', max: 99999, count: allListings.filter(i => parseInt(i.moq, 10) >= 1000).length },
       ];
 
+      const page = paginate(items, parsePagination(url));
       return jsonResponse({
-        items,
-        total_count: items.length,
+        items: page.items,
+        total_count: page.total_count,
+        page: page.page,
+        page_size: page.page_size,
+        total_pages: page.total_pages,
+        has_next: page.has_next,
         facets: {
           categories: CATEGORIES.map(c => ({
             id: c.id,
@@ -566,6 +574,8 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
     }
 
     if (request.method === 'POST') {
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
+      requireRole(ctx, 'SUPPLIER_SALES', 'PLATFORM_ADMIN');
       const body = (await request.json().catch(() => ({}))) as any;
       if (!body.title || !body.moq || !body.price_tiers || !body.price_tiers.length) {
         return problemResponse(400, 'INVALID_BODY', 'Missing Listing Data', 'title, moq, and price_tiers are required');
@@ -575,7 +585,7 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
       const newListing = {
         id,
         sku_id: crypto.randomUUID(),
-        organization_id: body.organization_id || ctx?.org?.id || SUPPLIER_ORG_ID,
+        organization_id: ctx.org.id,
         supplier_name: body.supplier_name || ctx?.org?.legal_name || 'Precision Korea Co., Ltd. (글로벌정밀산업)',
         supplier_country: body.supplier_country || 'KR',
         title: body.title,
@@ -592,13 +602,13 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         lead_time_days: Number(body.lead_time_days || 14),
         sample_price: String(body.sample_price || '20.00'),
         sample_lead_time_days: Number(body.sample_lead_time_days || 3),
-        status: body.status || 'PUBLISHED',
+        status: 'UNDER_REVIEW',
         rating: 5.0,
         reviews_count: 0,
         response_rate: '100%',
         years_in_business: 12,
-        trade_assurance: true,
-        verified_supplier: true,
+        trade_assurance: false,
+        verified_supplier: ctx.org.is_verified_supplier === true,
         customization: body.customization || {
           custom_logo_moq: Number(body.moq) * 2,
           custom_packaging_moq: Number(body.moq) * 5,
@@ -642,11 +652,14 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
     }
 
     if (request.method === 'PUT') {
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
       if (!item) {
         return problemResponse(404, 'NOT_FOUND', 'Listing Not Found', `Product listing ${id} does not exist`);
       }
+      check(ctx.org.id === item.organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '본인 상품만 수정할 수 있습니다.');
       const body = (await request.json().catch(() => ({}))) as any;
-      Object.assign(item, body);
+      const { id: _ignoredId, organization_id: _ignoredOrg, verified_supplier: _ignoredVer, trade_assurance: _ignoredTa, status: _ignoredStatus, rating: _ignoredRating, reviews_count: _ignoredReviews, ...safeBody } = body;
+      Object.assign(item, safeBody);
       item.updated_at = new Date().toISOString();
 
       logAudit(
@@ -662,9 +675,11 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
     }
 
     if (request.method === 'DELETE') {
+      check(ctx, 401, 'UNAUTHORIZED', '로그인이 필요합니다.');
       if (!item) {
         return problemResponse(404, 'NOT_FOUND', 'Listing Not Found', `Product listing ${id} does not exist`);
       }
+      check(ctx.org.id === item.organization_id || ctx.user.role === 'PLATFORM_ADMIN', 403, 'FORBIDDEN', '본인 상품만 삭제할 수 있습니다.');
       listings.delete(id);
 
       logAudit(

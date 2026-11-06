@@ -49,7 +49,7 @@
       </div>
 
       <div class="security-banner">
-        <span class="icon">🔒</span>
+        <span class="icon"><WsIcon name="lock" :size="15" /></span>
         <div>
           <strong>테넌트 격리 및 무단 우회 방지 공지:</strong>
           <p>공급사 간 견적 금액 및 채팅은 완벽히 격리되며, 정식 계약 체결 전까지 개인 연락처는 비공개 처리됩니다.</p>
@@ -57,7 +57,7 @@
       </div>
 
       <div class="btn-group">
-        <button class="btn-submit" @click="handleSubmit">RFQ 정식 발행 (Publish RFQ)</button>
+        <button class="btn-submit" :disabled="submitting" @click="handleSubmit">{{ submitting ? '발행 처리 중...' : 'RFQ 정식 발행 (Publish RFQ)' }}</button>
       </div>
     </div>
   </div>
@@ -67,6 +67,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const router = useRouter();
 const submitting = ref(false);
@@ -108,22 +109,23 @@ async function handleSubmit() {
 
 <style scoped>
 .rfq-create-page { max-width: 800px; margin: 0 auto; }
-.rfq-card { background: #FFF; border: 1px solid #D8E0EB; border-radius: 8px; padding: 32px; }
-h2 { margin: 0 0 8px 0; font-size: 20px; color: #172B4D; }
-.desc { color: #42526E; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
+.rfq-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 32px; }
+h2 { margin: 0 0 8px 0; font-size: 20px; color: var(--ws-text); }
+.desc { color: var(--ws-text-2); font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
 .form-section { margin-bottom: 16px; }
-.form-section label { display: block; font-size: 13px; font-weight: 600; color: #172B4D; margin-bottom: 6px; }
-.form-section input, .form-section select { width: 100%; padding: 10px 12px; border: 1px solid #D8E0EB; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+.form-section label { display: block; font-size: 13px; font-weight: 600; color: var(--ws-text); margin-bottom: 6px; }
+.form-section input, .form-section select { width: 100%; padding: 10px 12px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
 .form-row { display: flex; gap: 16px; }
 .flex-1 { flex: 1; }
 .flex-2 { flex: 2; }
-.items-section { margin-top: 24px; border-top: 1px solid #E2E8F0; padding-top: 20px; }
-.items-section h3 { font-size: 15px; color: #172B4D; margin: 0 0 12px 0; }
-.item-box { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 6px; padding: 16px; }
-.security-banner { display: flex; gap: 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px; margin: 24px 0; font-size: 12px; color: #1E40AF; }
+.items-section { margin-top: 24px; border-top: 1px solid var(--ws-border-subtle); padding-top: 20px; }
+.items-section h3 { font-size: 15px; color: var(--ws-text); margin: 0 0 12px 0; }
+.item-box { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
+.security-banner { display: flex; gap: 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px; margin: 24px 0; font-size: 12px; color: var(--ws-info); }
 .security-banner .icon { font-size: 18px; }
 .security-banner p { margin: 4px 0 0 0; }
-.btn-submit { background: #C2410C; color: #FFF; border: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; }
+.btn-submit { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; }
+.btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
 
 @media (max-width: 600px) {
   .rfq-card { padding: 16px; }

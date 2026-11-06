@@ -3,7 +3,7 @@
     <!-- Hero Banner (Trade Assurance & Sourcing Highlights) -->
     <section class="hero-banner">
       <div class="banner-content">
-        <div class="banner-badge">🛡️ TRADE ASSURANCE 무역보증</div>
+        <div class="banner-badge"><WsIcon name="shield" :size="15" /> TRADE ASSURANCE 무역보증</div>
         <h1 class="banner-title">주문 결제부터 납기·통관까지 100% 안전 보호</h1>
         <p class="banner-desc">
           에스크로 안전 결제, 생산 지연 보상, 규격 불일치 시 100% 환불, SGS/TÜV 공인 실사 검수 지원
@@ -16,7 +16,7 @@
       </div>
       <div class="banner-rfq-card">
         <div class="rfq-card-head">
-          <span class="rfq-icon">⚡</span>
+          <span class="rfq-icon"><WsIcon name="bolt" :size="15" /></span>
           <div>
             <h3>원클릭 RFQ 빠른 견적</h3>
             <p>1분 만에 도매 견적을 요청하고 복수 공급사 견적을 비교하세요</p>
@@ -39,7 +39,7 @@
 
     <!-- Active Search Keyword Pill -->
     <div v-if="keywordFilter" class="active-query-bar">
-      <span>🔍 검색 키워드: <strong>"{{ keywordFilter }}"</strong></span>
+      <span><WsIcon name="search" :size="15" /> 검색 키워드: <strong>"{{ keywordFilter }}"</strong></span>
       <button class="btn-clear-q" @click="clearKeyword">✕ 검색어 해제</button>
     </div>
 
@@ -116,7 +116,7 @@
           <p>도매 상품 및 제조사 카탈로그를 서버에서 불러오는 중입니다...</p>
         </div>
         <div v-else-if="fetchError" class="catalog-state-box error-box">
-          <p class="error-msg">⚠️ {{ fetchError }}</p>
+          <p class="error-msg"><WsIcon name="alert" :size="15" /> {{ fetchError }}</p>
           <button class="btn-retry" @click="fetchListings">다시 시도</button>
         </div>
         <div v-else-if="filteredListings.length === 0" class="catalog-state-box empty-box">
@@ -152,6 +152,7 @@ import CatalogFilterSidebar from '../components/CatalogFilterSidebar.vue';
 import CatalogProductCard from '../components/CatalogProductCard.vue';
 import CatalogInquiryModal from '../components/CatalogInquiryModal.vue';
 import { apiRequest } from '../api';
+import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -334,44 +335,44 @@ onMounted(() => {
 
 <style scoped>
 .catalog-page { display: flex; flex-direction: column; gap: 24px; }
-.hero-banner { background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); border-radius: 12px; padding: 32px; color: #FFFFFF; display: flex; justify-content: space-between; align-items: center; gap: 32px; }
+.hero-banner { background: linear-gradient(135deg, var(--ws-text) 0%, var(--ws-text) 100%); border-radius: 12px; padding: 32px; color: var(--ws-surface); display: flex; justify-content: space-between; align-items: center; gap: 32px; }
 .banner-content { max-width: 660px; }
-.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid #D64000; color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
+.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid var(--ws-brand); color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
 .banner-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; line-height: 1.3; }
 .banner-desc { font-size: 14px; color: #CBD5E1; margin: 0 0 18px 0; }
-.banner-highlights { display: flex; gap: 16px; font-size: 12px; color: #38BDF8; font-weight: 600; }
+.banner-highlights { display: flex; gap: 16px; font-size: 12px; color: var(--ws-info); font-weight: 600; }
 
-.banner-rfq-card { background: #FFFFFF; color: #1E293B; border-radius: 10px; padding: 20px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+.banner-rfq-card { background: var(--ws-surface); color: var(--ws-text); border-radius: 10px; padding: 20px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
 .rfq-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
 .rfq-icon { font-size: 24px; }
 .rfq-card-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
-.rfq-card-head p { margin: 2px 0 0 0; font-size: 11px; color: #64748B; }
+.rfq-card-head p { margin: 2px 0 0 0; font-size: 11px; color: var(--ws-text-muted); }
 .rfq-mini-form { display: flex; flex-direction: column; gap: 8px; }
 .rfq-mini-form input, .rfq-mini-form select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
 .qty-row { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
-.btn-quick-rfq { background: #D64000; color: #FFF; border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
+.btn-quick-rfq { background: var(--ws-brand); color: var(--ws-surface); border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
 
-.active-query-bar { display: flex; justify-content: space-between; align-items: center; background: #FFF7ED; border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: #9A3412; }
-.btn-clear-q { background: #FFF; border: 1px solid #FB923C; color: #C2410C; border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.active-query-bar { display: flex; justify-content: space-between; align-items: center; background: var(--ws-brand-light); border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: var(--ws-brand-hover); }
+.btn-clear-q { background: var(--ws-surface); border: 1px solid #FB923C; color: var(--ws-brand); border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
 
 .active-chips-bar {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  background: #FFF;
-  border: 1px solid #E2E8F0;
+  background: var(--ws-surface);
+  border: 1px solid var(--ws-border-subtle);
   border-radius: 8px;
   padding: 10px 14px;
 }
 .chips-title {
   font-size: 12px;
   font-weight: 700;
-  color: #475569;
+  color: var(--ws-text-2);
 }
 .filter-chip {
   background: #EFF6FF;
-  color: #2563EB;
+  color: var(--ws-info);
   border: 1px solid #BFDBFE;
   padding: 3px 8px;
   border-radius: 4px;
@@ -381,15 +382,15 @@ onMounted(() => {
   transition: all 0.2s;
 }
 .filter-chip:hover {
-  background: #DBEAFE;
-  color: #1D4ED8;
+  background: var(--ws-info-bg);
+  color: var(--ws-info);
 }
 .btn-clear-all-chips {
   margin-left: auto;
   background: transparent;
   border: none;
   font-size: 11px;
-  color: #DC2626;
+  color: var(--ws-danger);
   font-weight: 700;
   cursor: pointer;
   text-decoration: underline;
@@ -397,18 +398,18 @@ onMounted(() => {
 
 .catalog-main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
 .products-section { display: flex; flex-direction: column; gap: 16px; }
-.section-toolbar { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
-.toolbar-left h2 { margin: 0; font-size: 16px; font-weight: 800; color: #1E293B; }
-.toolbar-left .count { color: #D64000; }
-.sub-hint { font-size: 12px; color: #64748B; }
+.section-toolbar { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
+.toolbar-left h2 { margin: 0; font-size: 16px; font-weight: 800; color: var(--ws-text); }
+.toolbar-left .count { color: var(--ws-brand); }
+.sub-hint { font-size: 12px; color: var(--ws-text-muted); }
 .toolbar-right { display: flex; align-items: center; gap: 8px; }
-.sort-label { font-size: 12px; color: #64748B; font-weight: 600; }
+.sort-label { font-size: 12px; color: var(--ws-text-muted); font-weight: 600; }
 .sort-select { border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 10px; font-size: 12px; }
 
 .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.catalog-state-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 48px 24px; text-align: center; color: #475569; font-size: 14px; }
-.error-box .error-msg { color: #DC2626; font-weight: 700; margin-bottom: 12px; }
-.btn-retry { background: #1E293B; color: #FFF; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.catalog-state-box { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 8px; padding: 48px 24px; text-align: center; color: var(--ws-text-2); font-size: 14px; }
+.error-box .error-msg { color: var(--ws-danger); font-weight: 700; margin-bottom: 12px; }
+.btn-retry { background: var(--ws-text); color: var(--ws-surface); border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
 
 /* Responsive Mobile & Tablet Layout */
 @media (max-width: 992px) {

@@ -9,6 +9,8 @@ import DisputeArbitrationView from '../views/DisputeArbitrationView.vue';
 import SettlementApprovalView from '../views/SettlementApprovalView.vue';
 import AuditLogView from '../views/AuditLogView.vue';
 import MasterDataView from '../views/MasterDataView.vue';
+import NotFoundView from '../views/NotFoundView.vue';
+import ErrorView from '../views/ErrorView.vue';
 
 const routes = [
   { path: '/', name: 'dashboard', component: AdminDashboardView },
@@ -21,7 +23,8 @@ const routes = [
   { path: '/disputes', name: 'disputes', component: DisputeArbitrationView },
   { path: '/settlements', name: 'settlements', component: SettlementApprovalView },
   { path: '/audit', name: 'audit', component: AuditLogView },
-  { path: '/:pathMatch(.*)*', redirect: '/' },
+  { path: '/500', name: 'server-error', component: ErrorView },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ];
 
 const router = createRouter({

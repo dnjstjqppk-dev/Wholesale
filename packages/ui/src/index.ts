@@ -1,3 +1,4 @@
+export { default as WsIcon } from './WsIcon.vue';
 export { default as TierPriceBadge } from './TierPriceBadge.vue';
 export { default as QuoteStatusPill } from './QuoteStatusPill.vue';
 export { default as IncotermSelector } from './IncotermSelector.vue';
