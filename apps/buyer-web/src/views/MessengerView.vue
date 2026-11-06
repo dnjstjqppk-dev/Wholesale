@@ -71,14 +71,14 @@
                   <p class="q-badge"><WsIcon name="tag" :size="13" /> 공식 견적 제안서</p>
                   <b>{{ msg.quote_card?.title || activeThread.listing_title || activeThread.subject }}</b>
                   <dl>
-                    <div><dt>제안 단가</dt><dd class="ws-price ws-figure">${{ msg.quote_card?.unit_price || '2.15' }} / {{ msg.quote_card?.unit || 'pcs' }}</dd></div>
+                    <div><dt>제안 단가</dt><dd class="ws-price-dark ws-figure">${{ msg.quote_card?.unit_price || '2.15' }} / {{ msg.quote_card?.unit || 'pcs' }}</dd></div>
                     <div><dt>발주 수량</dt><dd class="ws-figure">{{ msg.quote_card?.quantity || 1000 }} {{ msg.quote_card?.unit || 'pcs' }}</dd></div>
                     <div><dt>인도 조건</dt><dd>{{ msg.quote_card?.incoterms || 'FOB Busan Port' }}</dd></div>
                     <div><dt>생산 납기</dt><dd>{{ msg.quote_card?.lead_time_days || 10 }}일 이내 출고</dd></div>
                   </dl>
                   <p class="q-total">총 제안 공급가액 <b class="ws-figure">${{ ((Number(msg.quote_card?.unit_price) || 2.15) * (Number(msg.quote_card?.quantity) || 1000)).toLocaleString() }} USD</b></p>
                   <div class="q-actions">
-                    <button class="ws-btn ws-btn-primary ws-btn-sm" @click="acceptQuoteAndOrder(msg.quote_card)">견적 수락·발주서 작성 →</button>
+                    <button class="ws-btn ws-btn-accent ws-btn-sm" @click="acceptQuoteAndOrder(msg.quote_card)">견적 수락·발주서 작성 →</button>
                     <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="openQuoteComposer(msg.quote_card)">조건 수정 반대 제안</button>
                   </div>
                 </div>
@@ -88,16 +88,16 @@
                   <p class="ws-small">계약 번호 <code>{{ msg.contract_card?.contract_number || 'CTR-2026-001' }}</code></p>
                   <p class="ws-small">총 계약 금액 <b class="ws-figure">${{ msg.contract_card?.total_amount || '4,200.00' }} USD</b></p>
                   <p class="ws-small ws-muted hash-line">SHA-256 <code>{{ msg.contract_card?.sha256_hash || 'c67469723725e6e0d3c03848b1d619997f7bb7fa...' }}</code></p>
-                  <router-link :to="`/${currentLocale}/${currentCurrency}/contracts/CTR-2026-001`" class="ws-btn ws-btn-navy ws-btn-sm">
+                  <router-link :to="`/${currentLocale}/${currentCurrency}/contracts/CTR-2026-001`" class="ws-btn ws-btn-accent ws-btn-sm">
                     <WsIcon name="pencil" :size="13" /> 원문 열람·인앱 전자서명
                   </router-link>
                 </div>
 
                 <div v-else-if="msg.message_type === 'PAYMENT_REQUEST' || msg.payment_card" class="q-card">
                   <p class="q-badge"><WsIcon name="shield" :size="13" /> 에스크로 예치 청구</p>
-                  <p class="ws-small">1차 선급금 (30%) <b class="ws-price ws-figure">${{ msg.payment_card?.amount_usd || '1,260.00' }} USD</b></p>
+                  <p class="ws-small">1차 선급금 (30%) <b class="ws-price-dark ws-figure">${{ msg.payment_card?.amount_usd || '1,260.00' }} USD</b></p>
                   <p class="ws-small">보관 기관 <b>신한은행 B2B 무역 에스크로 신탁</b></p>
-                  <router-link :to="`/${currentLocale}/${currentCurrency}/orders/ord-20261018-001`" class="ws-btn ws-btn-primary ws-btn-sm">
+                  <router-link :to="`/${currentLocale}/${currentCurrency}/orders/ord-20261018-001`" class="ws-btn ws-btn-accent ws-btn-sm">
                     <WsIcon name="building" :size="13" /> 가상계좌 입금·결제 바로가기 →
                   </router-link>
                 </div>
@@ -130,7 +130,7 @@
             <input v-model="attachmentUrl" type="text" class="ws-input" placeholder="첨부 도면/CAD URL (선택)" />
             <div class="composer-row">
               <input v-model="newMessage" type="text" class="ws-input" placeholder="기술 규격·납기·단가 협상 메시지를 입력하세요..." @keyup.enter="sendMessage" />
-              <button class="ws-btn ws-btn-primary" :disabled="sending || !newMessage.trim()" @click="sendMessage">
+              <button class="ws-btn ws-btn-accent" :disabled="sending || !newMessage.trim()" @click="sendMessage">
                 {{ sending ? '전송 중...' : '전송' }}
               </button>
             </div>
@@ -170,7 +170,7 @@
         </div>
         <div class="ws-modal-foot">
           <button class="ws-btn ws-btn-secondary" @click="showQuoteModal = false">취소</button>
-          <button class="ws-btn ws-btn-primary" :disabled="sending" @click="sendQuoteOfferCard">
+          <button class="ws-btn ws-btn-accent" :disabled="sending" @click="sendQuoteOfferCard">
             {{ sending ? '전송 중...' : '견적 카드 전송' }}
           </button>
         </div>

@@ -8,7 +8,7 @@
         요청을 처리하는 중에 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.
       </p>
       <div class="error-actions">
-        <button class="ws-btn ws-btn-primary" @click="retry">다시 시도</button>
+        <button class="ws-btn ws-btn-accent" @click="retry">다시 시도</button>
         <router-link to="/" class="ws-btn ws-btn-secondary">대시보드로 이동</router-link>
       </div>
     </div>

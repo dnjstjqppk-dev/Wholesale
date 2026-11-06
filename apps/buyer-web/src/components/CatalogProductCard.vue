@@ -6,7 +6,7 @@
         :alt="item.title"
         loading="lazy"
       />
-      <span class="ws-badge ws-badge-navy cc-cat">{{ item.category }}</span>
+      <span class="ws-badge ws-badge-brand cc-cat">{{ item.category }}</span>
       <span class="ws-cluster cc-pills" style="gap: 6px">
         <span v-if="item.trade_assurance" class="ws-badge ws-badge-brand"><WsIcon name="shield" :size="12" /> TA</span>
         <span v-if="item.customization" class="ws-badge ws-badge-info">OEM/ODM</span>
@@ -29,12 +29,12 @@
         <tbody>
           <tr v-for="(tier, idx) in item.price_tiers" :key="idx">
             <td>{{ tier.min_quantity }} ~ {{ tier.max_quantity || '+' }} {{ item.unit }}</td>
-            <td style="text-align: right"><b class="ws-price ws-figure">{{ formatPrice(tier.unit_price) }}</b></td>
+            <td style="text-align: right"><b class="ws-price-dark ws-figure">{{ formatPrice(tier.unit_price) }}</b></td>
           </tr>
         </tbody>
       </table>
 
-      <p class="cc-meta">MOQ <b>{{ item.moq }}{{ item.unit }}</b> · 납기 <b>{{ item.lead_time_days }}일</b> · 응답률 <b class="ws-price">{{ item.response_rate || '99.2%' }}</b></p>
+      <p class="cc-meta"><span class="ws-moq">MOQ: <b>{{ item.moq }}{{ item.unit }}</b></span> · 납기 <b>{{ item.lead_time_days }}일</b> · 응답률 <b>{{ item.response_rate || '99.2%' }}</b></p>
 
       <div class="cc-actions">
         <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="$emit('inquiry', item)">
@@ -43,7 +43,7 @@
         <button class="ws-btn ws-btn-secondary ws-btn-sm" :disabled="addingCart" @click="addToCart(item)">
           <WsIcon name="cart" :size="13" /> {{ addingCart ? '담는 중...' : '카트 담기' }}
         </button>
-        <router-link :to="`/${locale}/${currency}/products/${item.id}`" class="ws-btn ws-btn-primary ws-btn-sm">
+        <router-link :to="`/${locale}/${currency}/products/${item.id}`" class="ws-btn ws-btn-accent ws-btn-sm">
           상세 발주 ›
         </router-link>
       </div>

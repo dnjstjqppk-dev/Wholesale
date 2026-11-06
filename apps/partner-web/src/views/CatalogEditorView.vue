@@ -29,7 +29,7 @@
                 <td class="ws-cell-main">{{ item.title }}</td>
                 <td class="ws-cell-sub">{{ item.category }}</td>
                 <td class="ws-figure">{{ item.moq }} {{ item.unit }}</td>
-                <td class="ws-num"><b class="ws-price ws-figure">${{ Number(item.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
+                <td class="ws-num"><b class="ws-price-dark ws-figure">${{ Number(item.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
                 <td><span class="ws-badge ws-badge-info">{{ item.status || 'PUBLISHED' }}</span></td>
                 <td>
                   <span class="ws-cluster" style="gap: 6px">
@@ -133,7 +133,7 @@
         <span>{{ errorMsg }}</span>
       </div>
 
-      <button type="submit" class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg editor-save" :disabled="submitting">
+      <button type="submit" class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg editor-save" :disabled="submitting">
         <span v-if="submitting" class="ws-spinner"></span>
         {{ submitting ? '서버 저장 중...' : (editingId ? '상품 정보·단가 수정 저장' : '신규 상품 게시·단가표 적용') }}
       </button>

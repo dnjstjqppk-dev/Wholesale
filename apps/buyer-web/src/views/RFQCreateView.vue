@@ -49,7 +49,7 @@
         <div><b>테넌트 격리·무단 우회 방지:</b> 공급사 간 견적·채팅은 격리되며, 계약 체결 전까지 개인 연락처는 비공개 처리됩니다.</div>
       </div>
 
-      <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting" @click="handleSubmit">
+      <button class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="submitting" @click="handleSubmit">
         <span v-if="submitting" class="ws-spinner"></span>
         {{ submitting ? '발행 처리 중...' : 'RFQ 정식 발행' }}
       </button>

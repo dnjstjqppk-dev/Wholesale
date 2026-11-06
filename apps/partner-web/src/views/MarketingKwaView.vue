@@ -5,7 +5,7 @@
       <div class="ws-page-head-row">
         <h1 class="ws-page-title">키워드 광고·입찰 관리</h1>
         <div class="ws-page-actions">
-          <button class="ws-btn ws-btn-primary" @click="showCreateModal = true"><WsIcon name="plus" :size="14" /> 신규 입찰 등록</button>
+          <button class="ws-btn ws-btn-accent" @click="showCreateModal = true"><WsIcon name="plus" :size="14" /> 신규 입찰 등록</button>
         </div>
       </div>
       <p class="ws-page-sub">검색 결과 상단 우선 노출을 위한 키워드 CPC 입찰·일일 예산·실시간 성과 관리.</p>
@@ -68,7 +68,7 @@
                   <td class="ws-num ws-figure">${{ c.daily_budget_usd.toFixed(2) }}</td>
                   <td class="ws-num ws-figure">{{ c.impressions.toLocaleString() }}</td>
                   <td class="ws-num ws-figure">{{ c.clicks.toLocaleString() }}</td>
-                  <td class="ws-num"><b class="ws-price ws-figure">${{ c.total_spend_usd.toFixed(2) }}</b></td>
+                  <td class="ws-num"><b class="ws-price-dark ws-figure">${{ c.total_spend_usd.toFixed(2) }}</b></td>
                   <td>
                     <button class="ws-badge" :class="c.status === 'ACTIVE' ? 'ws-badge-success' : 'ws-badge-outline'" style="cursor: pointer; border: 1px solid var(--ws-border)" @click="toggleStatus(c)">
                       <WsIcon v-if="c.status !== 'ACTIVE'" name="pause" :size="12" />{{ c.status === 'ACTIVE' ? '✓ 활성 중' : '일시 정지' }}
@@ -109,7 +109,7 @@
           </div>
           <div class="ws-modal-foot">
             <button type="button" class="ws-btn ws-btn-secondary" @click="showCreateModal = false">취소</button>
-            <button type="submit" class="ws-btn ws-btn-primary" :disabled="submitting">
+            <button type="submit" class="ws-btn ws-btn-accent" :disabled="submitting">
               <span v-if="submitting" class="ws-spinner"></span> {{ submitting ? '입찰 등록 중...' : '광고 등록·입찰 개시' }}
             </button>
           </div>

@@ -327,7 +327,7 @@ class _ProductCard extends StatelessWidget {
                       const Text('적용 구간 단가:'),
                       Text('\$$unitPrice / ${product.unit}',
                           style: const TextStyle(
-                              fontWeight: FontWeight.w800, color: WsColors.brand)),
+                              fontWeight: FontWeight.w800, color: WsColors.text)),
                     ],
                   ),
                   const SizedBox(height: 6),

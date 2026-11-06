@@ -71,7 +71,7 @@
                     <td>1차</td>
                     <td class="ws-cell-main">선급금 (Down Payment)</td>
                     <td>30%</td>
-                    <td class="ws-num"><b class="ws-price">{{ formatMoney(downPaymentAmount) }}</b></td>
+                    <td class="ws-num"><b class="ws-price-dark">{{ formatMoney(downPaymentAmount) }}</b></td>
                     <td class="ws-cell-sub">계약 체결 후 에스크로 가상계좌 입금 즉시 생산 착수</td>
                   </tr>
                   <tr>
@@ -100,11 +100,11 @@
           <div><dt>물품 총 공급가액 (FOB)</dt><dd class="ws-figure">{{ formatMoney(totalAmount) }}</dd></div>
           <div><dt>Trade Assurance 수수료</dt><dd class="free">무료</dd></div>
           <div class="total"><dt>최종 계약 총액</dt><dd class="ws-figure">{{ formatMoney(totalAmount) }}</dd></div>
-          <div class="em"><dt>1차 선급금 (30%)</dt><dd class="ws-price ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
+          <div class="em"><dt>1차 선급금 (30%)</dt><dd class="ws-price-dark ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
         </dl>
         <p class="legal-note">계약서 발급 시 ICC 표준 국제매매계약서가 생성되고 SHA-256 해시가 부여됩니다. 전자서명 후 생산이 개시됩니다.</p>
         <p v-if="error" class="ws-error-text">{{ error }}</p>
-        <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting || checkoutItems.length === 0" @click="generateContract">
+        <button class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="submitting || checkoutItems.length === 0" @click="generateContract">
           <span v-if="submitting" class="ws-spinner"></span>
           <WsIcon v-else name="pencil" :size="14" />
           {{ submitting ? '계약서 생성·주문 접수 중...' : '최종 계약서 발급·주문 체결' }}

@@ -20,14 +20,14 @@
       <article v-for="rfq in rfqs" :key="rfq.id" class="ws-card rfq-card">
         <div class="ws-split rfq-head">
           <span class="ws-cluster" style="gap: 10px">
-            <span class="ws-badge ws-badge-navy">{{ rfq.destination_country }}</span>
+            <span class="ws-badge ws-badge-brand">{{ rfq.destination_country }}</span>
             <h3>{{ rfq.title }}</h3>
           </span>
           <span class="ws-small ws-muted">마감: {{ rfq.expires_at }}</span>
         </div>
         <div class="spec-strip">
           <div><i>요청 수량</i><b class="ws-figure">{{ rfq.requested_qty }} {{ rfq.unit }}</b></div>
-          <div><i>목표 단가</i><b class="ws-price ws-figure">${{ rfq.target_price }}</b></div>
+          <div><i>목표 단가</i><b class="ws-price-dark ws-figure">${{ rfq.target_price }}</b></div>
           <div><i>바이어</i><b><span class="ws-badge ws-badge-outline">보호된 검증 구매사</span></b></div>
         </div>
         <div class="bid-box">
@@ -36,7 +36,7 @@
             <div class="ws-field" style="margin-bottom: 0"><label>제안 단가 (USD)</label><input v-model="rfq.bidPrice" type="text" placeholder="예: 4.80" /></div>
             <div class="ws-field" style="margin-bottom: 0"><label>납기일수</label><input v-model.number="rfq.bidLeadTime" type="number" placeholder="14" /></div>
             <div class="ws-field" style="margin-bottom: 0"><label>Incoterms 2020</label><input v-model="rfq.bidIncoterm" type="text" placeholder="FOB Busan" /></div>
-            <button class="ws-btn ws-btn-primary" :disabled="submitting" @click="submitBid(rfq)">
+            <button class="ws-btn ws-btn-accent" :disabled="submitting" @click="submitBid(rfq)">
               {{ submitting ? '제출 중...' : (rfq.hasBid ? '견적 수정본(Rev 2) 발행' : '신규 견적 제출 (Rev 1)') }}
             </button>
           </div>

@@ -83,9 +83,10 @@ function onSelectCategory(catId: string) {
 <style scoped>
 .cat-bar { background: #fff; border-bottom: 1px solid var(--ws-border-subtle); position: relative; z-index: 40; }
 .cat-inner { max-width: 1360px; margin: 0 auto; padding: 0 20px; display: flex; align-items: stretch; }
-.mega-trigger { position: relative; display: flex; align-items: center; gap: 9px; background: var(--ws-navy-ink); color: #fff; font-size: 13px; padding: 11px 18px; cursor: pointer; min-width: 240px; }
+.mega-trigger { position: relative; display: flex; align-items: center; gap: 9px; background: #fff; color: var(--ws-text); font-size: 13px; padding: 11px 18px; cursor: pointer; min-width: 240px; border-right: 1px solid var(--ws-border-subtle); }
 .mega-trigger b { font-weight: 800; }
-.mega-arrow { margin-left: auto; font-size: 11px; color: #93a4bc; }
+.mega-trigger:hover b { color: var(--ws-accent); }
+.mega-arrow { margin-left: auto; font-size: 11px; color: var(--ws-text-faint); }
 .mega-flyout { position: absolute; top: 100%; left: 0; width: min(1020px, calc(100vw - 32px)); background: #fff; border: 1px solid var(--ws-border-subtle); border-top: 0; border-radius: 0 0 12px 12px; box-shadow: var(--ws-shadow-pop); padding: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; z-index: 60; }
 .mega-col { cursor: pointer; border-radius: 8px; padding: 10px; }
 .mega-col:hover { background: var(--ws-brand-faint); }

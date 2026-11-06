@@ -153,7 +153,7 @@ onMounted(() => {
 .ws-stat-value.hot { color: var(--ws-brand); }
 .ws-stat-value.escrow { font-size: 19px; }
 .ws-stat .ws-section-more { display: inline-block; margin-top: 6px; font-size: 12px; }
-.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .avail { color: var(--ws-success); }
 @media (max-width: 1100px) {
   .kpi-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }

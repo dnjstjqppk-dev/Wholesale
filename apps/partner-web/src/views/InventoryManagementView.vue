@@ -36,7 +36,7 @@
                 <td>
                   <span class="adj-box">
                     <input v-model.number="adjustAmounts[item.sku_id]" type="number" step="100" class="ws-input" placeholder="+500 / -200" />
-                    <button class="ws-btn ws-btn-primary ws-btn-sm" @click="applyAdjustment(item)">반영</button>
+                    <button class="ws-btn ws-btn-accent ws-btn-sm" @click="applyAdjustment(item)">반영</button>
                   </span>
                 </td>
               </tr>
@@ -99,7 +99,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .warn { color: var(--ws-warning); }
 .avail { color: var(--ws-success); }
 .adj-box { display: inline-flex; gap: 6px; align-items: center; }

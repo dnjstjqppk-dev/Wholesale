@@ -21,7 +21,7 @@
       <span class="ws-empty-icon"><WsIcon name="cart" :size="24" /></span>
       <h3>장바구니에 담긴 도매 품목이 없습니다</h3>
       <p>수량별 할인 구간이 제공되는 도매 카탈로그에서 상품을 탐색하세요.</p>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-primary">도매 카탈로그 탐색</router-link>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-accent">도매 카탈로그 탐색</router-link>
     </div>
 
     <div v-else class="cart-grid">
@@ -46,7 +46,7 @@
             <div class="ws-list-main">
               <p class="ws-list-title">{{ item.title }}</p>
               <p class="ws-list-sub">{{ item.incoterms || 'FOB Busan Port' }} · 납기 {{ item.lead_time_days }}일</p>
-              <p class="cart-unit">적용 단가 <b class="ws-price">{{ formatMoney(item.unit_price) }}</b> / {{ item.unit }}</p>
+              <p class="cart-unit">적용 단가 <b class="ws-price-dark">{{ formatMoney(item.unit_price) }}</b> / {{ item.unit }}</p>
             </div>
             <div class="qty-box">
               <span class="qty-label">발주 수량 ({{ item.unit }})</span>
@@ -72,14 +72,14 @@
           <div><dt>총 발주 품목</dt><dd>{{ items.length }}종</dd></div>
           <div><dt>총 발주 수량</dt><dd class="ws-figure">{{ totalQuantity.toLocaleString() }} pcs</dd></div>
           <div><dt>물품 총 공급가액</dt><dd class="ws-figure">{{ formatMoney(totalAmount) }}</dd></div>
-          <div class="em"><dt>선급금 에스크로 (30%)</dt><dd class="ws-price ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
+          <div class="em"><dt>선급금 에스크로 (30%)</dt><dd class="ws-price-dark ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
           <div><dt>잔금 (검수 후 70%)</dt><dd class="ws-figure">{{ formatMoney(balanceAmount) }}</dd></div>
         </dl>
         <div class="ws-banner ws-banner-info ta-note">
           <WsIcon name="shield" :size="16" />
           <div><b>Trade Assurance 100% 보호</b><p>선급금은 에스크로 보관되며 검수·선적 완료 전 지급되지 않습니다.</p></div>
         </div>
-        <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" @click="proceedToCheckout">계약서 작성·체크아웃 →</button>
+        <button class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" @click="proceedToCheckout">계약서 작성·체크아웃 →</button>
       </aside>
     </div>
   </div>

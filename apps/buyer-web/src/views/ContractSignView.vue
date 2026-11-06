@@ -11,7 +11,7 @@
           <h1>국제 B2B 도매 거래 표준 계약서</h1>
           <p class="doc-order">연동 발주번호 <b>{{ orderData.order_number }}</b></p>
         </div>
-        <span class="ws-badge ws-badge-navy">{{ contract.contract_number }}</span>
+        <span class="ws-badge ws-badge-brand">{{ contract.contract_number }}</span>
       </header>
 
       <section class="doc-sec">
@@ -57,7 +57,7 @@
               <tr>
                 <td class="ws-cell-main">총 계약 금액</td>
                 <td>100%</td>
-                <td class="ws-num"><b class="ws-price ws-figure">{{ formatMoney((orderData.total_amount_minor || 420000) / 100) }}</b></td>
+                <td class="ws-num"><b class="ws-price-dark ws-figure">{{ formatMoney((orderData.total_amount_minor || 420000) / 100) }}</b></td>
                 <td class="ws-cell-sub">Trade Assurance 100% 지급 보증</td>
               </tr>
             </tbody>
@@ -78,7 +78,7 @@
         <div class="sign-box">
           <span class="ws-small ws-muted">구매사(Buyer) 전자서명</span>
           <p v-if="contract.buyer_signed" class="signed"><WsIcon name="check" :size="15" /> 서명 완료 ({{ contract.signed_at || 'UTC 검증됨' }})</p>
-          <button v-else class="ws-btn ws-btn-primary ws-btn-block" :disabled="signing" @click="handleSignBuyer">
+          <button v-else class="ws-btn ws-btn-accent ws-btn-block" :disabled="signing" @click="handleSignBuyer">
             <WsIcon v-if="!signing" name="pencil" :size="14" /> {{ signing ? '해시 대조·서명 중...' : '구매사 공인 전자서명 실행' }}
           </button>
         </div>
@@ -192,14 +192,14 @@ async function handleSignBuyer() {
 
 <style scoped>
 .contract-doc { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 14px; box-shadow: var(--ws-shadow-pop); padding: 36px 40px; }
-.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 20px; margin-bottom: 8px; border-bottom: 3px solid var(--ws-navy-ink); }
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 20px; margin-bottom: 8px; border-bottom: 3px solid var(--ws-accent); }
 .doc-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); }
 .doc-order { margin: 0; font-size: 13px; color: var(--ws-text-muted); }
 .doc-sec { padding: 18px 0; border-bottom: 1px solid var(--ws-border-subtle); }
 .doc-sec:last-of-type { border-bottom: 0; }
 .doc-sec h2 { margin: 0 0 12px; font-size: 15px; font-weight: 800; }
 .hash-card { background: var(--ws-surface-muted); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
-.hash-card code { font-size: 12px; word-break: break-all; color: var(--ws-navy); }
+.hash-card code { font-size: 12px; word-break: break-all; color: var(--ws-text); }
 .doc-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
 .sign-box { border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .sign-box .signed { margin: 0; color: var(--ws-success); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }

@@ -61,8 +61,8 @@
         <div class="ws-split results-bar">
           <p class="ws-small">총 <b>{{ suppliers.length }}</b>개 검증 제조사</p>
           <span class="ws-cluster" style="gap: 6px">
-            <button class="ws-btn ws-btn-sm" :class="viewMode === 'grid' ? 'ws-btn-navy' : 'ws-btn-secondary'" @click="viewMode = 'grid'"><WsIcon name="layout" :size="13" /> 그리드</button>
-            <button class="ws-btn ws-btn-sm" :class="viewMode === 'list' ? 'ws-btn-navy' : 'ws-btn-secondary'" @click="viewMode = 'list'"><WsIcon name="menu" :size="13" /> 목록</button>
+            <button class="ws-btn ws-btn-sm" :class="viewMode === 'grid' ? 'ws-btn-accent' : 'ws-btn-secondary'" @click="viewMode = 'grid'"><WsIcon name="layout" :size="13" /> 그리드</button>
+            <button class="ws-btn ws-btn-sm" :class="viewMode === 'list' ? 'ws-btn-accent' : 'ws-btn-secondary'" @click="viewMode = 'list'"><WsIcon name="menu" :size="13" /> 목록</button>
           </span>
         </div>
 
@@ -102,7 +102,7 @@
             <p class="ws-small ws-muted">실사기관 <b>{{ sup.inspection_agency }}</b> · {{ sup.certifications.join(' · ') }}</p>
             <div class="ws-cluster sup-cta" style="gap: 8px">
               <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers/${sup.organization_id}`" class="ws-btn ws-btn-secondary ws-btn-sm">미니사이트 방문</router-link>
-              <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new?supplier=${sup.organization_id}`" class="ws-btn ws-btn-primary ws-btn-sm">견적 요청</router-link>
+              <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new?supplier=${sup.organization_id}`" class="ws-btn ws-btn-accent ws-btn-sm">견적 요청</router-link>
             </div>
           </article>
         </div>
@@ -124,7 +124,7 @@
             <div class="row-cta">
               <span v-if="sup.is_verified_supplier" class="ws-badge ws-badge-success">Verified</span>
               <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers/${sup.organization_id}`" class="ws-btn ws-btn-secondary ws-btn-sm">스토어 방문</router-link>
-              <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new?supplier=${sup.organization_id}`" class="ws-btn ws-btn-primary ws-btn-sm">1:1 견적 요청</router-link>
+              <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new?supplier=${sup.organization_id}`" class="ws-btn ws-btn-accent ws-btn-sm">1:1 견적 요청</router-link>
             </div>
           </article>
         </div>

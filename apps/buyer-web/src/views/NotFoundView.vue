@@ -9,7 +9,7 @@
         아래 바로가기로 도매 거래를 계속 이어가세요.
       </p>
       <div class="not-found-actions">
-        <router-link :to="homePath" class="ws-btn ws-btn-primary">홈으로 이동</router-link>
+        <router-link :to="homePath" class="ws-btn ws-btn-accent">홈으로 이동</router-link>
         <router-link :to="`${basePath}/catalog`" class="ws-btn ws-btn-secondary">상품 카탈로그</router-link>
         <router-link :to="`${basePath}/rfq`" class="ws-btn ws-btn-secondary">RFQ 소싱</router-link>
       </div>

@@ -27,7 +27,7 @@
       </div>
       <div class="ws-modal-foot">
         <button class="ws-btn ws-btn-secondary" @click="$emit('close')">취소</button>
-        <button class="ws-btn ws-btn-primary" :disabled="sending" @click="onSubmit">
+        <button class="ws-btn ws-btn-accent" :disabled="sending" @click="onSubmit">
           <WsIcon v-if="!sending" name="send" :size="14" /> {{ sending ? '대화방 개설 중...' : '문의 발송·메신저 열기' }}
         </button>
       </div>

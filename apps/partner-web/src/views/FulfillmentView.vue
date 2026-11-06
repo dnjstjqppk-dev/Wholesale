@@ -41,7 +41,7 @@
         <hr class="ws-divider" />
         <div class="ws-split">
           <b>{{ activeOrder.item_title }}</b>
-          <span class="ws-small ws-figure">계약 {{ activeOrder.ordered_quantity }}{{ activeOrder.unit }} · 누적 출고 {{ activeOrder.shipped_quantity }}{{ activeOrder.unit }} · 잔여 <b class="ws-price">{{ remaining }}{{ activeOrder.unit }}</b></span>
+          <span class="ws-small ws-figure">계약 {{ activeOrder.ordered_quantity }}{{ activeOrder.unit }} · 누적 출고 {{ activeOrder.shipped_quantity }}{{ activeOrder.unit }} · 잔여 <b class="ws-price-dark">{{ remaining }}{{ activeOrder.unit }}</b></span>
         </div>
         <div class="ws-meter ws-meter-navy" style="margin-top: 10px"><span :style="{ width: `${progressPercent}%` }"></span></div>
       </section>
@@ -83,7 +83,7 @@
           <WsIcon name="alert" :size="16" />
           <span>누적 출고 한도 초과: 요청 {{ dispatchQty }}개가 잔여 {{ remaining }}개를 초과합니다. 강제 호출 시 백엔드가 <code>422 CUMULATIVE_OVERFLOW</code>로 차단합니다.</span>
         </div>
-        <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="submitting || dispatchQty <= 0" @click="handleDispatch">
+        <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="submitting || dispatchQty <= 0" @click="handleDispatch">
           <WsIcon v-if="!submitting" name="truck" :size="14" /> {{ submitting ? '선적·B/L 등록 중...' : '분할 선적 출고 확정' }}
         </button>
       </section>
@@ -122,7 +122,7 @@
           <div class="ws-field"><label>관세·세액 (USD Minor)</label><input v-model.number="dutyTaxMinor" type="number" placeholder="27300" /></div>
           <div class="ws-field"><label>담당 관세사</label><input v-model="customsBroker" type="text" placeholder="Pantos Logistics Global" /></div>
         </div>
-        <button v-if="showCustomsForm" class="ws-btn ws-btn-navy ws-btn-block" :disabled="submittingCustoms" @click="handleCustomsSubmit">
+        <button v-if="showCustomsForm" class="ws-btn ws-btn-accent ws-btn-block" :disabled="submittingCustoms" @click="handleCustomsSubmit">
           <WsIcon v-if="!submittingCustoms" name="building" :size="14" /> {{ submittingCustoms ? '세관 신고 전송 중...' : '수출통관신고서 전송' }}
         </button>
         <div class="ws-table-wrap" style="margin-top: 14px">
@@ -343,7 +343,7 @@ async function handleDispatch() {
 <style scoped>
 .sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }
 .sort-box .ws-input { width: 340px; font-size: 13px; padding: 8px 10px; }
-.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .xs-up { padding: 2px 8px; margin-left: 6px; }
 .ws-field { margin-bottom: 12px; }
 </style>

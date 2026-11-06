@@ -3,7 +3,7 @@
     <!-- Assurance strip -->
     <section class="assure-strip">
       <div class="assure-text">
-        <p class="ws-hero-eyebrow"><WsIcon name="shield" :size="14" /> Trade Assurance 무역보증</p>
+        <p class="ws-eyebrow"><WsIcon name="shield" :size="14" /> Trade Assurance 무역보증</p>
         <h1>주문 결제부터 납기·통관까지 100% 안전 보호</h1>
         <p>에스크로 안전 결제 · 생산 지연 보상 · 규격 불일치 100% 환불 · SGS/TÜV 공인 실사 검수</p>
       </div>
@@ -19,7 +19,7 @@
             <option value="sets">sets</option>
           </select>
         </div>
-        <button class="ws-btn ws-btn-primary ws-btn-block" @click="submitQuickRfq">견적 요청 제출</button>
+        <button class="ws-btn ws-btn-accent ws-btn-block" @click="submitQuickRfq">견적 요청 제출</button>
       </div>
     </section>
 
@@ -300,11 +300,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.assure-strip { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: center; background: var(--ws-navy-ink); color: #fff; border-radius: var(--ws-radius-lg); padding: 32px; margin-bottom: 20px; }
-.assure-strip .ws-hero-eyebrow { color: #fbbf24; }
+.assure-strip { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: center; background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: var(--ws-radius-lg); box-shadow: var(--ws-shadow-card); padding: 32px; margin-bottom: 20px; }
 .assure-text h1 { margin: 0 0 8px; font-size: 26px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); line-height: 1.35; }
-.assure-text p { margin: 0; color: #b9c6da; font-size: 14px; }
-.assure-card { background: #fff; color: var(--ws-text); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.assure-text p { margin: 0; color: var(--ws-text-muted); font-size: 14px; }
+.assure-card { background: var(--ws-brand-faint); border: 1px solid var(--ws-brand-light); color: var(--ws-text); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
 .assure-card b { font-size: 15px; display: flex; align-items: center; gap: 8px; }
 .assure-card .b-ico { color: var(--ws-brand); }
 .assure-card p { margin: 0; font-size: 12px; color: var(--ws-text-muted); }
@@ -315,8 +314,8 @@ onMounted(() => {
 .catalog-layout { margin-top: 4px; }
 .chips-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .chips-label { font-size: 12px; font-weight: 800; color: var(--ws-text-muted); }
-.chip-x { display: inline-flex; align-items: center; gap: 6px; background: var(--ws-navy); color: #fff; border: 0; border-radius: 9999px; padding: 5px 8px 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--ws-font); }
-.chip-x:hover { background: var(--ws-navy-dark); }
+.chip-x { display: inline-flex; align-items: center; gap: 6px; background: var(--ws-accent); color: #fff; border: 0; border-radius: 9999px; padding: 5px 8px 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--ws-font); }
+.chip-x:hover { background: var(--ws-accent-hover); }
 .results-head { align-items: flex-end; margin-bottom: 16px; }
 .results-hint { margin: 4px 0 0; font-size: 12px; color: var(--ws-text-muted); }
 .sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }

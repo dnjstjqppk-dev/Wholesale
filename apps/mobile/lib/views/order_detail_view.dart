@@ -95,7 +95,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                                           style: const TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w900,
-                                              color: WsColors.brand)),
+                                              color: WsColors.text)),
                                     ],
                                   ),
                                 ],

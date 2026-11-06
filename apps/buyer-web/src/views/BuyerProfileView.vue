@@ -34,7 +34,7 @@
           <span v-if="!editingProfile"><button class="ws-btn ws-btn-secondary ws-btn-sm" @click="editingProfile = true">프로필 수정</button></span>
           <span v-else class="ws-cluster" style="gap: 8px">
             <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="cancelEditProfile">취소</button>
-            <button class="ws-btn ws-btn-primary ws-btn-sm" :disabled="saving" @click="saveProfile">{{ saving ? '저장 중...' : '저장 완료' }}</button>
+            <button class="ws-btn ws-btn-accent ws-btn-sm" :disabled="saving" @click="saveProfile">{{ saving ? '저장 중...' : '저장 완료' }}</button>
           </span>
         </div>
 
@@ -43,7 +43,7 @@
           <div><span>사업자 등록번호</span><b class="ws-figure">{{ profile.business_number }}</b></div>
           <div><span>EIN / VAT</span><b class="ws-figure">{{ profile.ein_vat }}</b></div>
           <div><span>주요 수입 업종</span><b>{{ profile.primary_industry }}</b></div>
-          <div><span>연간 구매 규모</span><b class="ws-price ws-figure">{{ profile.annual_purchasing_volume_usd }}</b></div>
+          <div><span>연간 구매 규모</span><b class="ws-price-dark ws-figure">{{ profile.annual_purchasing_volume_usd }}</b></div>
           <div><span>면세 인증 상태</span><b><span class="ws-badge ws-badge-success">{{ profile.tax_exemption_status }}</span></b></div>
           <div><span>대표 담당자</span><b>{{ profile.contact_person }}</b></div>
           <div><span>담당자 이메일</span><b>{{ profile.contact_email }}</b></div>
@@ -71,7 +71,7 @@
       <section class="ws-card">
         <div class="ws-card-head">
           <h3><WsIcon name="users" :size="16" class="h-ico" /> 서브 계정·승인 권한 (SoD)</h3>
-          <button class="ws-btn ws-btn-primary ws-btn-sm" @click="showAddSubModal = true"><WsIcon name="plus" :size="13" /> 서브 계정 초대</button>
+          <button class="ws-btn ws-btn-accent ws-btn-sm" @click="showAddSubModal = true"><WsIcon name="plus" :size="13" /> 서브 계정 초대</button>
         </div>
         <p class="ws-card-sub">발주 요청자(Purchaser)와 승인권자(Approver) 권한 분리 · <b>$10,000 이상 거래 자기 승인(Self-Approval) 금지</b></p>
         <div class="ws-table-wrap">
@@ -81,7 +81,7 @@
               <tbody>
                 <tr v-for="sub in profile.sub_accounts" :key="sub.id">
                   <td><span class="ws-cell-main">{{ sub.full_name }}</span><br /><span class="ws-cell-sub">{{ sub.email }}</span></td>
-                  <td><span class="ws-badge ws-badge-navy">{{ formatRoleName(sub.role) }}</span></td>
+                  <td><span class="ws-badge ws-badge-brand">{{ formatRoleName(sub.role) }}</span></td>
                   <td><span v-if="sub.can_approve" class="ws-badge ws-badge-success">승인 가능</span><span v-else class="ws-badge ws-badge-outline">발주만</span></td>
                   <td class="ws-num ws-figure"><b>${{ sub.spending_limit_usd.toLocaleString() }}</b></td>
                   <td><span class="ws-badge ws-badge-info">{{ sub.status }}</span></td>
@@ -97,7 +97,7 @@
       <section class="ws-card">
         <div class="ws-card-head">
           <h3><WsIcon name="pin" :size="16" class="h-ico" /> 배송지·청구 주소록</h3>
-          <button class="ws-btn ws-btn-primary ws-btn-sm" @click="showAddAddressModal = true"><WsIcon name="plus" :size="13" /> 주소 추가</button>
+          <button class="ws-btn ws-btn-accent ws-btn-sm" @click="showAddAddressModal = true"><WsIcon name="plus" :size="13" /> 주소 추가</button>
         </div>
         <div class="ws-grid-3">
           <div v-for="addr in profile.addresses" :key="addr.id" class="addr-card" :class="{ 'is-default': addr.is_default }">
@@ -141,7 +141,7 @@
           </div>
           <div class="ws-modal-foot">
             <button type="button" class="ws-btn ws-btn-secondary" @click="showAddSubModal = false">취소</button>
-            <button type="submit" class="ws-btn ws-btn-primary" :disabled="saving">추가하기</button>
+            <button type="submit" class="ws-btn ws-btn-accent" :disabled="saving">추가하기</button>
           </div>
         </form>
       </div>
@@ -188,7 +188,7 @@
           </div>
           <div class="ws-modal-foot">
             <button type="button" class="ws-btn ws-btn-secondary" @click="showAddAddressModal = false">취소</button>
-            <button type="submit" class="ws-btn ws-btn-primary" :disabled="saving">주소 등록</button>
+            <button type="submit" class="ws-btn ws-btn-accent" :disabled="saving">주소 등록</button>
           </div>
         </form>
       </div>
@@ -418,7 +418,7 @@ onMounted(() => {
 .role-approver { background: var(--ws-brand-light); color: var(--ws-brand); }
 .role-finance { background: var(--ws-success-bg); color: var(--ws-success); }
 .role-default { background: var(--ws-surface-muted); color: var(--ws-text-2); }
-.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.h-ico { color: var(--ws-accent); vertical-align: -3px; }
 .info-tiles div { display: flex; flex-direction: column; gap: 3px; padding: 12px 0; border-bottom: 1px solid var(--ws-border-subtle); }
 .info-tiles span { font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
 .info-tiles b { font-size: 14px; }

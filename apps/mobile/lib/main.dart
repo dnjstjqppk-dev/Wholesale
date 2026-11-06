@@ -82,7 +82,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
             margin: const EdgeInsets.only(right: 12),
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.1),
+              color: WsColors.surfaceMuted,
               borderRadius: BorderRadius.circular(999),
             ),
             child: Row(

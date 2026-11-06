@@ -9,7 +9,7 @@
         아래 바로가기로 판매 관리를 계속 이어가세요.
       </p>
       <div class="not-found-actions">
-        <router-link to="/" class="ws-btn ws-btn-primary">대시보드로 이동</router-link>
+        <router-link to="/" class="ws-btn ws-btn-accent">대시보드로 이동</router-link>
         <router-link to="/catalog" class="ws-btn ws-btn-secondary">상품 관리</router-link>
         <router-link to="/rfq-market" class="ws-btn ws-btn-secondary">RFQ 입찰 시장</router-link>
       </div>

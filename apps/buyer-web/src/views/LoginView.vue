@@ -26,7 +26,7 @@
               <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="quickLogin('buyer@wholesale.internal')">
                 <WsIcon name="users" :size="14" /> 구매 기안자
               </button>
-              <button class="ws-btn ws-btn-navy ws-btn-sm" @click="quickLogin('approver@wholesale.internal')">
+              <button class="ws-btn ws-btn-accent ws-btn-sm" @click="quickLogin('approver@wholesale.internal')">
                 <WsIcon name="pencil" :size="14" /> 구매 결재권자
               </button>
             </div>
@@ -43,7 +43,7 @@
             <input v-model="password" type="password" autocomplete="current-password" required />
           </div>
           <p v-if="errorMsg" class="ws-error-text">{{ errorMsg }}</p>
-          <button type="submit" class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting">
+          <button type="submit" class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="submitting">
             <span v-if="submitting" class="ws-spinner"></span>
             {{ submitting ? '인증 토큰 발급 중...' : '보안 로그인' }}
           </button>
@@ -98,7 +98,7 @@
             </div>
           </div>
           <p v-if="errorMsg" class="ws-error-text">{{ errorMsg }}</p>
-          <button type="submit" class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting">
+          <button type="submit" class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="submitting">
             <span v-if="submitting" class="ws-spinner"></span>
             {{ submitting ? '기업 계정 생성 중...' : '기업 가입 완료' }}
           </button>
@@ -182,13 +182,12 @@ async function handleRegister() {
 <style scoped>
 .auth-wrap { padding-top: 40px; }
 .auth-split { display: grid; grid-template-columns: 300px minmax(0, 1fr); background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 14px; overflow: hidden; box-shadow: var(--ws-shadow-pop); }
-.auth-side { background: var(--ws-navy-ink); color: #dbe4f1; padding: 32px 28px; display: flex; flex-direction: column; }
-.auth-side .side-word { color: #fff; }
-.auth-side h2 { margin: 28px 0 20px; font-size: 22px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); line-height: 1.4; color: #fff; }
+.auth-side { background: var(--ws-brand-faint); border-right: 1px solid var(--ws-brand-light); color: var(--ws-text-2); padding: 32px 28px; display: flex; flex-direction: column; }
+.auth-side h2 { margin: 28px 0 20px; font-size: 22px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); line-height: 1.4; color: var(--ws-text); }
 .auth-side ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; font-size: 13px; font-weight: 600; }
 .auth-side li { display: flex; align-items: center; gap: 10px; }
-.auth-side li svg { color: #5cc8f5; flex: none; }
-.side-foot { margin: auto 0 0; padding-top: 24px; font-size: 11px; color: #7c8fad; font-weight: 700; letter-spacing: 0.05em; }
+.auth-side li svg { color: var(--ws-accent); flex: none; }
+.side-foot { margin: auto 0 0; padding-top: 24px; font-size: 11px; color: var(--ws-text-muted); font-weight: 700; letter-spacing: 0.05em; }
 .auth-main { padding: 28px 30px 30px; }
 .auth-tabs { margin-bottom: 16px; }
 .quick-box { margin: 0 0 20px; }

@@ -10,7 +10,7 @@
       </p>
       <p v-if="requestId" class="error-rid">요청 ID: <code>{{ requestId }}</code></p>
       <div class="error-actions">
-        <button class="ws-btn ws-btn-primary" @click="retry">다시 시도</button>
+        <button class="ws-btn ws-btn-accent" @click="retry">다시 시도</button>
         <router-link :to="homePath" class="ws-btn ws-btn-secondary">홈으로 이동</router-link>
       </div>
     </div>

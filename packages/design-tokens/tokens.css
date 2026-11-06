@@ -297,7 +297,7 @@
   cursor: pointer;
 }
 .ws-tag:hover { border-color: var(--ws-border-strong); color: var(--ws-text); }
-.ws-tag-active { background: var(--ws-navy); border-color: var(--ws-navy); color: #fff; }
+.ws-tag-active { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; }
 .ws-tag-active:hover { color: #fff; }
 
 /* ---------- Cards ---------- */
@@ -383,7 +383,7 @@
 .ws-radio-card { position: relative; flex: 1; min-width: 150px; cursor: pointer; }
 .ws-radio-card input { position: absolute; opacity: 0; inset: 0; cursor: pointer; }
 .ws-radio-body { border: 1px solid var(--ws-border); border-radius: var(--ws-radius-card); padding: 12px 14px; font-size: var(--ws-fs-sm); transition: border-color 120ms ease, background 120ms ease; }
-.ws-radio-card input:checked + .ws-radio-body { border-color: var(--ws-brand); background: var(--ws-brand-faint); box-shadow: 0 0 0 1px var(--ws-brand); }
+.ws-radio-card input:checked + .ws-radio-body { border-color: var(--ws-accent); background: var(--ws-brand-faint); box-shadow: 0 0 0 1px var(--ws-accent); }
 .ws-radio-card input:focus-visible + .ws-radio-body { outline: 2px solid var(--ws-border-focus); outline-offset: 2px; }
 .ws-switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: var(--ws-fs-sm); font-weight: 600; }
 .ws-switch input { position: absolute; opacity: 0; }
@@ -440,7 +440,7 @@
 }
 .ws-page-btn:hover:not(:disabled) { border-color: var(--ws-border-strong); }
 .ws-page-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.ws-page-btn-active { background: var(--ws-navy); border-color: var(--ws-navy); color: #fff; }
+.ws-page-btn-active { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; }
 
 /* ---------- Tabs ---------- */
 .ws-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--ws-border-subtle); margin-bottom: 20px; overflow-x: auto; }
@@ -460,9 +460,9 @@
   gap: 8px;
 }
 .ws-tab:hover { color: var(--ws-text); }
-.ws-tab-active { color: var(--ws-brand); border-bottom-color: var(--ws-brand); }
+.ws-tab-active { color: var(--ws-accent); border-bottom-color: var(--ws-accent); }
 .ws-tab-count { font-size: var(--ws-fs-xs); background: var(--ws-surface-muted); border-radius: 9999px; padding: 1px 8px; font-weight: 800; }
-.ws-tab-active .ws-tab-count { background: var(--ws-brand-light); color: var(--ws-brand); }
+.ws-tab-active .ws-tab-count { background: var(--ws-brand-light); color: var(--ws-accent); }
 
 /* ---------- Steppers ---------- */
 .ws-steps { display: flex; align-items: flex-start; gap: 0; margin: 8px 0 24px; }
@@ -485,7 +485,7 @@
   position: relative;
   z-index: 1;
 }
-.ws-step-active .ws-step-num { background: var(--ws-brand); border-color: var(--ws-brand); color: #fff; }
+.ws-step-active .ws-step-num { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; }
 .ws-step-done .ws-step-num { background: var(--ws-success); border-color: var(--ws-success); color: #fff; }
 .ws-step-label { font-size: var(--ws-fs-sm); font-weight: 700; color: var(--ws-text-muted); padding-top: 5px; }
 .ws-step-active .ws-step-label { color: var(--ws-text); }
@@ -615,7 +615,7 @@
   text-decoration: none;
 }
 .ws-admin-btn:hover { border-color: var(--ws-admin-dim); }
-.ws-admin-btn-primary { background: var(--ws-brand); border-color: var(--ws-brand); color: #fff; }
+.ws-admin-btn-primary { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; }
 .ws-admin-btn-primary:hover { background: var(--ws-brand-hover); }
 .ws-admin-btn-danger { background: transparent; border-color: var(--ws-danger); color: #fca5a5; }
 .ws-admin-stat { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: var(--ws-radius-card); padding: 14px 16px; }
@@ -641,6 +641,25 @@
 .ws-admin-tab { padding: 10px 14px; font-size: var(--ws-fs-sm); font-weight: 700; color: var(--ws-admin-dim); background: none; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; cursor: pointer; white-space: nowrap; }
 .ws-admin-tab:hover { color: var(--ws-admin-text); }
 .ws-admin-tab-active { color: var(--ws-admin-accent); border-bottom-color: var(--ws-admin-accent); }
+
+/* ---------- v4 commerce layer (open-market storefront) ---------- */
+:root {
+  --ws-accent: #ea580c;
+  --ws-accent-hover: #c2410c;
+  --ws-ink-price: #191919;
+  --ws-star: #f59e0b;
+  --ws-strip-bg: #f2f3f5;
+  --ws-strip-text: #333333;
+}
+.ws-price-dark { font-weight: 800; color: var(--ws-ink-price); font-variant-numeric: tabular-nums; }
+.ws-price-dark-lg { font-size: var(--ws-fs-2xl); }
+.ws-star { color: var(--ws-star); }
+.ws-moq { font-size: var(--ws-fs-xs); color: var(--ws-text-muted); }
+.ws-moq b { color: var(--ws-text-2); }
+.ws-btn-accent { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; box-shadow: 0 1px 2px rgb(234 88 12 / 0.35); }
+.ws-btn-accent:hover:not(:disabled) { background: var(--ws-accent-hover); border-color: var(--ws-accent-hover); }
+.ws-btn-outline-accent { background: var(--ws-surface); border-color: var(--ws-accent); color: var(--ws-accent); }
+.ws-btn-outline-accent:hover:not(:disabled) { background: var(--ws-brand-faint); }
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {

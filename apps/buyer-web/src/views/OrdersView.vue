@@ -15,7 +15,7 @@
       <span class="ws-empty-icon"><WsIcon name="package" :size="24" /></span>
       <h3>진행 중인 발주 내역이 없습니다</h3>
       <p>도매 카탈로그에서 첫 발주를 시작해 보세요.</p>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-primary">도매 상품 발주하러 가기</router-link>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-accent">도매 상품 발주하러 가기</router-link>
     </div>
 
     <div v-else class="ws-stack">
@@ -25,7 +25,7 @@
             <b class="ws-figure">{{ order.order_number }}</b>
             <span class="ws-muted ws-small">{{ formatDate(order.created_at) }}</span>
           </div>
-          <b class="ws-price ws-price-lg ws-figure">{{ formatMoney(order.total_amount_minor / 100) }}</b>
+          <b class="ws-price-dark ws-price-lg ws-figure">{{ formatMoney(order.total_amount_minor / 100) }}</b>
         </div>
 
         <div class="status-lane">
@@ -54,7 +54,7 @@
         <div class="order-actions">
           <button
             v-if="order.order_status === 'CONTRACT_PENDING' && !order.approver_user_id"
-            class="ws-btn ws-btn-navy ws-btn-sm"
+            class="ws-btn ws-btn-accent ws-btn-sm"
             @click="approveOrder(order)"
           >
             <WsIcon name="file" :size="14" /> 내부 결재 승인
@@ -68,7 +68,7 @@
           </router-link>
           <button
             v-else-if="order.payment_status === 'DOWN_PAYMENT_PENDING'"
-            class="ws-btn ws-btn-primary ws-btn-sm"
+            class="ws-btn ws-btn-accent ws-btn-sm"
             :disabled="paying"
             @click="payDownPayment(order)"
           >
@@ -83,7 +83,7 @@
           </button>
           <button
             v-if="order.payment_status === 'PARTIALLY_PAID_30' && (order.order_status === 'SHIPPED' || order.inspection_status === 'PASSED')"
-            class="ws-btn ws-btn-primary ws-btn-sm"
+            class="ws-btn ws-btn-accent ws-btn-sm"
             :disabled="paying"
             @click="payBalance(order)"
           >
@@ -91,7 +91,7 @@
           </button>
           <button
             v-if="order.order_status === 'SHIPPED' && order.payment_status === 'FULLY_PAID'"
-            class="ws-btn ws-btn-navy ws-btn-sm"
+            class="ws-btn ws-btn-accent ws-btn-sm"
             @click="confirmDelivery(order)"
           >
             <WsIcon name="check" :size="14" /> 최종 인수 확인·대금 지급 승인

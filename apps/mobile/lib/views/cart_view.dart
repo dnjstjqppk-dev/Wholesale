@@ -138,7 +138,7 @@ class _CartScreenState extends State<CartScreen> {
                                       style: const TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.w900,
-                                          color: WsColors.brand)),
+                                          color: WsColors.text)),
                                 ],
                               ),
                               ElevatedButton(

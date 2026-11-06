@@ -42,7 +42,7 @@
             </router-link>
             <span class="ws-muted ws-small">{{ product.years_in_business || 12 }} yrs</span>
             <span v-if="product.verified_supplier" class="ws-badge ws-badge-success">Verified</span>
-            <span class="ws-badge ws-badge-navy ta-strip"><WsIcon name="shield" :size="12" /> Trade Assurance</span>
+            <span class="ws-badge ws-badge-brand ta-strip"><WsIcon name="shield" :size="12" /> Trade Assurance</span>
           </div>
 
           <h1 class="pdp-title">{{ product.title }}</h1>

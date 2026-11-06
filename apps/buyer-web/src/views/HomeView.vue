@@ -1,19 +1,50 @@
 <template>
   <div class="ws-page ws-page-wide home">
-    <!-- Hero -->
-    <section class="ws-hero">
-      <p class="ws-hero-eyebrow"><WsIcon name="shield" :size="14" /> Trade Assurance 보안 연동</p>
-      <h1 class="ws-hero-title">글로벌 무역 안심 거래,<br /><span class="ws-hero-accent">선급금 30% 에스크로 보호</span></h1>
-      <p class="ws-hero-sub">계약서 전자서명부터 제3자 품질 검수, 선하증권(B/L) 확인까지. 분할출고와 에스크로 결제로 확정되는 도매 무역.</p>
-      <div class="ws-hero-cta">
-        <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-primary ws-btn-lg">도매 카탈로그 탐색</router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-lg hero-ghost">무료 RFQ 견적 요청</router-link>
+    <!-- Marketplace hero: category nav + promo banner + buyer card -->
+    <section class="ali-hero">
+      <nav class="ali-cats" aria-label="주요 산업 대분류">
+        <p class="ali-cats-head"><WsIcon name="menu" :size="14" /> All Categories</p>
+        <router-link
+          v-for="cat in categories"
+          :key="cat.id"
+          :to="`/${currentLocale}/${currentCurrency}/catalog?category=${cat.id}`"
+          @mouseenter="selectedCategory = cat"
+        >
+          <WsIcon :name="catIcon(cat.id)" :size="15" /> {{ cat.name.split(' (')[0] }} <span aria-hidden="true">›</span>
+        </router-link>
+      </nav>
+      <div class="ali-banner">
+        <div class="ali-banner-text">
+          <p class="ali-kicker"><WsIcon name="shield" :size="13" /> Trade Assurance 보안 연동</p>
+          <h1>글로벌 무역 안심 거래,<br />선급금 30% 에스크로 보호</h1>
+          <p>계약서 전자서명 · 제3자 품질 검수 · 선하증권 확인까지</p>
+          <div class="ali-banner-cta">
+            <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-accent ws-btn-lg">도매 카탈로그 탐색</router-link>
+            <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-outline-accent ws-btn-lg">무료 RFQ 견적 요청</router-link>
+          </div>
+        </div>
+        <div class="ali-banner-proof">
+          <div><b>100%</b><span>에스크로 대금 보호</span></div>
+          <div><b>48h</b><span>즉시출고 선적</span></div>
+          <div><b>24h</b><span>RFQ 복수 견적</span></div>
+        </div>
       </div>
-      <div class="ws-hero-proof">
-        <div class="ws-hero-proof-item"><b>100%</b><span>에스크로 대금 보호</span></div>
-        <div class="ws-hero-proof-item"><b>48h</b><span>즉시출고 품목 선적</span></div>
-        <div class="ws-hero-proof-item"><b>24h</b><span>RFQ 복수 견적 회신</span></div>
-      </div>
+      <aside class="ali-side">
+        <div class="ali-signin">
+          <span class="ws-avatar"><WsIcon name="building" :size="18" /></span>
+          <p><b>안녕하세요, 바이어님</b><span>기업 계정으로 더 많은 혜택을 받으세요</span></p>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="ws-btn ws-btn-accent ws-btn-block">로그인 / 가입</router-link>
+        </div>
+        <div class="ali-rfq">
+          <p><b>찾는 품목이 없나요?</b><span>RFQ 발행 후 24시간 내 복수 견적 수신</span></p>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-outline-accent ws-btn-block ws-btn-sm">RFQ 무료 발행</router-link>
+        </div>
+        <ul class="ali-protect">
+          <li><WsIcon name="lock" :size="14" /> 에스크로 안심 결제</li>
+          <li><WsIcon name="truck" :size="14" /> Incoterms® 2020</li>
+          <li><WsIcon name="search" :size="14" /> SGS 인증 제조사</li>
+        </ul>
+      </aside>
     </section>
 
     <!-- Category tiles -->
@@ -54,7 +85,7 @@
           <option value="kg">kg</option>
           <option value="rolls">rolls</option>
         </select>
-        <button type="submit" class="ws-btn ws-btn-primary" :disabled="submittingRfq">
+        <button type="submit" class="ws-btn ws-btn-accent" :disabled="submittingRfq">
           {{ submittingRfq ? '발행 중...' : '견적 요청 발행' }} <WsIcon v-if="!submittingRfq" name="bolt" :size="14" />
         </button>
       </form>
@@ -76,8 +107,8 @@
           </div>
           <div class="p-body">
             <h3 :title="product.title">{{ product.title }}</h3>
-            <p class="p-price"><span class="ws-price">{{ formatMoney(product.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ product.unit }}</span></p>
-            <p class="p-meta">MOQ {{ product.moq }}{{ product.unit }} · <WsIcon name="star" :size="12" class="star" /> {{ product.rating }} ({{ product.reviews_count }})</p>
+            <p class="p-price"><span class="ws-price-dark ws-price-dark-lg">{{ formatMoney(product.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ product.unit }}</span></p>
+            <p class="p-meta"><span class="ws-moq">MOQ: <b>{{ product.moq }} {{ product.unit }}</b></span> · <WsIcon name="star" :size="12" class="ws-star" /> {{ product.rating }} ({{ product.reviews_count }})</p>
             <p class="p-sup">{{ product.supplier_name.split(' (')[0] }}</p>
           </div>
         </article>
@@ -99,7 +130,7 @@
               <p class="ws-list-title">{{ item.title }}</p>
               <p class="ws-list-sub">리드타임 {{ item.lead_time_days }}일</p>
             </div>
-            <b class="ws-price">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</b>
+            <b class="ws-price-dark">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</b>
           </div>
         </div>
       </div>
@@ -116,7 +147,7 @@
               <p class="ws-list-title">{{ item.title }}</p>
               <p class="ws-list-sub">샘플 발송 {{ item.sample_lead_time_days }}일 이내</p>
             </div>
-            <b class="ws-price">{{ formatMoney(item.sample_price) }}</b>
+            <b class="ws-price-dark">{{ formatMoney(item.sample_price) }}</b>
           </div>
         </div>
       </div>
@@ -137,8 +168,8 @@
             <div><b>99.2%</b><span>문의 응답률</span></div>
           </div>
           <div class="show-cta">
-            <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers/11111111-1111-1111-1111-111111111111`" class="ws-btn ws-btn-primary">공장 VR 투어·전용관 열기</router-link>
-            <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="ws-btn ws-btn-lg show-ghost">제조사 1:1 직통 문의</router-link>
+            <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers/11111111-1111-1111-1111-111111111111`" class="ws-btn ws-btn-accent">공장 VR 투어·전용관 열기</router-link>
+            <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="ws-btn ws-btn-secondary ws-btn-lg">제조사 1:1 직통 문의</router-link>
           </div>
         </div>
         <div class="show-products">
@@ -177,8 +208,8 @@
           <div class="p-body">
             <span class="ws-badge ws-badge-outline sub-tag">{{ item.sub_category }}</span>
             <h3 :title="item.title">{{ item.title }}</h3>
-            <p class="p-price"><span class="ws-price">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ item.unit }}</span></p>
-            <p class="p-meta">MOQ {{ item.moq }}{{ item.unit }} · {{ item.incoterms }}</p>
+            <p class="p-price"><span class="ws-price-dark ws-price-dark-lg">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ item.unit }}</span></p>
+            <p class="p-meta"><span class="ws-moq">MOQ: <b>{{ item.moq }} {{ item.unit }}</b></span> · {{ item.incoterms }}</p>
           </div>
         </article>
       </div>
@@ -191,7 +222,7 @@
           <h3>찾는 품목이 없으신가요? RFQ로 복수 견적을 받으세요.</h3>
           <p>검증 제조사 네트워크에 한 번 발행하면 24시간 내 경쟁 견적이 도착합니다.</p>
         </div>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-navy ws-btn-lg">RFQ 발행하기</router-link>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-accent ws-btn-lg">RFQ 발행하기</router-link>
       </div>
     </section>
   </div>
@@ -314,8 +345,35 @@ onMounted(() => {
 
 <style scoped>
 .home { display: flex; flex-direction: column; }
-.hero-ghost { border: 1px solid rgb(255 255 255 / 0.35); color: #fff; }
-.hero-ghost:hover { background: rgb(255 255 255 / 0.1); }
+.ali-hero { display: grid; grid-template-columns: 240px minmax(0, 1fr) 264px; gap: 14px; align-items: stretch; }
+.ali-cats { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; box-shadow: var(--ws-shadow-card); }
+.ali-cats-head { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; font-size: 13px; font-weight: 800; border-bottom: 1px solid var(--ws-border-subtle); }
+.ali-cats a { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; color: var(--ws-text-2); font-size: 13px; font-weight: 600; text-decoration: none; }
+.ali-cats a svg { color: var(--ws-text-faint); flex: none; }
+.ali-cats a span { margin-left: auto; color: var(--ws-text-faint); }
+.ali-cats a:hover { background: var(--ws-brand-faint); color: var(--ws-accent); }
+.ali-cats a:hover svg { color: var(--ws-accent); }
+.ali-banner { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 12px; box-shadow: var(--ws-shadow-card); padding: 34px 32px 26px; display: flex; flex-direction: column; justify-content: space-between; gap: 20px; position: relative; overflow: hidden; }
+.ali-banner::after { content: ""; position: absolute; top: 0; right: 0; width: 220px; height: 100%; background: var(--ws-brand-faint); clip-path: polygon(38% 0, 100% 0, 100% 100%, 0 100%); pointer-events: none; }
+.ali-banner-text { position: relative; z-index: 1; }
+.ali-kicker { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px; font-size: 12px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ws-accent); }
+.ali-banner-text h1 { margin: 0 0 10px; font-size: 32px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); line-height: 1.25; }
+.ali-banner-text > p { margin: 0 0 20px; font-size: 14px; color: var(--ws-text-muted); }
+.ali-banner-cta { display: flex; gap: 10px; flex-wrap: wrap; }
+.ali-banner-proof { position: relative; z-index: 1; display: flex; gap: 32px; border-top: 1px solid var(--ws-border-subtle); padding-top: 16px; }
+.ali-banner-proof b { display: block; font-size: 19px; font-variant-numeric: tabular-nums; }
+.ali-banner-proof span { font-size: 11px; color: var(--ws-text-muted); font-weight: 600; }
+.ali-side { display: flex; flex-direction: column; gap: 12px; }
+.ali-signin, .ali-rfq { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 12px; padding: 16px; box-shadow: var(--ws-shadow-card); }
+.ali-signin { display: flex; flex-direction: column; gap: 10px; align-items: stretch; text-align: center; }
+.ali-signin .ws-avatar { margin: 0 auto; }
+.ali-signin p, .ali-rfq p { margin: 0; display: flex; flex-direction: column; gap: 2px; }
+.ali-signin b, .ali-rfq b { font-size: 14px; }
+.ali-signin span, .ali-rfq span { font-size: 12px; color: var(--ws-text-muted); }
+.ali-rfq { display: flex; flex-direction: column; gap: 10px; background: var(--ws-brand-faint); border-color: var(--ws-brand-light); }
+.ali-protect { list-style: none; margin: 0; padding: 4px 6px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; font-weight: 600; color: var(--ws-text-2); }
+.ali-protect li { display: flex; align-items: center; gap: 8px; }
+.ali-protect svg { color: var(--ws-success); }
 .home-cats { margin-top: 20px; }
 .section-lead { margin: -8px 0 16px; font-size: var(--ws-fs-sm); color: var(--ws-text-muted); }
 
@@ -333,16 +391,14 @@ onMounted(() => {
 .p-card:hover { border-color: var(--ws-brand); }
 .p-media { position: relative; aspect-ratio: 4 / 3; background: var(--ws-surface-muted); }
 .p-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.rank-tag { position: absolute; top: 10px; left: 10px; min-width: 28px; height: 28px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: var(--ws-navy-ink); color: #fff; font-size: 13px; font-weight: 900; }
-.rank-tag.rank-1 { background: var(--ws-brand); }
-.rank-tag.rank-2, .rank-tag.rank-3 { background: var(--ws-navy); }
+.rank-tag { position: absolute; top: 10px; left: 10px; min-width: 28px; height: 28px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; background: #191919; color: #fff; font-size: 13px; font-weight: 900; }
+.rank-tag.rank-1 { background: var(--ws-accent); }
+.rank-tag.rank-2, .rank-tag.rank-3 { background: #525252; }
 .ta-tag { position: absolute; bottom: 10px; left: 10px; display: inline-flex; align-items: center; gap: 4px; background: rgb(11 28 48 / 0.82); color: #7dd3fc; font-size: 11px; font-weight: 800; padding: 3px 9px; border-radius: 9999px; }
 .p-body { padding: 14px 14px 16px; }
 .p-body h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px; }
 .p-price { margin: 0 0 6px; font-size: 13px; }
-.p-price .ws-price { font-size: 17px; }
 .p-meta { margin: 0 0 6px; font-size: 12px; color: var(--ws-text-muted); display: flex; align-items: center; gap: 4px; }
-.p-meta .star { color: #f59e0b; }
 .p-sup { margin: 0; font-size: 12px; color: var(--ws-text-2); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sub-tag { margin-bottom: 8px; }
 
@@ -356,24 +412,25 @@ onMounted(() => {
 .mini-row img { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; background: var(--ws-surface-muted); flex: none; }
 
 /* Showcase */
-.showcase { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; background: var(--ws-navy-ink); color: #fff; border-radius: var(--ws-radius-lg); padding: 36px; }
-.show-eyebrow { color: #7dd3fc; }
+.showcase { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 28px; background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: var(--ws-radius-lg); box-shadow: var(--ws-shadow-card); padding: 36px; }
+.show-eyebrow { color: var(--ws-accent); }
 .showcase-info h2 { margin: 0 0 6px; font-size: 26px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); }
-.show-sub { margin: 0 0 20px; color: #b9c6da; font-size: 14px; }
+.show-sub { margin: 0 0 20px; color: var(--ws-text-muted); font-size: 14px; }
 .show-stats { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 24px; }
 .show-stats b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; }
-.show-stats span { font-size: 11px; color: #7c8fad; font-weight: 600; }
+.show-stats span { font-size: 11px; color: var(--ws-text-muted); font-weight: 600; }
 .show-cta { display: flex; gap: 10px; flex-wrap: wrap; }
-.show-ghost { border: 1px solid rgb(255 255 255 / 0.35); color: #fff; padding: 13px 20px; }
-.show-ghost:hover { background: rgb(255 255 255 / 0.1); }
 .show-products { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; align-content: start; }
-.show-p { background: rgb(255 255 255 / 0.06); border: 1px solid rgb(255 255 255 / 0.12); border-radius: 10px; padding: 10px; cursor: pointer; }
-.show-p:hover { border-color: #fb923c; }
-.show-p img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; background: rgb(255 255 255 / 0.08); }
+.show-p { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 10px; cursor: pointer; }
+.show-p:hover { border-color: var(--ws-accent); }
+.show-p img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 6px; background: var(--ws-surface-muted); }
 .show-p p { margin: 8px 0 2px; font-size: 12px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.show-p b { font-size: 14px; color: #fb923c; font-variant-numeric: tabular-nums; }
+.show-p b { font-size: 14px; color: var(--ws-ink-price); font-variant-numeric: tabular-nums; }
 
 @media (max-width: 1024px) {
+  .ali-hero { grid-template-columns: minmax(0, 1fr); }
+  .ali-cats { display: none; }
+  .ali-banner-text h1 { font-size: 26px; }
   .rank-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .duo { grid-template-columns: minmax(0, 1fr); }
   .showcase { grid-template-columns: minmax(0, 1fr); padding: 24px; }

@@ -15,7 +15,7 @@
           <table class="ws-spec-table">
             <tbody>
               <tr><th>공급사명</th><td><b>{{ quote.supplier_name }}</b> <span class="ws-badge ws-badge-success">Verified</span></td></tr>
-              <tr><th>제안 단가</th><td><b class="ws-price ws-price-lg ws-figure">${{ quote.current_revision.unit_price }}</b> / pcs</td></tr>
+              <tr><th>제안 단가</th><td><b class="ws-price-dark ws-price-lg ws-figure">${{ quote.current_revision.unit_price }}</b> / pcs</td></tr>
               <tr><th>납기</th><td>발주일로부터 <b>{{ quote.current_revision.lead_time_days }}일</b></td></tr>
               <tr><th>무역 조건</th><td>{{ quote.current_revision.incoterms }}</td></tr>
             </tbody>
@@ -48,7 +48,7 @@
           <WsIcon name="alert" :size="16" />
           <span><b>직무 분리(SoD):</b> 기안자 본인은 승인할 수 없으며 승인권자 결재 후 발주 전환됩니다.</span>
         </div>
-        <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="quote.status !== 'ISSUED' || accepting" @click="handleAccept">
+        <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="quote.status !== 'ISSUED' || accepting" @click="handleAccept">
           <span v-if="accepting" class="ws-spinner"></span>
           {{ accepting ? '결재 처리 중...' : '결재 승인·계약 생성' }}
         </button>

@@ -22,7 +22,7 @@
             <span>수출 비중 <b>{{ storefront.export_percentage }}</b></span>
             <span>주요 시장 <b>{{ (storefront.main_markets || []).join(', ') }}</b></span>
           </div>
-          <button class="ws-btn ws-btn-primary" @click="openAuditModal">
+          <button class="ws-btn ws-btn-accent" @click="openAuditModal">
             <WsIcon name="file" :size="14" /> TÜV 공인 실사 보고서 확인
           </button>
         </div>
@@ -68,7 +68,7 @@
           <div v-for="item in showcaseProducts" :key="item.id" class="show-item" @click="goToProduct(item.id)">
             <img :src="item.thumbnail || item.images[0]" :alt="item.title" loading="lazy" />
             <p :title="item.title">{{ item.title }}</p>
-            <b class="ws-price ws-figure">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</b>
+            <b class="ws-price-dark ws-figure">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</b>
             <span class="ws-small ws-muted">MOQ {{ item.moq }}{{ item.unit }} · 납기 {{ item.lead_time_days }}일</span>
           </div>
         </div>
@@ -108,7 +108,7 @@
                 <div class="ws-split">
                   <b>{{ sec.name }}</b>
                   <span class="ws-cluster" style="gap: 8px">
-                    <b class="ws-price ws-figure">{{ sec.score }}점</b>
+                    <b class="ws-price-dark ws-figure">{{ sec.score }}점</b>
                     <span class="ws-badge ws-badge-success">{{ sec.status }}</span>
                   </span>
                 </div>
@@ -123,7 +123,7 @@
           </div>
           <div class="ws-modal-foot">
             <button class="ws-btn ws-btn-secondary" @click="showAuditModal = false">닫기</button>
-            <button class="ws-btn ws-btn-primary" @click="downloadAuditReport"><WsIcon name="download" :size="14" /> 보고서 원본 다운로드 (PDF)</button>
+            <button class="ws-btn ws-btn-accent" @click="downloadAuditReport"><WsIcon name="download" :size="14" /> 보고서 원본 다운로드 (PDF)</button>
           </div>
         </div>
       </div>
@@ -218,7 +218,7 @@ onMounted(() => {
 .store-veil p { margin: 0 0 6px; color: #c3cede; font-size: 14px; }
 .store-meta { display: flex; gap: 22px; flex-wrap: wrap; font-size: 12px; color: #93a4bc; margin-bottom: 12px; }
 .store-meta b { color: #fff; }
-.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.h-ico { color: var(--ws-accent); vertical-align: -3px; }
 .h-ico-star { color: #f59e0b; vertical-align: -3px; }
 .doc-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--ws-surface-muted); color: var(--ws-text-2); }
 .show-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
@@ -227,9 +227,9 @@ onMounted(() => {
 .show-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: var(--ws-surface-muted); }
 .show-item p { margin: 4px 0 0; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .audit-hero { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; align-items: start; }
-.grade { background: var(--ws-navy-ink); color: #fff; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
-.grade span { font-size: 11px; color: #93a4bc; font-weight: 700; }
-.grade b { font-size: 34px; font-weight: 900; }
+.grade { background: var(--ws-brand-faint); border: 1px solid var(--ws-brand-light); border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.grade span { font-size: 11px; color: var(--ws-text-muted); font-weight: 700; }
+.grade b { font-size: 34px; font-weight: 900; color: var(--ws-accent); }
 .audit-sec { border-top: 1px solid var(--ws-border-subtle); padding: 12px 0; }
 .audit-sec p { margin: 4px 0 8px; }
 .audit-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }

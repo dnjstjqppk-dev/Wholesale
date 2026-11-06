@@ -20,7 +20,7 @@
             <tbody>
               <tr v-for="v in productVariants" :key="v.id">
                 <td><span class="ws-cell-main">{{ v.name }}</span><br /><span class="ws-cell-sub">SKU: {{ v.sku }}</span></td>
-                <td class="ws-num"><b class="ws-price ws-figure">{{ formatMoney(activeUnitPrice) }}</b> <span class="ws-cell-sub">/ {{ product?.unit || 'pcs' }}</span></td>
+                <td class="ws-num"><b class="ws-price-dark ws-figure">{{ formatMoney(activeUnitPrice) }}</b> <span class="ws-cell-sub">/ {{ product?.unit || 'pcs' }}</span></td>
                 <td class="ws-num"><span class="ws-badge ws-badge-outline ws-figure">{{ (v.stock || 5000).toLocaleString() }}개</span></td>
                 <td class="ws-num">
                   <span class="stepper">
@@ -58,7 +58,7 @@
     <dl class="sum-rows">
       <div><dt>적용 구간 단가</dt><dd class="ws-figure">{{ formatMoney(activeUnitPrice) }} / {{ product?.unit }}</dd></div>
       <div><dt>예상 납기</dt><dd>{{ estimatedLeadTimeDays }}일 (선적항 출고 기준)</dd></div>
-      <div><dt>선급금 에스크로 (30%)</dt><dd class="ws-price ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
+      <div><dt>선급금 에스크로 (30%)</dt><dd class="ws-price-dark ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
       <div class="total"><dt>총 발주 공급가액</dt><dd class="ws-figure">{{ formatMoney(subtotalAmount) }}</dd></div>
     </dl>
 
@@ -110,17 +110,17 @@
             <div><dt>적하보험료 (0.3%)</dt><dd class="ws-figure">{{ formatMoney(landedCostData.marine_insurance) }}</dd></div>
             <div><dt>예상 수입관세 ({{ landedCostData.duty_rate }})</dt><dd class="ws-figure">{{ formatMoney(landedCostData.customs_duty) }}</dd></div>
             <div v-if="Number(landedCostData.import_vat) > 0"><dt>수입 부가세 ({{ landedCostData.vat_rate }})</dt><dd class="ws-figure">{{ formatMoney(landedCostData.import_vat) }}</dd></div>
-            <div class="total"><dt>개당 착하원가</dt><dd class="ws-price ws-figure">{{ formatMoney(landedCostData.unit_landed_cost) }} / {{ product?.unit }}</dd></div>
+            <div class="total"><dt>개당 착하원가</dt><dd class="ws-price-dark ws-figure">{{ formatMoney(landedCostData.unit_landed_cost) }} / {{ product?.unit }}</dd></div>
           </dl>
         </div>
       </div>
     </div>
 
     <div class="cta-stack">
-      <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
+      <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
         <WsIcon name="cart" :size="15" /> {{ addingCart ? '담는 중...' : (orderMode === 'MATRIX' ? '선택 규격 일괄 장바구니 담기' : '도매 장바구니 담기') }}
       </button>
-      <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="!!quantityError" @click="handleInstantOrder">
+      <button class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="!!quantityError" @click="handleInstantOrder">
         <WsIcon name="pencil" :size="15" /> {{ orderMode === 'MATRIX' ? '선택 규격 일괄 발주서 작성' : '즉시 도매 발주서 생성' }}
       </button>
     </div>
@@ -423,7 +423,7 @@ onMounted(() => {
 .sum-rows .total dd { font-size: 18px; }
 .landed { border: 1px solid var(--ws-border-subtle); border-radius: 10px; margin-top: 14px; }
 .landed-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--ws-surface-muted); border: 0; border-radius: 10px; padding: 12px 14px; cursor: pointer; font-family: var(--ws-font); font-size: 13px; color: var(--ws-text); }
-.landed-ico { color: var(--ws-navy); vertical-align: -2px; }
+.landed-ico { color: var(--ws-accent); vertical-align: -2px; }
 .landed-body { padding: 14px; }
 .landed-body .ws-field { margin-bottom: 10px; }
 .cargo-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }

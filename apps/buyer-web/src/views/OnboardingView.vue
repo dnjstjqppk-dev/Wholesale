@@ -36,7 +36,7 @@
           온보딩을 모두 마쳤습니다. 첫 견적 요청을 발행해 보세요.
         </div>
         <div class="ob-actions">
-          <router-link :to="`${basePath}/rfqs/new`" class="ws-btn ws-btn-primary">첫 RFQ 발행하기</router-link>
+          <router-link :to="`${basePath}/rfqs/new`" class="ws-btn ws-btn-accent">첫 RFQ 발행하기</router-link>
           <router-link :to="basePath" class="ws-btn ws-btn-secondary">홈으로</router-link>
         </div>
       </template>

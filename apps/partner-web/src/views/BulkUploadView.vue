@@ -31,11 +31,11 @@
       <p class="ws-hint">컬럼 규격: <code>title,category,moq,unit,base_price,sub_category,lead_time_days,incoterms</code></p>
 
       <div class="ws-cluster" style="margin-top: 14px">
-        <button class="ws-btn ws-btn-navy" :disabled="processing" @click="runServerDryRun">
+        <button class="ws-btn ws-btn-accent" :disabled="processing" @click="runServerDryRun">
           <WsIcon name="search" :size="14" /> 1단계: Dry-run 검증
         </button>
         <button
-          class="ws-btn ws-btn-primary"
+          class="ws-btn ws-btn-accent"
           :disabled="processing || !dryRunResult || dryRunResult.invalid_count > 0 || dryRunResult.valid_count === 0"
           @click="commitBulkUpload"
         >
@@ -69,7 +69,7 @@
                   <td class="ws-cell-sub">{{ r.category }} ({{ r.sub_category }})</td>
                   <td class="ws-figure">{{ r.moq }}</td>
                   <td>{{ r.unit }}</td>
-                  <td class="ws-num"><b class="ws-price ws-figure">${{ Number(r.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
+                  <td class="ws-num"><b class="ws-price-dark ws-figure">${{ Number(r.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
                   <td>{{ r.incoterms }}</td>
                 </tr>
               </tbody>

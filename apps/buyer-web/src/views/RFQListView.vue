@@ -5,7 +5,7 @@
       <div class="ws-page-head-row">
         <h1 class="ws-page-title">구매 요청서·견적 비교</h1>
         <div class="ws-page-actions">
-          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-primary"><WsIcon name="plus" :size="14" /> 신규 RFQ 작성</router-link>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-accent"><WsIcon name="plus" :size="14" /> 신규 RFQ 작성</router-link>
         </div>
       </div>
       <p class="ws-page-sub">발행된 소싱 요청서에 제출된 1:N 복수 견적을 비교하고 수락하여 정식 무역 계약으로 전환합니다.</p>
@@ -42,14 +42,14 @@
       <span class="ws-empty-icon"><WsIcon name="file" :size="24" /></span>
       <h3>등록된 구매 요청서가 없습니다</h3>
       <p>첫 번째 RFQ를 발행하고 복수 견적을 받아 보세요.</p>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-primary">첫 번째 RFQ 발행하기</router-link>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-accent">첫 번째 RFQ 발행하기</router-link>
     </div>
 
     <div v-else class="ws-stack">
       <article v-for="rfq in rfqs" :key="rfq.id" class="ws-card rfq-card">
         <div class="ws-split">
           <div class="rfq-title">
-            <span class="ws-badge ws-badge-navy">{{ formatCategory(rfq.category) }}</span>
+            <span class="ws-badge ws-badge-brand">{{ formatCategory(rfq.category) }}</span>
             <h3>{{ rfq.title }}</h3>
             <span class="ws-small ws-muted ws-figure">#{{ rfq.id }}</span>
           </div>
@@ -58,7 +58,7 @@
 
         <div class="spec-strip">
           <div><i>요청 수량</i><b class="ws-figure">{{ Number(rfq.requested_qty).toLocaleString() }} {{ rfq.unit }}</b></div>
-          <div><i>희망 목표 단가</i><b class="ws-price ws-figure">${{ rfq.target_price }} / {{ rfq.unit }}</b></div>
+          <div><i>희망 목표 단가</i><b class="ws-price-dark ws-figure">${{ rfq.target_price }} / {{ rfq.unit }}</b></div>
           <div><i>요구 납기</i><b>{{ rfq.lead_time_days }}일 이내</b></div>
           <div><i>인도 조건</i><b>{{ rfq.incoterms }}</b></div>
           <div><i>목적국</i><b>{{ rfq.destination_country }}</b></div>
@@ -87,7 +87,7 @@
                     <span class="ws-badge ws-badge-success">Verified</span>
                   </td>
                   <td class="ws-num"><b class="ws-figure">${{ q.unit_price }}</b> <span class="ws-cell-sub">/ {{ q.unit || 'pcs' }}</span></td>
-                  <td class="ws-num"><b class="ws-price ws-figure">${{ calculateTotal(q.unit_price, rfq.requested_qty) }}</b></td>
+                  <td class="ws-num"><b class="ws-price-dark ws-figure">${{ calculateTotal(q.unit_price, rfq.requested_qty) }}</b></td>
                   <td>{{ q.lead_time_days }}일</td>
                   <td>{{ q.incoterms }}</td>
                   <td><span class="ws-badge ws-badge-outline">Rev {{ q.revision_number || 1 }}</span></td>
@@ -95,7 +95,7 @@
                   <td>
                     <button
                       v-if="q.status === 'ISSUED'"
-                      class="ws-btn ws-btn-primary ws-btn-sm"
+                      class="ws-btn ws-btn-accent ws-btn-sm"
                       :disabled="acceptingQuoteId === q.id"
                       @click="acceptQuote(q, rfq)"
                     >

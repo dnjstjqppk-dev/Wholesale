@@ -29,13 +29,13 @@
         <div><span>생산 라인</span><b>{{ product?.production_lines || '8개' }} 자동화 가공 라인</b></div>
         <div><span>품질 검수원</span><b>{{ product?.qc_headcount || '14명' }} 상주 (ISO 9001:2015)</b></div>
         <div><span>연간 수출 실적</span><b class="ws-figure">USD ${{ product?.annual_export_volume || '12,500,000+' }}</b></div>
-        <div><span>인콰이어리 응답률</span><b class="ws-price">{{ product?.response_rate || '99.2%' }}</b></div>
+        <div><span>인콰이어리 응답률</span><b class="ws-price-dark">{{ product?.response_rate || '99.2%' }}</b></div>
         <div><span>업력</span><b>{{ product?.years_in_business || 12 }}년</b></div>
       </div>
 
       <div v-if="activeAudit" class="audit-strip">
         <span class="ws-cluster" style="gap: 6px">
-          <span class="ws-badge ws-badge-navy">{{ activeAudit.auditor_agency }}</span>
+          <span class="ws-badge ws-badge-brand">{{ activeAudit.auditor_agency }}</span>
           <span class="ws-badge ws-badge-outline">{{ activeAudit.audit_standard }}</span>
           <span class="ws-badge ws-badge-brand">★ {{ activeAudit.overall_rating_score }} / 5.0</span>
           <span class="ws-badge ws-badge-success">{{ activeAudit.qc_status }}</span>
@@ -86,7 +86,7 @@
         </div>
         <div class="ws-modal-foot">
           <button class="ws-btn ws-btn-secondary" @click="showAuditModal = false">닫기</button>
-          <a :href="activeAudit?.report_pdf_url || '#'" target="_blank" rel="noopener noreferrer" class="ws-btn ws-btn-primary">
+          <a :href="activeAudit?.report_pdf_url || '#'" target="_blank" rel="noopener noreferrer" class="ws-btn ws-btn-accent">
             <WsIcon name="download" :size="14" /> 원본 성적서 PDF 다운로드
           </a>
         </div>
@@ -160,18 +160,18 @@ const currentImage = computed(() => {
 .ta-float { position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 5px; background: rgb(11 28 48 / 0.85); color: #7dd3fc; font-size: 11px; font-weight: 800; padding: 5px 11px; border-radius: 9999px; }
 .photo-count { position: absolute; bottom: 12px; right: 12px; background: rgb(0 0 0 / 0.6); color: #fff; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 6px; }
 .gal-thumbs { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.h-ico { color: var(--ws-accent); vertical-align: -3px; }
 .fac-facts div { display: flex; flex-direction: column; gap: 3px; padding: 9px 0; border-bottom: 1px solid var(--ws-border-subtle); }
 .fac-facts span { font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
 .fac-facts b { font-size: 13px; }
 .audit-strip { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; background: var(--ws-surface-muted); border-radius: 8px; padding: 10px 12px; margin-top: 14px; }
 .store-link { margin-top: 12px; }
-.cert-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; background: var(--ws-navy-ink); color: #fff; border-radius: 10px; padding: 20px; margin-bottom: 16px; }
+.cert-hero { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: center; background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 20px; margin-bottom: 16px; }
 .cert-agency b { display: block; font-size: 26px; font-weight: 900; }
-.cert-agency span { font-size: 12px; color: #93a4bc; font-weight: 600; }
+.cert-agency span { font-size: 12px; color: var(--ws-text-muted); font-weight: 600; }
 .cert-score { text-align: right; display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
-.cert-score b { font-size: 32px; font-weight: 900; color: #fbbf24; }
-.cert-score span { font-size: 11px; color: #93a4bc; font-weight: 700; }
+.cert-score b { font-size: 32px; font-weight: 900; color: var(--ws-accent); }
+.cert-score span { font-size: 11px; color: var(--ws-text-muted); font-weight: 700; }
 .hash-code { font-size: 11px; word-break: break-all; }
 @media (max-width: 640px) {
   .cert-hero { grid-template-columns: minmax(0, 1fr); }

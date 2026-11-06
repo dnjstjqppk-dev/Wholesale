@@ -76,7 +76,7 @@
                   <td class="ws-cell-main">{{ prod.title }}</td>
                   <td class="ws-num ws-figure">{{ prod.impressions.toLocaleString() }}</td>
                   <td class="ws-num ws-figure">{{ prod.clicks.toLocaleString() }}</td>
-                  <td class="ws-num"><b class="ws-price ws-figure">{{ prod.inquiries }}</b></td>
+                  <td class="ws-num"><b class="ws-price-dark ws-figure">{{ prod.inquiries }}</b></td>
                   <td class="ws-num"><b class="ok-num ws-figure">{{ prod.orders }}</b></td>
                   <td><span class="ws-badge ws-badge-brand">{{ prod.conversion_rate }}</span></td>
                 </tr>
@@ -97,7 +97,7 @@
                   <td class="ws-cell-main ws-figure">{{ day.date }}</td>
                   <td class="ws-num ws-figure">{{ day.impressions.toLocaleString() }}</td>
                   <td class="ws-num ws-figure">{{ day.clicks }}</td>
-                  <td class="ws-num"><b class="ws-price ws-figure">{{ day.inquiries }}</b></td>
+                  <td class="ws-num"><b class="ws-price-dark ws-figure">{{ day.inquiries }}</b></td>
                   <td class="ws-num"><b class="ok-num ws-figure">{{ day.orders }}</b></td>
                 </tr>
               </tbody>
@@ -142,14 +142,14 @@ onMounted(() => {
 <style scoped>
 .seg { display: inline-flex; gap: 4px; background: #fff; border: 1px solid var(--ws-border); border-radius: 8px; padding: 4px; }
 .seg button { border: 0; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; color: var(--ws-text-2); font-family: var(--ws-font); }
-.seg button.active { background: var(--ws-navy); color: #fff; }
+.seg button.active { background: var(--ws-accent); color: #fff; }
 .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 1.6fr; gap: 12px; }
 .ws-stat-value .unit { font-size: 13px; font-weight: 700; color: var(--ws-text-muted); margin-left: 2px; }
 .ws-stat-value.hot { color: var(--ws-brand); }
 .ws-stat-value.ok { color: var(--ws-success); }
-.gmv { background: var(--ws-navy-ink); border-color: var(--ws-navy-ink); color: #fff; }
-.gmv .ws-stat-label, .gmv .ws-stat-foot { color: #93a4bc; }
-.gmv .ws-stat-value { color: #fbbf24; }
+.gmv { background: var(--ws-accent); border-color: var(--ws-accent); color: #fff; }
+.gmv .ws-stat-label, .gmv .ws-stat-foot { color: rgb(255 255 255 / 0.82); }
+.gmv .ws-stat-value { color: #fff; }
 .traf-row { margin-bottom: 14px; }
 .traf-row:last-child { margin-bottom: 0; }
 .traf-row .ws-split { margin-bottom: 6px; font-size: 13px; }

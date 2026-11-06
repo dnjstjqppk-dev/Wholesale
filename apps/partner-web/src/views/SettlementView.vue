@@ -26,7 +26,7 @@
         <div class="ws-stat eligible">
           <p class="ws-stat-label">출금 가능 잔액</p>
           <p class="ws-stat-value">${{ totalEligibleNet }}</p>
-          <button class="ws-btn ws-btn-primary ws-btn-sm ws-btn-block" style="margin-top: 10px" :disabled="submitting || parseFloat(totalEligibleNet) <= 0" @click="requestPayout">
+          <button class="ws-btn ws-btn-accent ws-btn-sm ws-btn-block" style="margin-top: 10px" :disabled="submitting || parseFloat(totalEligibleNet) <= 0" @click="requestPayout">
             {{ submitting ? '신청 중...' : '공식 출금 신청' }}
           </button>
         </div>

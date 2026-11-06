@@ -38,7 +38,7 @@
             <label>사업자등록번호</label>
             <div class="biz-row">
               <input v-model="form.business_number" type="text" placeholder="123-45-67890" required />
-              <button type="button" class="ws-btn ws-btn-navy ws-btn-sm" :disabled="verifyingNts" @click="verifyWithNTS">
+              <button type="button" class="ws-btn ws-btn-accent ws-btn-sm" :disabled="verifyingNts" @click="verifyWithNTS">
                 <WsIcon v-if="!verifyingNts" name="search" :size="13" /> {{ verifyingNts ? '조회 중...' : '국세청 진위 확인' }}
               </button>
             </div>
@@ -69,7 +69,7 @@
           <div class="ws-field"><label>SGS/TÜV 실사 성적서 URL</label><input v-model="form.audit_report_url" type="url" required /></div>
           <div class="ws-field" style="grid-column: 1 / -1"><label>보유 국제 품질 인증서 (쉼표 구분)</label><input v-model="certsInput" type="text" placeholder="ISO 9001:2015, CE, FDA GRAS, RoHS" /></div>
         </div>
-        <button type="submit" class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting">
+        <button type="submit" class="ws-btn ws-btn-accent ws-btn-block ws-btn-lg" :disabled="submitting">
           <WsIcon v-if="!submitting" name="shield" :size="14" /> {{ submitting ? '심사팀으로 제출 중...' : 'Verified 실사 심사 요청 제출' }}
         </button>
       </form>
@@ -163,7 +163,7 @@ onMounted(() => {
 .verif-card:last-child { margin-bottom: 0; }
 .v-metrics { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ws-text-2); margin-top: 8px; }
 .v-metrics span { display: inline-flex; align-items: center; gap: 5px; }
-.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .biz-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
 .ws-field { margin-bottom: 12px; }
 </style>

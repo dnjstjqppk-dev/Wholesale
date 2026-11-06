@@ -69,10 +69,10 @@ const sidebarOpen = ref(false);
 
 <style scoped>
 .partner-app { display: flex; flex-direction: column; min-height: 100vh; background: var(--ws-canvas); color: var(--ws-text); }
-.console-strip { background: var(--ws-navy-ink); color: #8fa0b5; font-size: 11px; font-weight: 600; padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.console-strip { background: var(--ws-strip-bg); color: var(--ws-strip-text); font-size: 11px; font-weight: 600; padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid #e2e4e8; }
 .strip-links { display: flex; gap: 16px; }
-.strip-links a { color: #7dd3fc; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-.strip-links a:hover { text-decoration: underline; }
+.strip-links a { color: var(--ws-text-2); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.strip-links a:hover { color: var(--ws-accent); text-decoration: underline; }
 .console-header { background: #fff; border-bottom: 1px solid var(--ws-border-subtle); box-shadow: var(--ws-shadow-bar); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 50; }
 .console-brand { display: flex; align-items: center; gap: 12px; }
 .menu-btn { display: none; background: none; border: 1px solid var(--ws-border); border-radius: 8px; width: 36px; height: 36px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
@@ -91,7 +91,7 @@ const sidebarOpen = ref(false);
 .nav-cap:first-child { margin-top: 0; }
 .side-nav a { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px; color: var(--ws-text-2); font-size: 13px; font-weight: 600; text-decoration: none; }
 .side-nav a:hover { background: var(--ws-surface-muted); color: var(--ws-text); }
-.side-nav a.router-link-active { background: var(--ws-navy); color: #fff; font-weight: 800; }
+.side-nav a.router-link-active { background: var(--ws-accent); color: #fff; font-weight: 800; }
 .console-main { flex: 1; min-width: 0; }
 @media (max-width: 992px) {
   .console-strip { display: none; }

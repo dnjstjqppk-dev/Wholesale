@@ -1,7 +1,7 @@
 <template>
   <div class="ws-page legal-page">
     <div class="ws-card">
-      <span class="ws-badge ws-badge-navy">WHOLESALE B2B</span>
+      <span class="ws-badge ws-badge-brand">WHOLESALE B2B</span>
       <h1 class="ws-card-title legal-title">개인정보처리방침 (Privacy Policy)</h1>
       <p class="ws-card-sub">시행일: 2026-01-01 · 최종 개정: 2026-10-01 · 버전 1.2</p>
 
@@ -42,7 +42,7 @@
 
       <div class="legal-actions">
         <router-link :to="`${basePath}/terms`" class="ws-btn ws-btn-secondary">이용약관 보기</router-link>
-        <router-link :to="basePath" class="ws-btn ws-btn-primary">홈으로 돌아가기</router-link>
+        <router-link :to="basePath" class="ws-btn ws-btn-accent">홈으로 돌아가기</router-link>
       </div>
     </div>
   </div>

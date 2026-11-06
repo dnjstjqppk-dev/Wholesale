@@ -51,7 +51,7 @@
         </div>
         <div class="reply-bar">
           <input v-model="replyText" type="text" class="ws-input" placeholder="납기·MOQ 조정·금형비 조건 또는 정식 견적 회신을 입력하세요..." @keyup.enter="sendReply" />
-          <button class="ws-btn ws-btn-primary" :disabled="sending || !replyText.trim()" @click="sendReply">
+          <button class="ws-btn ws-btn-accent" :disabled="sending || !replyText.trim()" @click="sendReply">
             {{ sending ? '전송 중...' : '공식 답변 전송' }}
           </button>
         </div>

@@ -23,7 +23,7 @@
         <p class="ws-eyebrow">Order {{ order.order_number }}</p>
         <div class="ws-page-head-row">
           <h1 class="ws-page-title ws-figure">{{ order.order_number }}</h1>
-          <b class="ws-price ws-price-lg ws-figure">${{ (order.total_amount_minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</b>
+          <b class="ws-price-dark ws-price-lg ws-figure">${{ (order.total_amount_minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</b>
         </div>
         <p class="ws-page-sub">
           체결일 {{ formatDate(order.created_at) }} · {{ order.supplier_name }}
@@ -92,7 +92,7 @@
                 </tr>
                 <tr>
                   <td><b>합계 (Escrow Vault)</b></td>
-                  <td style="text-align: right"><b class="ws-price ws-figure">${{ (order.total_amount_minor / 100).toLocaleString() }}</b></td>
+                  <td style="text-align: right"><b class="ws-price-dark ws-figure">${{ (order.total_amount_minor / 100).toLocaleString() }}</b></td>
                   <td></td>
                 </tr>
               </tbody>
@@ -160,29 +160,29 @@
             <div class="ws-stack-sm">
               <div v-if="order.order_status === 'CONTRACT_PENDING'" class="act">
                 <p>전자 무역 계약서 서명이 필요합니다.</p>
-                <router-link :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`" class="ws-btn ws-btn-primary ws-btn-block"><WsIcon name="pencil" :size="14" /> 전자계약서 확인·서명</router-link>
+                <router-link :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`" class="ws-btn ws-btn-accent ws-btn-block"><WsIcon name="pencil" :size="14" /> 전자계약서 확인·서명</router-link>
               </div>
               <div v-if="order.payment_status === 'DOWN_PAYMENT_PENDING'" class="act">
                 <p>생산 착수를 위해 선급금 30%를 에스크로에 예치하세요.</p>
-                <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('DOWNPAYMENT_30')">
+                <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('DOWNPAYMENT_30')">
                   {{ processingPayment ? '결제 처리 중...' : `선급금 30% ($${((order.downpayment_minor || 126000) / 100).toLocaleString()}) 결제` }}
                 </button>
               </div>
               <div v-if="order.order_status === 'IN_PRODUCTION' && order.inspection_status !== 'PASSED'" class="act">
                 <p>SGS/TÜV 제3자 출고 검수 결과 승인이 가능합니다.</p>
-                <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="approvingInspection" @click="approveInspection">
+                <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="approvingInspection" @click="approveInspection">
                   <WsIcon v-if="!approvingInspection" name="search" :size="14" /> {{ approvingInspection ? '승인 중...' : '품질 검수 합격 승인' }}
                 </button>
               </div>
               <div v-if="order.payment_status === 'PARTIALLY_PAID_30' && (order.order_status === 'SHIPPED' || order.inspection_status === 'PASSED')" class="act">
                 <p>검수 완료 후 선적을 위해 잔금 70%를 예치하세요.</p>
-                <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('BALANCE_70')">
+                <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('BALANCE_70')">
                   {{ processingPayment ? '결제 처리 중...' : `잔금 70% ($${((order.balance_minor || 294000) / 100).toLocaleString()}) 결제` }}
                 </button>
               </div>
               <div v-if="order.order_status === 'SHIPPED' && order.payment_status === 'FULLY_PAID'" class="act">
                 <p>화물 인수를 확인하고 에스크로 대금을 지급합니다.</p>
-                <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="confirmingDelivery" @click="confirmDelivery">
+                <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="confirmingDelivery" @click="confirmDelivery">
                   <WsIcon name="check" :size="14" /> {{ confirmingDelivery ? '확인 중...' : '최종 인수 확인·대금 지급' }}
                 </button>
               </div>
@@ -279,13 +279,13 @@
             <table class="ws-spec-table">
               <tbody>
                 <tr><th>입금 은행</th><td><b>{{ virtualAccount?.bank_name || '신한은행 (Shinhan Bank B2B Escrow)' }}</b></td></tr>
-                <tr><th>가상 계좌번호</th><td><b class="ws-price ws-figure">{{ virtualAccount?.account_number || '562-910023-88192' }}</b></td></tr>
+                <tr><th>가상 계좌번호</th><td><b class="ws-price-dark ws-figure">{{ virtualAccount?.account_number || '562-910023-88192' }}</b></td></tr>
                 <tr><th>예금주</th><td><b>{{ virtualAccount?.account_holder || '주식회사 홀세일무역 (무역에스크로신탁)' }}</b></td></tr>
                 <tr><th>입금 마감</th><td>{{ formatDate(virtualAccount?.expires_at) }} 23:59 (7일 유효)</td></tr>
               </tbody>
             </table>
             <p class="ws-hint">실제 은행 펌뱅킹망 입금 통보(Webhook) 수신 시 상태가 실시간 전환됩니다.</p>
-            <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="simulatingDeposit" @click="simulateBankDeposit">
+            <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="simulatingDeposit" @click="simulateBankDeposit">
               <WsIcon v-if="!simulatingDeposit" name="bolt" :size="14" /> {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '은행 입금 통보 시뮬레이터' }}
             </button>
           </div>
@@ -302,7 +302,7 @@
               <label>법인 사업자등록번호 앞 5자리</label>
               <input v-model="cardForm.bizAuthNumber" type="text" maxlength="5" class="ws-figure" placeholder="12345" />
             </div>
-            <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="confirmingCard" @click="confirmCardPayment">
+            <button class="ws-btn ws-btn-accent ws-btn-block" :disabled="confirmingCard" @click="confirmCardPayment">
               <WsIcon v-if="!confirmingCard" name="card" :size="14" /> {{ confirmingCard ? 'PG사 결제 승인 중...' : '법인카드 에스크로 결제 승인' }}
             </button>
           </div>
@@ -359,7 +359,7 @@
         </div>
         <div class="ws-modal-foot">
           <button class="ws-btn ws-btn-secondary" @click="showUploadModal = false">취소</button>
-          <button class="ws-btn ws-btn-primary" :disabled="uploadingDoc || !uploadFileName" @click="handleFileUpload">
+          <button class="ws-btn ws-btn-accent" :disabled="uploadingDoc || !uploadFileName" @click="handleFileUpload">
             <WsIcon v-if="!uploadingDoc" name="upload" :size="14" /> {{ uploadingDoc ? '업로드 중...' : '클라우드 전송·원장 등록' }}
           </button>
         </div>
@@ -717,7 +717,7 @@ onMounted(() => {
 .dispute-act { border-top: 1px solid var(--ws-border-subtle); padding-top: 14px; margin-top: 4px; }
 .dispute-act .ws-section-more { display: inline-block; margin-top: 8px; }
 .doc-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 8px; background: var(--ws-surface-muted); color: var(--ws-text-2); }
-.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.h-ico { color: var(--ws-accent); vertical-align: -3px; }
 .customs-grid div { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid var(--ws-border-subtle); }
 .customs-grid span { font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
 .customs-grid b { font-size: 13px; }

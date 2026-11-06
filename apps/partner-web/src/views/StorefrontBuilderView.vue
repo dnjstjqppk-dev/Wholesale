@@ -8,7 +8,7 @@
           <a :href="`https://wholesale.dnjstjqppk.workers.dev/ko/KRW/suppliers/${storefront.organization_id}`" target="_blank" class="ws-btn ws-btn-secondary ws-btn-sm">
             <WsIcon name="eye" :size="14" /> 실제 바이어 뷰
           </a>
-          <button class="ws-btn ws-btn-primary ws-btn-sm" :disabled="saving" @click="saveStorefront">
+          <button class="ws-btn ws-btn-accent ws-btn-sm" :disabled="saving" @click="saveStorefront">
             <span v-if="saving" class="ws-spinner"></span> {{ saving ? '저장 중...' : '✓ 변경사항 저장' }}
           </button>
         </div>
@@ -65,7 +65,7 @@
           <div class="ws-card-head"><h3>4 · 전면 쇼케이스 품목</h3></div>
           <p class="ws-card-sub">미니사이트 진입 시 상단 우선 노출할 대표 제품 ID를 지정합니다.</p>
           <div v-for="(pId, idx) in storefront.showcase_product_ids" :key="idx" class="equip-row">
-            <span class="ws-badge ws-badge-navy">슬롯 {{ idx + 1 }}</span>
+            <span class="ws-badge ws-badge-brand">슬롯 {{ idx + 1 }}</span>
             <input v-model="storefront.showcase_product_ids[idx]" type="text" class="ws-input" placeholder="상품 ID 입력" />
             <button class="ws-icon-btn" aria-label="삭제" @click="removeShowcaseProduct(idx)"><WsIcon name="x" :size="14" /></button>
           </div>
@@ -196,7 +196,7 @@ onMounted(() => {
 .equip-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
 .equip-count { width: 110px; }
 .preview-card { position: sticky; top: 84px; }
-.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .pv-banner { position: relative; border-radius: 8px; overflow: hidden; background: var(--ws-surface-muted); aspect-ratio: 16 / 7; }
 .pv-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .pv-overlay { position: absolute; inset: auto 0 0 0; padding: 12px; background: linear-gradient(transparent, rgb(11 28 48 / 0.85)); color: #fff; display: flex; flex-direction: column; gap: 2px; }

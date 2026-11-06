@@ -12,7 +12,7 @@ class WsColors {
   static const muted = Color(0xFF64748B);
   static const faint = Color(0xFF8FA0B5);
 
-  static const brand = Color(0xFFC2410C);
+  static const brand = Color(0xFFEA580C);
   static const brandHover = Color(0xFF9A3412);
   static const brandLight = Color(0xFFFFEDD5);
   static const brandFaint = Color(0xFFFFF7ED);
@@ -49,14 +49,15 @@ ThemeData wsTheme() {
   );
   return base.copyWith(
     appBarTheme: const AppBarTheme(
-      backgroundColor: WsColors.navyInk,
-      foregroundColor: Colors.white,
+      backgroundColor: WsColors.surface,
+      foregroundColor: WsColors.text,
       elevation: 0,
+      scrolledUnderElevation: 1,
       centerTitle: false,
       titleTextStyle: TextStyle(
         fontSize: 17,
         fontWeight: FontWeight.w800,
-        color: Colors.white,
+        color: WsColors.text,
         letterSpacing: -0.2,
       ),
     ),

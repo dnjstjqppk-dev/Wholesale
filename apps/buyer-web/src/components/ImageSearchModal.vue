@@ -23,14 +23,14 @@
           <label>형상/재질 힌트 키워드 (선택)</label>
           <div class="hint-row">
             <input v-model="visualHint" type="text" placeholder="예: 스테인리스, CNC, PCB, 실리콘, 밸브..." @keyup.enter="runVisionSearch" />
-            <button class="ws-btn ws-btn-navy" :disabled="searching" @click="runVisionSearch">
+            <button class="ws-btn ws-btn-accent" :disabled="searching" @click="runVisionSearch">
               <WsIcon v-if="!searching" name="search" :size="14" /> {{ searching ? '분석 중...' : 'AI 매칭 실행' }}
             </button>
           </div>
         </div>
 
         <div v-if="matchedResults.length > 0" class="vision-res">
-          <p class="ws-small"><b class="ws-price">{{ detectedCategory }}</b> 형상 매칭 · {{ matchedResults.length }}건 발견</p>
+          <p class="ws-small"><b class="ws-price-dark">{{ detectedCategory }}</b> 형상 매칭 · {{ matchedResults.length }}건 발견</p>
           <div class="vision-grid">
             <div v-for="prod in matchedResults.slice(0, 4)" :key="prod.id" class="vision-item" @click="goToProduct(prod.id)">
               <img :src="prod.thumbnail || prod.images?.[0]" :alt="prod.title" />
@@ -40,7 +40,7 @@
               </div>
             </div>
           </div>
-          <button class="ws-btn ws-btn-primary ws-btn-block" @click="onApply">전체 매칭 카탈로그 결과 보기 →</button>
+          <button class="ws-btn ws-btn-accent ws-btn-block" @click="onApply">전체 매칭 카탈로그 결과 보기 →</button>
         </div>
       </div>
     </div>
