@@ -710,7 +710,7 @@ export async function handleSourcing(request: Request, url: URL): Promise<Respon
       ],
       facility_photos: [
         'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=800&q=80',
-        'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=800&q=80',
+        'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=800&q=80',
         'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&w=800&q=80',
       ],
       download_filename: `TUV_Audit_Report_${supplierOrgId.slice(0, 8)}.pdf`,

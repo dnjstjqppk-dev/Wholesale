@@ -164,7 +164,7 @@ export async function handleCatalog(request: Request, url: URL): Promise<Respons
         certifications: ['ISO 9001:2015', 'ISO 14001:2015', 'REACH Certified', 'RoHS Compliant'],
         inspection_agency: 'Intertek Chemical Testing Group',
         banner_image: 'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=80',
-        logo_image: 'https://images.unsplash.com/photo-1581093458791-9f3c3900df4b?auto=format&fit=crop&w=200&q=80',
+        logo_image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=200&q=80',
       },
     ];
 
