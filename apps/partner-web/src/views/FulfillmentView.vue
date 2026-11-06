@@ -1,65 +1,60 @@
 <template>
-  <div class="fulfillment-page">
-    <div class="head-row">
-      <div>
-        <h2>수주 생산 및 분할 출고 관리 (Multi-Order Fulfillment & Shipments)</h2>
-        <p class="subtitle">수주한 전체 도매 주문을 선택하여 분할 선적을 등록하고 선하증권(B/L)·상업송장(C/I)·포장명세서(P/L)를 첨부합니다.</p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Fulfillment</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">생산·분할출고 관리</h1>
+        <label class="sort-box">
+          <span>수주 주문 ({{ allOrders.length }}건)</span>
+          <select v-model="selectedOrderId" class="ws-input" @change="onSelectOrder">
+            <option v-for="o in allOrders" :key="o.id" :value="o.id">
+              {{ o.order_number }} — {{ o.item_title?.slice(0, 22) }} ({{ o.shipped_quantity }}/{{ o.ordered_quantity }} {{ o.unit }})
+            </option>
+          </select>
+        </label>
       </div>
-      <div class="order-selector">
-        <label>수주 주문 선택 ({{ allOrders.length }}건):</label>
-        <select v-model="selectedOrderId" @change="onSelectOrder">
-          <option v-for="o in allOrders" :key="o.id" :value="o.id">
-            {{ o.order_number }} — {{ o.item_title?.slice(0, 22) }} ({{ o.shipped_quantity }}/{{ o.ordered_quantity }} {{ o.unit }})
-          </option>
-        </select>
-      </div>
+      <p class="ws-page-sub">분할 선적 등록과 B/L·C/I·P/L 무역 서류 첨부.</p>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      주문 데이터를 API 게이트웨이에서 로드 중입니다...
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 160px"></div>
+      <div class="ws-skeleton" style="height: 160px"></div>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-else-if="error" class="ws-banner ws-banner-danger">
+      <WsIcon name="alert" :size="16" />
+      <span>{{ error }}</span>
     </div>
 
-    <div v-else-if="activeOrder" class="order-box">
-      <div class="box-head">
-        <div>
-          <span class="ord-no">주문번호: {{ activeOrder.order_number }}</span>
-          <span class="buyer">구매사: {{ activeOrder.buyer_name }} | 인도조건: {{ activeOrder.incoterms }}</span>
-        </div>
-        <div class="badges">
-          <span class="status-tag">{{ activeOrder.order_status }}</span>
-          <span class="status-tag ship">{{ activeOrder.fulfillment_status }}</span>
-        </div>
-      </div>
-
-      <div class="item-summary">
-        <h4>수주 품목 선적 진행 현황 (Cumulative Shipment Guard)</h4>
-        <div class="progress-info">
-          <span><strong>{{ activeOrder.item_title }}</strong></span>
-          <strong>
-            총 계약 수량: {{ activeOrder.ordered_quantity }} {{ activeOrder.unit }} |
-            누적 출고: {{ activeOrder.shipped_quantity }} {{ activeOrder.unit }}
-            (출고 가능 잔여: {{ remaining }} {{ activeOrder.unit }})
-          </strong>
-        </div>
-        <div class="progress-bar">
-          <div class="fill" :style="{ width: `${progressPercent}%` }"></div>
-        </div>
-      </div>
-
-      <!-- New Split Shipment Form -->
-      <div class="shipment-form">
-        <h4><WsIcon name="truck" :size="15" /> 신규 분할 출고 및 무역 서류 등록 (Split Shipment & Trade Docs)</h4>
-        <div class="form-grid-3">
+    <div v-else-if="activeOrder" class="ws-stack">
+      <section class="ws-card">
+        <div class="ws-split">
           <div>
-            <label>출고 수량 (최대 {{ remaining }} {{ activeOrder.unit }})</label>
+            <p class="ws-small ws-muted" style="margin: 0">주문번호 <b class="ws-figure">{{ activeOrder.order_number }}</b></p>
+            <p class="ws-small" style="margin: 4px 0 0">{{ activeOrder.buyer_name }} · {{ activeOrder.incoterms }}</p>
+          </div>
+          <span class="ws-cluster" style="gap: 6px">
+            <span class="ws-badge ws-badge-info">{{ activeOrder.order_status }}</span>
+            <span class="ws-badge ws-badge-success">{{ activeOrder.fulfillment_status }}</span>
+          </span>
+        </div>
+        <hr class="ws-divider" />
+        <div class="ws-split">
+          <b>{{ activeOrder.item_title }}</b>
+          <span class="ws-small ws-figure">계약 {{ activeOrder.ordered_quantity }}{{ activeOrder.unit }} · 누적 출고 {{ activeOrder.shipped_quantity }}{{ activeOrder.unit }} · 잔여 <b class="ws-price">{{ remaining }}{{ activeOrder.unit }}</b></span>
+        </div>
+        <div class="ws-meter ws-meter-navy" style="margin-top: 10px"><span :style="{ width: `${progressPercent}%` }"></span></div>
+      </section>
+
+      <section class="ws-card">
+        <div class="ws-card-head"><h3><WsIcon name="truck" :size="15" class="h-ico" /> 신규 분할 출고·무역 서류 등록</h3></div>
+        <div class="ws-grid-3">
+          <div class="ws-field">
+            <label>출고 수량 (최대 {{ remaining }}{{ activeOrder.unit }})</label>
             <input v-model.number="dispatchQty" type="number" :min="1" />
           </div>
-          <div>
-            <label>해운/항공 운송사 (Carrier)</label>
+          <div class="ws-field">
+            <label>운송사 (Carrier)</label>
             <select v-model="carrierName">
               <option value="HMM Marine Logistics">HMM Marine Logistics (현대상선)</option>
               <option value="Maersk Line">Maersk Line</option>
@@ -67,111 +62,86 @@
               <option value="DHL Global Forwarding">DHL Global Forwarding (Air)</option>
             </select>
           </div>
-          <div>
-            <label>선하증권 (B/L) 또는 AWB 번호</label>
+          <div class="ws-field">
+            <label>선하증권 (B/L / AWB 번호)</label>
             <input v-model="blNumber" type="text" placeholder="예: MAEU-PUS-99002" />
           </div>
-          <div>
-            <div class="label-with-action">
-              <label>상업송장 (Commercial Invoice URL)</label>
-              <button type="button" class="btn-xs-upload" :disabled="uploadingCi" @click="uploadTradeDoc('COMMERCIAL_INVOICE')">
-                <WsIcon v-if="!(uploadingCi)" name="upload" :size="14" /> {{ uploadingCi ? '업로드 중...' : 'R2 업로드' }}
-              </button>
-            </div>
+          <div class="ws-field">
+            <label>상업송장 (C/I URL) <button type="button" class="ws-btn ws-btn-ghost ws-btn-sm xs-up" :disabled="uploadingCi" @click="uploadTradeDoc('COMMERCIAL_INVOICE')"><WsIcon v-if="!uploadingCi" name="upload" :size="13" /> {{ uploadingCi ? '업로드 중...' : 'R2 업로드' }}</button></label>
             <input v-model="ciUrl" type="text" />
           </div>
-          <div>
-            <div class="label-with-action">
-              <label>포장명세서 (Packing List URL)</label>
-              <button type="button" class="btn-xs-upload" :disabled="uploadingPl" @click="uploadTradeDoc('PACKING_LIST')">
-                <WsIcon v-if="!(uploadingPl)" name="upload" :size="14" /> {{ uploadingPl ? '업로드 중...' : 'R2 업로드' }}
-              </button>
-            </div>
+          <div class="ws-field">
+            <label>포장명세서 (P/L URL) <button type="button" class="ws-btn ws-btn-ghost ws-btn-sm xs-up" :disabled="uploadingPl" @click="uploadTradeDoc('PACKING_LIST')"><WsIcon v-if="!uploadingPl" name="upload" :size="13" /> {{ uploadingPl ? '업로드 중...' : 'R2 업로드' }}</button></label>
             <input v-model="plUrl" type="text" />
           </div>
-          <div>
-            <label>원산지증명서 (Certificate of Origin)</label>
+          <div class="ws-field">
+            <label>원산지증명서 (C/O)</label>
             <input v-model="coNumber" type="text" />
           </div>
         </div>
-
-        <div class="dispatch-bar">
-          <p v-if="dispatchQty > remaining" class="err-txt">
-            <WsIcon name="alert" :size="15" /> 누적 출고 한도 초과 경고: 요청 수량({{ dispatchQty }})이 잔여 계약 수량({{ remaining }})을 초과합니다. 강제 호출 시 백엔드가 `422 CUMULATIVE_OVERFLOW`로 차단합니다.
-          </p>
-          <button class="btn-dispatch" :disabled="submitting || dispatchQty <= 0" @click="handleDispatch">
-            <WsIcon v-if="!(submitting)" name="truck" :size="14" /> {{ submitting ? '선적 및 B/L 등록 중...' : '분할 선적 출고 확정 (POST /v1/logistics/shipments)' }}
-          </button>
+        <div v-if="dispatchQty > remaining" class="ws-banner ws-banner-danger">
+          <WsIcon name="alert" :size="16" />
+          <span>누적 출고 한도 초과: 요청 {{ dispatchQty }}개가 잔여 {{ remaining }}개를 초과합니다. 강제 호출 시 백엔드가 <code>422 CUMULATIVE_OVERFLOW</code>로 차단합니다.</span>
         </div>
-      </div>
+        <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="submitting || dispatchQty <= 0" @click="handleDispatch">
+          <WsIcon v-if="!submitting" name="truck" :size="14" /> {{ submitting ? '선적·B/L 등록 중...' : '분할 선적 출고 확정' }}
+        </button>
+      </section>
 
-      <!-- Shipped History -->
-      <div class="history-section">
-        <h4><WsIcon name="file" :size="15" /> 누적 선적 및 무역 서류 원장 ({{ orderShipments.length }}건)</h4>
-        <div v-if="orderShipments.length === 0" class="empty-ship">아직 등록된 선적 내역이 없습니다.</div>
-        <div v-for="(s, idx) in orderShipments" :key="s.id || idx" class="history-row">
-          <span><strong>{{ s.id || `SHP-#${idx + 1}` }}</strong></span>
-          <span>수량: <strong>{{ s.dispatched_quantity || s.qty }} {{ activeOrder.unit }}</strong></span>
-          <span>B/L: <code>{{ s.tracking_number || s.bl }}</code></span>
-          <span class="carrier">{{ s.carrier }}</span>
-          <span class="date">{{ formatDate(s.shipped_at || s.date) }}</span>
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head"><h3>누적 선적·서류 원장 ({{ orderShipments.length }}건)</h3></div>
+        <div v-if="orderShipments.length === 0" class="ws-empty" style="padding: 24px">
+          <h3>등록된 선적 내역이 없습니다</h3>
         </div>
-      </div>
+        <div v-else class="ws-table-wrap">
+          <table class="ws-table">
+            <thead><tr><th>선적 ID</th><th class="ws-num">수량</th><th>B/L</th><th>운송사</th><th>선적일</th></tr></thead>
+            <tbody>
+              <tr v-for="(s, idx) in orderShipments" :key="s.id || idx">
+                <td class="ws-cell-main ws-figure">{{ s.id || `SHP-#${idx + 1}` }}</td>
+                <td class="ws-num ws-figure"><b>{{ s.dispatched_quantity || s.qty }} {{ activeOrder.unit }}</b></td>
+                <td><code>{{ s.tracking_number || s.bl }}</code></td>
+                <td>{{ s.carrier }}</td>
+                <td class="ws-cell-sub">{{ formatDate(s.shipped_at || s.date) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      <!-- Customs Declaration Manifest Submission Form & List -->
-      <div class="customs-manifest-section">
-        <div class="section-head-toggle" @click="showCustomsForm = !showCustomsForm">
-          <h4><WsIcon name="building" :size="15" /> 관세청 수출신고필증 (Customs Manifest) 등록 및 교부 내역</h4>
-          <span class="toggle-icon">{{ showCustomsForm ? '▲ 접기' : '▼ 펼치기' }}</span>
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head">
+          <h3><WsIcon name="building" :size="15" class="h-ico" /> 수출신고필증 등록·교부 내역</h3>
+          <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="showCustomsForm = !showCustomsForm">{{ showCustomsForm ? '▲ 접기' : '▼ 펼치기' }}</button>
         </div>
-
-        <div v-if="showCustomsForm" class="customs-form-panel">
-          <div class="form-grid-3">
-            <div>
-              <label>수출신고번호</label>
-              <input v-model="customsDeclNo" type="text" placeholder="EXP-KR-2026-99120" />
-            </div>
-            <div>
-              <label>적재항 (Port of Loading)</label>
-              <input v-model="pol" type="text" placeholder="Busan Port (KRPUS)" />
-            </div>
-            <div>
-              <label>양하항 (Port of Discharge)</label>
-              <input v-model="pod" type="text" placeholder="Los Angeles (USLAX)" />
-            </div>
-            <div>
-              <label>HS Code (세번부호)</label>
-              <input v-model="hsCode" type="text" placeholder="7323.93.0000" />
-            </div>
-            <div>
-              <label>관세 및 세액 (USD Minor)</label>
-              <input v-model.number="dutyTaxMinor" type="number" placeholder="27300" />
-            </div>
-            <div>
-              <label>담당 관세사 (Customs Broker)</label>
-              <input v-model="customsBroker" type="text" placeholder="Pantos Logistics Global" />
-            </div>
-          </div>
-          <div class="customs-action-bar">
-            <button class="btn-customs-submit" :disabled="submittingCustoms" @click="handleCustomsSubmit">
-              <WsIcon v-if="!(submittingCustoms)" name="building" :size="14" /> {{ submittingCustoms ? '세관 신고 전송 중...' : '관세청 수출통관신고서 전송 (POST /v1/logistics/customs)' }}
-            </button>
-          </div>
+        <div v-if="showCustomsForm" class="ws-grid-3">
+          <div class="ws-field"><label>수출신고번호</label><input v-model="customsDeclNo" type="text" placeholder="EXP-KR-2026-99120" /></div>
+          <div class="ws-field"><label>적재항 (POL)</label><input v-model="pol" type="text" placeholder="Busan Port (KRPUS)" /></div>
+          <div class="ws-field"><label>양하항 (POD)</label><input v-model="pod" type="text" placeholder="Los Angeles (USLAX)" /></div>
+          <div class="ws-field"><label>HS Code</label><input v-model="hsCode" type="text" placeholder="7323.93.0000" /></div>
+          <div class="ws-field"><label>관세·세액 (USD Minor)</label><input v-model.number="dutyTaxMinor" type="number" placeholder="27300" /></div>
+          <div class="ws-field"><label>담당 관세사</label><input v-model="customsBroker" type="text" placeholder="Pantos Logistics Global" /></div>
         </div>
-
-        <!-- Customs Manifest List -->
-        <div class="customs-history-table">
-          <div v-if="orderCustoms.length === 0" class="empty-ship">등록된 수출통관필증이 없습니다. 상단에서 등록하세요.</div>
-          <div v-for="(m, idx) in orderCustoms" :key="m.id || idx" class="customs-row">
-            <span class="decl-no"><strong>{{ m.declaration_number }}</strong></span>
-            <span>HS: <code>{{ m.hs_code }}</code></span>
-            <span>{{ m.port_of_loading }} → {{ m.port_of_discharge }}</span>
-            <span class="broker">{{ m.customs_broker_name }}</span>
-            <span class="tax-badge">${{ (m.duty_tax_amount_minor / 100).toFixed(2) }}</span>
-            <span class="status-pill cleared">{{ m.customs_status }}</span>
-          </div>
+        <button v-if="showCustomsForm" class="ws-btn ws-btn-navy ws-btn-block" :disabled="submittingCustoms" @click="handleCustomsSubmit">
+          <WsIcon v-if="!submittingCustoms" name="building" :size="14" /> {{ submittingCustoms ? '세관 신고 전송 중...' : '수출통관신고서 전송' }}
+        </button>
+        <div class="ws-table-wrap" style="margin-top: 14px">
+          <div v-if="orderCustoms.length === 0" class="ws-empty" style="padding: 20px"><h3>등록된 수출통관필증이 없습니다</h3></div>
+          <table v-else class="ws-table">
+            <thead><tr><th>신고번호</th><th>HS</th><th>구간</th><th>관세사</th><th class="ws-num">관부가세</th><th>상태</th></tr></thead>
+            <tbody>
+              <tr v-for="(m, idx) in orderCustoms" :key="m.id || idx">
+                <td class="ws-cell-main ws-figure">{{ m.declaration_number }}</td>
+                <td><code>{{ m.hs_code }}</code></td>
+                <td class="ws-small">{{ m.port_of_loading }} → {{ m.port_of_discharge }}</td>
+                <td>{{ m.customs_broker_name }}</td>
+                <td class="ws-num ws-figure"><b>${{ (m.duty_tax_amount_minor / 100).toFixed(2) }}</b></td>
+                <td><span class="ws-badge ws-badge-success">{{ m.customs_status }}</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -371,161 +341,9 @@ async function handleDispatch() {
 </script>
 
 <style scoped>
-.fulfillment-page { max-width: 1040px; margin: 0 auto; }
-.head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
-.order-selector { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; }
-.order-selector select { padding: 8px 12px; border: 1px solid #CBD5E1; border-radius: 6px; font-size: 13px; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-text-muted); }
-.error-banner { background: #FEF2F2; color: var(--ws-danger); padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-.order-box { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
-.box-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 12px; margin-bottom: 16px; }
-.ord-no { font-weight: 700; color: var(--ws-text); font-size: 16px; margin-right: 12px; }
-.buyer { font-size: 13px; color: var(--ws-text-muted); }
-.badges { display: flex; gap: 8px; }
-.status-tag { background: #EDE9FE; color: var(--ws-info); font-weight: 700; font-size: 11px; padding: 3px 8px; border-radius: 9999px; }
-.status-tag.ship { background: var(--ws-success-bg); color: var(--ws-success); }
-.item-summary { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; margin-bottom: 20px; }
-.item-summary h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--ws-text); }
-.progress-info { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
-.progress-bar { height: 8px; background: var(--ws-border-subtle); border-radius: 4px; overflow: hidden; }
-.progress-bar .fill { height: 100%; background: var(--ws-brand); transition: width 0.3s ease; }
-.shipment-form { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 18px; margin-bottom: 20px; }
-.shipment-form h4 { margin: 0 0 14px 0; font-size: 14px; color: var(--ws-text); }
-.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 14px; }
-.form-grid-3 label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
-.form-grid-3 input, .form-grid-3 select { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; font-size: 13px; }
-.dispatch-bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-.btn-dispatch { background: var(--ws-success); color: var(--ws-surface); border: none; padding: 10px 20px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; margin-left: auto; }
-.err-txt { color: var(--ws-danger); font-size: 12px; font-weight: 700; margin: 0; }
-.history-section h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--ws-text); }
-.empty-ship { color: var(--ws-text-muted); font-size: 12px; padding: 8px 0; }
-.history-row { display: flex; justify-content: space-between; padding: 10px 12px; background: var(--ws-surface-muted); border-radius: 6px; margin-bottom: 6px; font-size: 13px; border: 1px solid var(--ws-border-subtle); }
-.carrier, .date { color: var(--ws-text-muted); }
-
-/* Customs Manifest Section */
-.customs-manifest-section {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  padding: 18px;
-  margin-top: 20px;
-}
-.section-head-toggle {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  user-select: none;
-  margin-bottom: 12px;
-}
-.section-head-toggle h4 {
-  margin: 0;
-  font-size: 14px;
-  color: var(--ws-text);
-}
-.toggle-icon {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  font-weight: 700;
-}
-.customs-form-panel {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  padding: 14px;
-  margin-bottom: 14px;
-}
-.label-with-action {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-.label-with-action label {
-  margin-bottom: 0;
-}
-.btn-xs-upload {
-  background: #EFF6FF;
-  color: var(--ws-info);
-  border: 1px solid #BFDBFE;
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-xs-upload:hover:not(:disabled) {
-  background: var(--ws-info-bg);
-}
-.btn-xs-upload:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.customs-action-bar {
-  display: flex;
-  justify-content: flex-end;
-}
-.btn-customs-submit {
-  background: #0284C7;
-  color: var(--ws-surface);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-customs-submit:disabled {
-  opacity: 0.6;
-}
-.customs-history-table {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.customs-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 12px;
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 6px;
-  font-size: 13px;
-}
-.decl-no {
-  font-family: monospace;
-  color: var(--ws-text);
-}
-.broker {
-  color: var(--ws-text-2);
-}
-.tax-badge {
-  color: var(--ws-success);
-  font-weight: 700;
-}
-.status-pill {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.status-pill.cleared {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-}
-
-@media (max-width: 768px) {
-  .head-row { flex-direction: column; align-items: flex-start; gap: 12px; }
-  .box-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .form-grid-3 { grid-template-columns: 1fr; gap: 10px; }
-  .dispatch-bar { flex-direction: column; align-items: stretch; }
-  .btn-dispatch { margin-left: 0; width: 100%; text-align: center; }
-  .history-row { flex-direction: column; gap: 4px; }
-  .customs-row { flex-direction: column; align-items: flex-start; gap: 4px; }
-  .btn-customs-submit { width: 100%; text-align: center; }
-}
+.sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }
+.sort-box .ws-input { width: 340px; font-size: 13px; padding: 8px 10px; }
+.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.xs-up { padding: 2px 8px; margin-left: 6px; }
+.ws-field { margin-bottom: 12px; }
 </style>

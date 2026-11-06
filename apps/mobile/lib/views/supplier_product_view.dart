@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
 class SupplierProductScreen extends StatefulWidget {
   const SupplierProductScreen({super.key});
@@ -46,30 +47,73 @@ class _SupplierProductScreenState extends State<SupplierProductScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('상품 관리')),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: WsColors.brand,
+        foregroundColor: Colors.white,
         onPressed: () {},
         child: const Icon(Icons.add),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: WsColors.brand))
           : _error != null
-              ? Center(child: Text(_error!))
+              ? WsEmpty(
+                  icon: Icons.error_outline,
+                  title: '상품을 불러오지 못했습니다',
+                  body: _error,
+                  actionLabel: '다시 시도',
+                  onAction: _load,
+                )
               : _products.isEmpty
-                  ? const Center(child: Text('등록된 상품이 없습니다.'))
+                  ? const WsEmpty(
+                      icon: Icons.inventory_2_outlined,
+                      title: '등록된 상품이 없습니다',
+                    )
                   : ListView.builder(
+                      padding: const EdgeInsets.all(12),
                       itemCount: _products.length,
                       itemBuilder: (ctx, i) {
                         final p = _products[i];
                         return Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          margin: const EdgeInsets.symmetric(vertical: 5),
                           child: ListTile(
                             leading: p['thumbnail'] != null
-                                ? Image.network(p['thumbnail'].toString(),
-                                    width: 48, height: 48, fit: BoxFit.cover)
-                                : const Icon(Icons.image),
-                            title: Text(p['title']?.toString() ?? '상품'),
-                            subtitle: Text('MOQ: ${p['moq'] ?? '-'}'),
-                            trailing: const Icon(Icons.edit),
+                                ? ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.network(
+                                      p['thumbnail'].toString(),
+                                      width: 48,
+                                      height: 48,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (_, __, ___) => Container(
+                                        width: 48,
+                                        height: 48,
+                                        color: WsColors.surfaceMuted,
+                                        child: const Icon(Icons.image_outlined,
+                                            color: WsColors.faint),
+                                      ),
+                                    ),
+                                  )
+                                : Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      color: WsColors.surfaceMuted,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.image_outlined,
+                                        color: WsColors.faint),
+                                  ),
+                            title: Text(
+                              p['title']?.toString() ?? '상품',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800, fontSize: 14),
+                            ),
+                            subtitle: Text(
+                              'MOQ ${p['moq'] ?? '-'}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: WsColors.muted),
+                            ),
+                            trailing: const Icon(Icons.edit_outlined,
+                                size: 18, color: WsColors.muted),
                           ),
                         );
                       },

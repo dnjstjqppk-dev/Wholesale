@@ -1,71 +1,57 @@
 <template>
-  <div class="moderation-page">
-    <div class="head-row">
+  <div class="ws-admin-page mod">
+    <div class="admin-head">
       <div>
-        <h2>상품 카탈로그 모더레이션 (Catalog Moderation)</h2>
-        <p class="subtitle">공급사가 제출한 도매 상품의 MOQ, 구간 단가, 스펙 적합성을 심사하고 승인/반려합니다.</p>
+        <p class="admin-eyebrow">Content Review</p>
+        <h1>상품 카탈로그 모더레이션</h1>
+        <p class="admin-sub">MOQ·구간단가·스펙 적합성을 심사하고 승인/반려합니다.</p>
       </div>
-      <button class="btn-refresh" @click="loadListings"><WsIcon name="refresh" :size="15" /> 심사 대기열 새로고침</button>
+      <button class="ws-admin-btn" @click="loadListings"><WsIcon name="refresh" :size="14" /> 대기열 새로고침</button>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      심사 대기 상품을 API 서버에서 조회 중입니다...
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton sk-dark" style="height: 220px"></div>
+      <div class="ws-skeleton sk-dark" style="height: 220px"></div>
     </div>
 
-    <div v-else class="item-list">
-      <div v-if="items.length === 0" class="empty-state">
-        현재 심사 대기 중인 상품이 없습니다.
+    <div v-else class="ws-stack">
+      <div v-if="items.length === 0" class="admin-empty">
+        <span class="ws-empty-icon dark"><WsIcon name="check" :size="22" /></span>
+        <h3>심사 대기 중인 상품이 없습니다</h3>
       </div>
-      <div v-for="item in items" :key="item.id" class="mod-card">
-        <div class="card-head">
-          <div class="left-info">
+      <section v-for="item in items" :key="item.id" class="ws-admin-card">
+        <div class="ws-split item-head">
+          <span class="ws-cluster" style="gap: 12px">
             <img :src="item.thumbnail || item.images?.[0]" class="thumb" alt="thumb" />
             <div>
-              <h3 class="title">{{ item.title }}</h3>
-              <span class="sub">공급사: {{ item.supplier_name }} ({{ item.supplier_country }}) | 카테고리: {{ item.category }} ({{ item.sub_category }})</span>
+              <h3>{{ item.title }}</h3>
+              <p class="ws-small dim">{{ item.supplier_name }} ({{ item.supplier_country }}) · {{ item.category }} ({{ item.sub_category }})</p>
             </div>
-          </div>
-          <span class="badge" :class="item.status.toLowerCase()">{{ item.status }}</span>
+          </span>
+          <span class="ws-admin-badge" :class="item.status === 'PUBLISHED' ? 'ws-admin-badge-ok' : item.status === 'FLAGGED' ? 'ws-admin-badge-bad' : 'ws-admin-badge-warn'">{{ item.status }}</span>
         </div>
-
-        <div class="info-row">
-          <div><span>MOQ:</span> <strong>{{ item.moq }} {{ item.unit }}</strong></div>
-          <div><span>발주단위(Step):</span> <strong>{{ item.quantity_step || 10 }} {{ item.unit }}</strong></div>
-          <div><span>표준 납기:</span> <strong>{{ item.lead_time_days }}일</strong></div>
-          <div><span>인도조건:</span> <strong>{{ item.incoterms || 'FOB Busan Port' }}</strong></div>
+        <div class="fact-strip">
+          <div><span>MOQ</span><b class="ws-figure">{{ item.moq }} {{ item.unit }}</b></div>
+          <div><span>Step</span><b class="ws-figure">{{ item.quantity_step || 10 }} {{ item.unit }}</b></div>
+          <div><span>납기</span><b>{{ item.lead_time_days }}일</b></div>
+          <div><span>인도조건</span><b>{{ item.incoterms || 'FOB Busan Port' }}</b></div>
         </div>
-
-        <div class="tiers-box">
-          <span class="t-lbl">수량별 구간단가:</span>
-          <span v-for="(t, idx) in item.price_tiers" :key="idx" class="tier-pill">
-            {{ t.min_quantity }}~{{ t.max_quantity || '∞' }} {{ item.unit }}: ${{ Number(t.unit_price).toFixed(2) }}
+        <div class="tier-line">
+          <span class="ws-small dim">구간단가</span>
+          <span v-for="(t, idx) in item.price_tiers" :key="idx" class="ws-admin-badge ws-admin-badge-info ws-figure">
+            {{ t.min_quantity }}~{{ t.max_quantity || '∞' }}{{ item.unit }} · ${{ Number(t.unit_price).toFixed(2) }}
           </span>
         </div>
-
-        <div class="actions">
-          <button
-            class="btn-approve"
-            :disabled="submitting || item.status === 'PUBLISHED'"
-            @click="reviewListing(item, 'APPROVE')"
-          >
-            ✓ 마켓 공개 승인 (PUBLISH)
+        <div class="ws-cluster verdict" style="gap: 8px">
+          <button class="ws-admin-btn ws-admin-btn-primary" :disabled="submitting || item.status === 'PUBLISHED'" @click="reviewListing(item, 'APPROVE')">
+            ✓ 마켓 공개 승인
           </button>
-          <button
-            class="btn-reject"
-            :disabled="submitting || item.status === 'UNDER_REVIEW'"
-            @click="reviewListing(item, 'REJECT')"
-          >
-            ✕ 심사 대기 전환 (REJECT)
-          </button>
-          <button
-            class="btn-flag"
-            :disabled="submitting || item.status === 'FLAGGED'"
-            @click="reviewListing(item, 'FLAG')"
-          >
-            <WsIcon name="alert" :size="15" /> 부정 의심 플래그 (FLAG)
+          <button class="ws-admin-btn" :disabled="submitting || item.status === 'UNDER_REVIEW'" @click="reviewListing(item, 'REJECT')">✕ 심사 대기 전환</button>
+          <button class="ws-admin-btn ws-admin-btn-danger" :disabled="submitting || item.status === 'FLAGGED'" @click="reviewListing(item, 'FLAG')">
+            <WsIcon name="alert" :size="13" /> 부정 의심 플래그
           </button>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -116,30 +102,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.moderation-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
-.btn-refresh { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-state, .empty-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-.item-list { display: flex; flex-direction: column; gap: 16px; }
-.mod-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 20px; }
-.card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 14px; border-bottom: 1px solid #2B3A55; padding-bottom: 12px; }
-.left-info { display: flex; gap: 14px; align-items: center; }
-.thumb { width: 52px; height: 52px; border-radius: 6px; object-fit: cover; border: 1px solid var(--ws-admin-line); }
-.title { margin: 0 0 4px 0; font-size: 16px; color: #FFF; }
-.sub { font-size: 12px; color: var(--ws-admin-dim); }
-.badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; }
-.badge.published { background: #065F46; color: #A7F3D0; }
-.badge.under_review { background: #854D0E; color: #FEF08A; }
-.badge.flagged { background: #7F1D1D; color: #FECACA; }
-.info-row { display: flex; gap: 24px; font-size: 13px; margin-bottom: 12px; color: #CBD5E1; }
-.tiers-box { display: flex; align-items: center; gap: 8px; font-size: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-.t-lbl { color: var(--ws-admin-dim); }
-.tier-pill { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); padding: 3px 8px; border-radius: 4px; color: var(--ws-admin-link); font-variant-numeric: tabular-nums; }
-.actions { display: flex; gap: 10px; }
-.btn-approve { background: #059669; color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.btn-reject { background: var(--ws-danger); color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.btn-flag { background: var(--ws-admin-accent); color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-button:disabled { opacity: 0.5; cursor: not-allowed; }
+.mod { display: flex; flex-direction: column; gap: 18px; }
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); }
+.admin-empty { text-align: center; padding: 48px 16px; }
+.admin-empty h3 { font-size: 16px; margin: 12px 0 0; }
+.ws-empty-icon.dark { background: var(--ws-admin-panel); }
+.item-head h3 { margin: 0 0 4px; font-size: 16px; color: #fff; }
+.item-head p { margin: 0; }
+.dim { color: var(--ws-admin-dim); }
+.thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; border: 1px solid var(--ws-admin-line); flex: none; }
+.fact-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.fact-strip div { display: flex; flex-direction: column; gap: 2px; background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 8px 12px; }
+.fact-strip span { font-size: 11px; color: var(--ws-admin-dim); font-weight: 700; }
+.fact-strip b { font-size: 13px; }
+.tier-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+.verdict { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--ws-admin-line); }
+.sk-dark { background: var(--ws-admin-panel); }
+@media (max-width: 768px) {
+  .fact-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 </style>

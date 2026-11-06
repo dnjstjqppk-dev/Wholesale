@@ -1,48 +1,58 @@
 <template>
-  <div class="quote-review-page">
-    <div class="header-bar">
-      <h2>견적서 검토 및 기업 결재 (Quote #{{ quote.id.slice(0, 8) }})</h2>
-      <span class="status-tag" :class="quote.status.toLowerCase()">{{ quote.status }}</span>
+  <div class="ws-page ws-page-narrow">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Quote #{{ quote.id.slice(0, 8) }}</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">견적서 검토·결재</h1>
+        <span class="ws-badge ws-badge-info">{{ quote.status }}</span>
+      </div>
     </div>
 
-    <div class="grid-layout">
-      <div class="main-col">
-        <div class="card">
-          <h3>공급사 제출 최신 견적 (Revision #{{ quote.current_revision.revision_number }})</h3>
-          <div class="info-grid">
-            <div><span class="lbl">공급사명:</span> <strong>{{ quote.supplier_name }} (Verified)</strong></div>
-            <div><span class="lbl">제안 단가:</span> <strong class="price">${{ quote.current_revision.unit_price }} / pcs</strong></div>
-            <div><span class="lbl">납기:</span> <strong>발주일로부터 {{ quote.current_revision.lead_time_days }}일</strong></div>
-            <div><span class="lbl">무역 조건:</span> <strong>{{ quote.current_revision.incoterms }}</strong></div>
-          </div>
-        </div>
+    <div class="qr-grid">
+      <div class="ws-stack">
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>공급사 제출 최신 견적 · Rev {{ quote.current_revision.revision_number }}</h3></div>
+          <table class="ws-spec-table">
+            <tbody>
+              <tr><th>공급사명</th><td><b>{{ quote.supplier_name }}</b> <span class="ws-badge ws-badge-success">Verified</span></td></tr>
+              <tr><th>제안 단가</th><td><b class="ws-price ws-price-lg ws-figure">${{ quote.current_revision.unit_price }}</b> / pcs</td></tr>
+              <tr><th>납기</th><td>발주일로부터 <b>{{ quote.current_revision.lead_time_days }}일</b></td></tr>
+              <tr><th>무역 조건</th><td>{{ quote.current_revision.incoterms }}</td></tr>
+            </tbody>
+          </table>
+        </section>
 
-        <div class="card">
-          <h3>견적 리비전 변경 이력 (Revision History)</h3>
-          <div v-for="rev in quote.revisions" :key="rev.revision_number" class="rev-row">
-            <span class="rev-num">Rev {{ rev.revision_number }}</span>
-            <span class="rev-status" :class="rev.status.toLowerCase()">{{ rev.status }}</span>
-            <span class="rev-price">${{ rev.unit_price }}</span>
-            <span class="rev-date">{{ rev.created_at }}</span>
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>리비전 변경 이력</h3></div>
+          <div class="ws-table-wrap">
+            <table class="ws-table">
+              <thead><tr><th>Rev</th><th>상태</th><th class="ws-num">단가</th><th>일시</th></tr></thead>
+              <tbody>
+                <tr v-for="rev in quote.revisions" :key="rev.revision_number">
+                  <td class="ws-cell-main">Rev {{ rev.revision_number }}</td>
+                  <td><span class="ws-badge ws-badge-success">{{ rev.status }}</span></td>
+                  <td class="ws-num ws-figure">${{ rev.unit_price }}</td>
+                  <td class="ws-cell-sub">{{ rev.created_at }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
+        </section>
       </div>
 
-      <div class="side-col">
-        <div class="card approval-card">
-          <h3>구매 기업 내부 결재 (Approval)</h3>
-          <div class="user-info">
-            <p><strong>발주 기안자:</strong> 김구매 선임 (BUYER_PURCHASER)</p>
-            <p><strong>승인 결재자:</strong> 박팀장 수석 (BUYER_APPROVER)</p>
-          </div>
-          <div class="alert-sod">
-            <WsIcon name="alert" :size="15" /> <strong>직무 분리(SoD) 원칙:</strong> 기안자 본인은 본 견적을 승인할 수 없으며 승인 권한자 결재 후 발주 전환됩니다.
-          </div>
-          <button class="btn-accept" :disabled="quote.status !== 'ISSUED'" @click="handleAccept">
-            결재 승인 및 무역계약 생성 (Accept)
-          </button>
+      <aside class="ws-card approval">
+        <div class="ws-card-head"><h3>내부 결재</h3></div>
+        <p class="ws-small"><b>발주 기안자</b><br />김구매 선임 (BUYER_PURCHASER)</p>
+        <p class="ws-small"><b>승인 결재자</b><br />박팀장 수석 (BUYER_APPROVER)</p>
+        <div class="ws-banner ws-banner-warning">
+          <WsIcon name="alert" :size="16" />
+          <span><b>직무 분리(SoD):</b> 기안자 본인은 승인할 수 없으며 승인권자 결재 후 발주 전환됩니다.</span>
         </div>
-      </div>
+        <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="quote.status !== 'ISSUED' || accepting" @click="handleAccept">
+          <span v-if="accepting" class="ws-spinner"></span>
+          {{ accepting ? '결재 처리 중...' : '결재 승인·계약 생성' }}
+        </button>
+      </aside>
     </div>
   </div>
 </template>
@@ -135,29 +145,11 @@ async function handleAccept() {
 </script>
 
 <style scoped>
-.quote-review-page { max-width: 1000px; margin: 0 auto; }
-.header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-.header-bar h2 { margin: 0; font-size: 20px; color: var(--ws-text); }
-.status-tag { padding: 4px 10px; border-radius: 9999px; font-size: 12px; font-weight: 700; background: var(--ws-info-bg); color: var(--ws-info); }
-.grid-layout { display: grid; grid-template-columns: 2fr 1fr; gap: 24px; }
-.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 20px; margin-bottom: 20px; }
-.card h3 { font-size: 15px; margin: 0 0 16px 0; color: var(--ws-text); }
-.info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 13px; }
-.lbl { color: var(--ws-text-muted); margin-right: 4px; }
-.price { color: var(--ws-brand); font-size: 16px; font-variant-numeric: tabular-nums; }
-.rev-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--ws-surface-muted); font-size: 13px; }
-.rev-num { font-weight: 700; color: var(--ws-text); }
-.rev-status.issued { color: var(--ws-success); font-weight: 600; }
-.rev-status.superseded { color: var(--ws-admin-dim); }
-.approval-card { background: var(--ws-surface-muted); }
-.user-info p { font-size: 13px; margin: 6px 0; color: var(--ws-text-2); }
-.alert-sod { background: var(--ws-warning-bg); border: 1px solid #FDE68A; border-radius: 6px; padding: 10px; font-size: 11px; color: #92400E; margin: 16px 0; }
-.btn-accept { width: 100%; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-
-@media (max-width: 768px) {
-  .header-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .grid-layout { grid-template-columns: 1fr; gap: 16px; }
-  .info-grid { grid-template-columns: 1fr; gap: 8px; }
+.qr-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 16px; align-items: start; }
+.approval { position: sticky; top: 84px; }
+.approval .ws-small { margin: 0 0 10px; }
+@media (max-width: 900px) {
+  .qr-grid { grid-template-columns: minmax(0, 1fr); }
+  .approval { position: static; }
 }
 </style>
-

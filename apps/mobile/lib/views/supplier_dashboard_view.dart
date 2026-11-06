@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
-class SupplierDashboardScreen extends StatefulWidget {
-  const SupplierDashboardScreen({super.key});
+/// Legacy compact supplier dashboard (kept for deep-link compatibility).
+/// The primary supplier console is SupplierDashboardScreen in supplier_view.dart;
+/// this variant renders the raw platform summary for diagnostics.
+class SupplierDashboardLegacyScreen extends StatefulWidget {
+  const SupplierDashboardLegacyScreen({super.key});
 
   @override
-  State<SupplierDashboardScreen> createState() => _SupplierDashboardScreenState();
+  State<SupplierDashboardLegacyScreen> createState() =>
+      _SupplierDashboardLegacyScreenState();
 }
 
-class _SupplierDashboardScreenState extends State<SupplierDashboardScreen> {
+class _SupplierDashboardLegacyScreenState
+    extends State<SupplierDashboardLegacyScreen> {
   final ApiClient _api = ApiClient();
   Map<String, dynamic>? _data;
   bool _loading = true;
@@ -44,20 +50,47 @@ class _SupplierDashboardScreenState extends State<SupplierDashboardScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('공급사 대시보드')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: WsColors.brand))
           : _error != null
-              ? Center(child: Text(_error!))
+              ? WsEmpty(
+                  icon: Icons.error_outline,
+                  title: '대시보드를 불러오지 못했습니다',
+                  body: _error,
+                  actionLabel: '다시 시도',
+                  onAction: _load,
+                )
               : _data == null
-                  ? const Center(child: Text('데이터 없음'))
+                  ? const WsEmpty(
+                      icon: Icons.dashboard_outlined,
+                      title: '데이터 없음',
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('총 GMV: ${_data!['summary']?['total_gmv_minor'] ?? '-'}'),
-                          Text('활성 주문: ${_data!['summary']?['active_orders_count'] ?? '-'}'),
-                          Text('인증 공급사: ${_data!['summary']?['verified_suppliers_count'] ?? '-'}'),
-                          Text('대기 실사: ${_data!['summary']?['pending_verifications_count'] ?? '-'}'),
+                          WsStatCard(
+                            label: '총 GMV (minor)',
+                            value:
+                                '${_data!['summary']?['total_gmv_minor'] ?? '-'}',
+                          ),
+                          const SizedBox(height: 8),
+                          WsStatCard(
+                            label: '활성 주문',
+                            value:
+                                '${_data!['summary']?['active_orders_count'] ?? '-'}',
+                          ),
+                          const SizedBox(height: 8),
+                          WsStatCard(
+                            label: '인증 공급사',
+                            value:
+                                '${_data!['summary']?['verified_suppliers_count'] ?? '-'}',
+                          ),
+                          const SizedBox(height: 8),
+                          WsStatCard(
+                            label: '대기 실사',
+                            value:
+                                '${_data!['summary']?['pending_verifications_count'] ?? '-'}',
+                          ),
                         ],
                       ),
                     ),

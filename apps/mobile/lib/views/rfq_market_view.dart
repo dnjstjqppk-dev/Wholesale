@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
 class RfqMarketScreen extends StatefulWidget {
   const RfqMarketScreen({super.key});
@@ -46,23 +47,40 @@ class _RfqMarketScreenState extends State<RfqMarketScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('RFQ 시장')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: WsColors.brand))
           : _error != null
-              ? Center(child: Text(_error!))
+              ? WsEmpty(
+                  icon: Icons.error_outline,
+                  title: 'RFQ를 불러오지 못했습니다',
+                  body: _error,
+                  actionLabel: '다시 시도',
+                  onAction: _load,
+                )
               : _rfqs.isEmpty
-                  ? const Center(child: Text('진행 중인 RFQ가 없습니다.'))
+                  ? const WsEmpty(
+                      icon: Icons.local_offer_outlined,
+                      title: '진행 중인 RFQ가 없습니다',
+                    )
                   : ListView.builder(
+                      padding: const EdgeInsets.all(12),
                       itemCount: _rfqs.length,
                       itemBuilder: (ctx, i) {
                         final r = _rfqs[i];
                         return Card(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                          margin: const EdgeInsets.symmetric(vertical: 5),
                           child: ListTile(
-                            title: Text(r['title']?.toString() ?? 'RFQ'),
+                            title: Text(
+                              r['title']?.toString() ?? 'RFQ',
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.w800, fontSize: 14),
+                            ),
                             subtitle: Text(
-                                '수량: ${r['quantity'] ?? '-'} | ${r['status'] ?? ''}'),
-                            trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                              '수량 ${r['quantity'] ?? '-'} · ${r['status'] ?? ''}',
+                              style: const TextStyle(
+                                  fontSize: 12, color: WsColors.muted),
+                            ),
+                            trailing: const Icon(Icons.arrow_forward_ios,
+                                size: 14, color: WsColors.faint),
                           ),
                         );
                       },

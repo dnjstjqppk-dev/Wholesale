@@ -1,81 +1,54 @@
 <template>
-  <div class="b2b-product-card">
-    <!-- Thumbnail & Category Pill -->
-    <div class="card-thumb" @click="$router.push(`/${locale}/${currency}/products/${item.id}`)">
+  <article class="cc-card">
+    <div class="cc-media" @click="$router.push(`/${locale}/${currency}/products/${item.id}`)">
       <img
         :src="item.thumbnail || (item.images && item.images[0]) || 'https://images.unsplash.com/photo-1577937927133-66ef06acdf18?auto=format&fit=crop&w=400&q=80'"
         :alt="item.title"
-        class="card-img"
+        loading="lazy"
       />
-      <span class="cat-pill">{{ item.category }}</span>
-      <span v-if="item.trade_assurance" class="ta-pill"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
-      <span v-if="item.customization" class="oem-pill">OEM/ODM</span>
+      <span class="ws-badge ws-badge-navy cc-cat">{{ item.category }}</span>
+      <span class="ws-cluster cc-pills" style="gap: 6px">
+        <span v-if="item.trade_assurance" class="ws-badge ws-badge-brand"><WsIcon name="shield" :size="12" /> TA</span>
+        <span v-if="item.customization" class="ws-badge ws-badge-info">OEM/ODM</span>
+      </span>
     </div>
 
-    <!-- Card Body -->
-    <div class="card-content">
-      <!-- Supplier Profile -->
-      <div class="supplier-strip">
-        <span class="country-flag">🇰🇷</span>
-        <span class="supplier-name" :title="item.supplier_name">{{ item.supplier_name }}</span>
-        <span v-if="item.verified_supplier || item.is_verified_supplier" class="verified-gold">✓ Verified</span>
-        <span class="years">{{ item.years_in_business || 10 }} yrs</span>
-      </div>
+    <div class="cc-body">
+      <p class="cc-sup">
+        <b :title="item.supplier_name">{{ item.supplier_name }}</b>
+        <span v-if="item.verified_supplier || item.is_verified_supplier" class="ws-badge ws-badge-success">Verified</span>
+        <span class="ws-muted">{{ item.years_in_business || 10 }} yrs</span>
+      </p>
 
-      <!-- Product Title -->
-      <router-link
-        :to="`/${locale}/${currency}/products/${item.id}`"
-        class="product-title"
-        :title="item.title"
-      >
+      <router-link :to="`/${locale}/${currency}/products/${item.id}`" class="cc-title" :title="item.title">
         {{ item.title }}
       </router-link>
 
-      <!-- Tiered Pricing Matrix Table (Alibaba Style) -->
-      <div class="tier-matrix-table">
-        <div class="tier-matrix-head">
-          <span>수량 구간</span>
-          <span>구간 단가</span>
-        </div>
-        <div v-for="(tier, idx) in item.price_tiers" :key="idx" class="tier-matrix-row">
-          <span class="tier-qty">{{ tier.min_quantity }} ~ {{ tier.max_quantity || '+' }} {{ item.unit }}</span>
-          <span class="tier-val">{{ formatPrice(tier.unit_price) }}</span>
-        </div>
-      </div>
+      <table class="ws-tier-table cc-tiers">
+        <thead><tr><th>수량 구간</th><th style="text-align: right">구간 단가</th></tr></thead>
+        <tbody>
+          <tr v-for="(tier, idx) in item.price_tiers" :key="idx">
+            <td>{{ tier.min_quantity }} ~ {{ tier.max_quantity || '+' }} {{ item.unit }}</td>
+            <td style="text-align: right"><b class="ws-price ws-figure">{{ formatPrice(tier.unit_price) }}</b></td>
+          </tr>
+        </tbody>
+      </table>
 
-      <!-- Metrics (MOQ, Lead Time, Rating) -->
-      <div class="product-meta">
-        <div class="meta-item">
-          <span class="meta-k">MOQ:</span>
-          <span class="meta-v">{{ item.moq }} {{ item.unit }}</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-k">표준 납기:</span>
-          <span class="meta-v">{{ item.lead_time_days }}일</span>
-        </div>
-        <div class="meta-item">
-          <span class="meta-k">응답률:</span>
-          <span class="meta-v highlight">{{ item.response_rate || '99.2%' }}</span>
-        </div>
-      </div>
+      <p class="cc-meta">MOQ <b>{{ item.moq }}{{ item.unit }}</b> · 납기 <b>{{ item.lead_time_days }}일</b> · 응답률 <b class="ws-price">{{ item.response_rate || '99.2%' }}</b></p>
 
-      <!-- Action Buttons -->
-      <div class="card-action-bar">
-        <button class="btn-inquiry" @click="$emit('inquiry', item)">
-          <WsIcon name="chat" :size="15" /> 1:1 문의
+      <div class="cc-actions">
+        <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="$emit('inquiry', item)">
+          <WsIcon name="chat" :size="13" /> 1:1 문의
         </button>
-        <button class="btn-cart" @click="addToCart(item)" :disabled="addingCart">
-          <WsIcon name="cart" :size="15" /> {{ addingCart ? '담는 중...' : '카트 담기' }}
+        <button class="ws-btn ws-btn-secondary ws-btn-sm" :disabled="addingCart" @click="addToCart(item)">
+          <WsIcon name="cart" :size="13" /> {{ addingCart ? '담는 중...' : '카트 담기' }}
         </button>
-        <router-link
-          :to="`/${locale}/${currency}/products/${item.id}`"
-          class="btn-start-order"
-        >
+        <router-link :to="`/${locale}/${currency}/products/${item.id}`" class="ws-btn ws-btn-primary ws-btn-sm">
           상세 발주 ›
         </router-link>
       </div>
     </div>
-  </div>
+  </article>
 </template>
 
 <script setup lang="ts">
@@ -121,191 +94,20 @@ async function addToCart(item: any) {
 </script>
 
 <style scoped>
-.b2b-product-card {
-  background: var(--ws-surface);
-  border: 1px solid #E5E7EB;
-  border-radius: 8px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  transition: box-shadow 0.2s, border-color 0.2s;
-}
-.b2b-product-card:hover {
-  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
-  border-color: var(--ws-brand);
-}
-.card-thumb {
-  height: 180px;
-  background: var(--ws-surface-muted);
-  position: relative;
-  overflow: hidden;
-  cursor: pointer;
-}
-.card-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.2s ease;
-}
-.b2b-product-card:hover .card-img {
-  transform: scale(1.03);
-}
-.cat-pill {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: rgba(15, 23, 42, 0.75);
-  color: var(--ws-surface);
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.ta-pill {
-  position: absolute;
-  bottom: 8px;
-  left: 8px;
-  background: rgba(15, 23, 42, 0.85);
-  color: var(--ws-info);
-  font-size: 9px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.oem-pill {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.card-content {
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-.supplier-strip {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  margin-bottom: 8px;
-}
-.supplier-name {
-  color: var(--ws-text-muted);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 140px;
-}
-.verified-gold {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 1px 4px;
-  border-radius: 3px;
-}
-.years {
-  color: var(--ws-admin-dim);
-  font-size: 11px;
-  margin-left: auto;
-}
-.product-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ws-text);
-  text-decoration: none;
-  line-height: 1.4;
-  margin-bottom: 10px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  height: 38px;
-}
-.product-title:hover {
-  color: var(--ws-brand);
-}
-.tier-matrix-table {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  overflow: hidden;
-  margin-bottom: 12px;
-}
-.tier-matrix-head {
-  display: flex;
-  justify-content: space-between;
-  background: #EDF2F7;
-  padding: 4px 8px;
-  font-size: 10px;
-  font-weight: 700;
-  color: #4A5568;
-}
-.tier-matrix-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 4px 8px;
-  font-size: 11px;
-  border-top: 1px solid #EDF2F7;
-}
-.tier-val {
-  font-weight: 700;
-  color: var(--ws-brand);
-}
-.product-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  margin-bottom: 12px;
-}
-.highlight {
-  color: var(--ws-success);
-  font-weight: 700;
-}
-.card-action-bar {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 6px;
-  margin-top: auto;
-}
-.btn-inquiry, .btn-cart, .btn-start-order {
-  padding: 6px 4px;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 4px;
-  text-align: center;
-  cursor: pointer;
-  text-decoration: none;
-  box-sizing: border-box;
-}
-.btn-inquiry {
-  background: var(--ws-surface);
-  border: 1px solid #CBD5E1;
-  color: var(--ws-text-2);
-}
-.btn-cart {
-  background: var(--ws-brand-light);
-  border: 1px solid #FDBA74;
-  color: var(--ws-brand);
-}
-.btn-start-order {
-  background: var(--ws-brand-hover);
-  color: var(--ws-surface);
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-start-order:hover {
-  background: var(--ws-brand-hover);
-}
+.cc-card { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: var(--ws-radius-card); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--ws-shadow-card); transition: border-color 120ms ease; }
+.cc-card:hover { border-color: var(--ws-brand); }
+.cc-media { position: relative; aspect-ratio: 16 / 10; background: var(--ws-surface-muted); cursor: pointer; }
+.cc-media img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cc-cat { position: absolute; top: 10px; left: 10px; }
+.cc-pills { position: absolute; bottom: 10px; left: 10px; }
+.cc-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
+.cc-sup { display: flex; align-items: center; gap: 7px; margin: 0 0 6px; font-size: 12px; }
+.cc-sup b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-title { font-size: 14px; font-weight: 700; color: var(--ws-text); text-decoration: none; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px; margin-bottom: 8px; }
+.cc-title:hover { color: var(--ws-brand); }
+.cc-tiers { margin-bottom: 8px; }
+.cc-tiers th, .cc-tiers td { padding: 6px 8px; font-size: 12px; }
+.cc-meta { margin: 0 0 12px; font-size: 12px; color: var(--ws-text-2); }
+.cc-actions { display: flex; gap: 6px; margin-top: auto; }
+.cc-actions .ws-btn { flex: 1; padding-left: 6px; padding-right: 6px; }
 </style>

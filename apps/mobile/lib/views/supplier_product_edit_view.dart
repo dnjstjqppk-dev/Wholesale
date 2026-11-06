@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
 class SupplierProductEditScreen extends StatefulWidget {
   final String? productId;
@@ -55,33 +56,41 @@ class _SupplierProductEditScreenState extends State<SupplierProductEditScreen> {
     return Scaffold(
       appBar: AppBar(
           title: Text(widget.productId == null ? '상품 등록' : '상품 수정')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            TextField(
-              controller: _titleCtrl,
-              decoration: const InputDecoration(labelText: '상품명'),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TextField(
+                  controller: _titleCtrl,
+                  decoration: const InputDecoration(labelText: '상품명'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _moqCtrl,
+                  decoration: const InputDecoration(labelText: 'MOQ'),
+                  keyboardType: TextInputType.number,
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _imageUrlCtrl,
+                  decoration: const InputDecoration(labelText: '이미지 URL'),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: 12),
+                  WsBanner.bad(_error!),
+                ],
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _submitting ? null : _submit,
+                  child: Text(_submitting ? '저장 중...' : '저장'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _moqCtrl,
-              decoration: const InputDecoration(labelText: 'MOQ'),
-              keyboardType: TextInputType.number,
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _imageUrlCtrl,
-              decoration: const InputDecoration(labelText: '이미지 URL'),
-            ),
-            const SizedBox(height: 16),
-            if (_error != null)
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-            ElevatedButton(
-              onPressed: _submitting ? null : _submit,
-              child: Text(_submitting ? '저장 중...' : '저장'),
-            ),
-          ],
+          ),
         ),
       ),
     );

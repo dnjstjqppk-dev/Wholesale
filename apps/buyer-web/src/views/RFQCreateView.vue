@@ -1,20 +1,19 @@
 <template>
-  <div class="rfq-create-page">
-    <div class="rfq-card">
-      <h2>글로벌 도매 RFQ 견적의뢰서 작성</h2>
-      <p class="desc">
-        국내외 적격 검증 공급사(Verified Suppliers)로부터 경쟁 입찰 견적을 수신합니다.
-        <br /><strong>※ 구매기업 보안 원칙에 따라 연락처 및 도면은 익명화(Masking)되어 보호됩니다.</strong>
-      </p>
+  <div class="ws-page ws-page-narrow">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Request for Quotation</p>
+      <h1 class="ws-page-title">RFQ 견적의뢰서 작성</h1>
+      <p class="ws-page-sub">검증 공급사 네트워크로부터 경쟁 입찰 견적을 수신합니다. 연락처·도면은 익명화(Masking)되어 보호됩니다.</p>
+    </div>
 
-      <div class="form-section">
-        <label>조달 프로젝트명 (Title)</label>
+    <section class="ws-card">
+      <div class="ws-field">
+        <label>조달 프로젝트명 <span class="ws-field-req">*</span></label>
         <input v-model="form.title" type="text" placeholder="예: 2026 하반기 산업용 스테인리스 텀블러 5,000개 조달" />
       </div>
-
-      <div class="form-row">
-        <div class="form-section flex-1">
-          <label>도착지 국가 (Destination Country)</label>
+      <div class="ws-grid-2">
+        <div class="ws-field">
+          <label>도착지 국가</label>
           <select v-model="form.destinationCountry">
             <option value="KR">대한민국 (KR)</option>
             <option value="US">미국 (US)</option>
@@ -22,44 +21,39 @@
             <option value="EU">유럽연합 (EU)</option>
           </select>
         </div>
-        <div class="form-section flex-1">
+        <div class="ws-field">
           <label>견적 마감 희망일</label>
           <input v-model="form.expiresAt" type="date" />
         </div>
       </div>
 
-      <div class="items-section">
-        <h3>의뢰 품목 상세</h3>
-        <div class="item-box">
-          <div class="form-row">
-            <div class="form-section flex-2">
-              <label>품목명 규격</label>
-              <input v-model="item.title" type="text" placeholder="예: SUS304 500ml 진공 이중 구조" />
-            </div>
-            <div class="form-section flex-1">
-              <label>요청 수량</label>
-              <input v-model.number="item.requestedQty" type="number" placeholder="5000" />
-            </div>
-            <div class="form-section flex-1">
-              <label>단위</label>
-              <input v-model="item.unit" type="text" placeholder="pcs" />
-            </div>
-          </div>
+      <hr class="ws-divider" />
+      <div class="ws-card-head"><h3>의뢰 품목 상세</h3></div>
+      <div class="item-grid">
+        <div class="ws-field item-name">
+          <label>품목명 규격</label>
+          <input v-model="item.title" type="text" placeholder="예: SUS304 500ml 진공 이중 구조" />
+        </div>
+        <div class="ws-field">
+          <label>요청 수량</label>
+          <input v-model.number="item.requestedQty" type="number" placeholder="5000" />
+        </div>
+        <div class="ws-field">
+          <label>단위</label>
+          <input v-model="item.unit" type="text" placeholder="pcs" />
         </div>
       </div>
 
-      <div class="security-banner">
-        <span class="icon"><WsIcon name="lock" :size="15" /></span>
-        <div>
-          <strong>테넌트 격리 및 무단 우회 방지 공지:</strong>
-          <p>공급사 간 견적 금액 및 채팅은 완벽히 격리되며, 정식 계약 체결 전까지 개인 연락처는 비공개 처리됩니다.</p>
-        </div>
+      <div class="ws-banner ws-banner-info">
+        <WsIcon name="lock" :size="16" />
+        <div><b>테넌트 격리·무단 우회 방지:</b> 공급사 간 견적·채팅은 격리되며, 계약 체결 전까지 개인 연락처는 비공개 처리됩니다.</div>
       </div>
 
-      <div class="btn-group">
-        <button class="btn-submit" :disabled="submitting" @click="handleSubmit">{{ submitting ? '발행 처리 중...' : 'RFQ 정식 발행 (Publish RFQ)' }}</button>
-      </div>
-    </div>
+      <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting" @click="handleSubmit">
+        <span v-if="submitting" class="ws-spinner"></span>
+        {{ submitting ? '발행 처리 중...' : 'RFQ 정식 발행' }}
+      </button>
+    </section>
   </div>
 </template>
 
@@ -108,29 +102,8 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.rfq-create-page { max-width: 800px; margin: 0 auto; }
-.rfq-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 32px; }
-h2 { margin: 0 0 8px 0; font-size: 20px; color: var(--ws-text); }
-.desc { color: var(--ws-text-2); font-size: 13px; line-height: 1.5; margin-bottom: 24px; }
-.form-section { margin-bottom: 16px; }
-.form-section label { display: block; font-size: 13px; font-weight: 600; color: var(--ws-text); margin-bottom: 6px; }
-.form-section input, .form-section select { width: 100%; padding: 10px 12px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-.form-row { display: flex; gap: 16px; }
-.flex-1 { flex: 1; }
-.flex-2 { flex: 2; }
-.items-section { margin-top: 24px; border-top: 1px solid var(--ws-border-subtle); padding-top: 20px; }
-.items-section h3 { font-size: 15px; color: var(--ws-text); margin: 0 0 12px 0; }
-.item-box { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
-.security-banner { display: flex; gap: 12px; background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px; margin: 24px 0; font-size: 12px; color: var(--ws-info); }
-.security-banner .icon { font-size: 18px; }
-.security-banner p { margin: 4px 0 0 0; }
-.btn-submit { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 14px 28px; font-size: 15px; font-weight: 700; border-radius: 6px; cursor: pointer; width: 100%; }
-.btn-submit:disabled { opacity: 0.55; cursor: not-allowed; }
-
-@media (max-width: 600px) {
-  .rfq-card { padding: 16px; }
-  .form-row { flex-direction: column; gap: 12px; }
-  .security-banner { flex-direction: column; gap: 8px; }
+.item-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 12px; }
+@media (max-width: 640px) {
+  .item-grid { grid-template-columns: minmax(0, 1fr); }
 }
 </style>
-

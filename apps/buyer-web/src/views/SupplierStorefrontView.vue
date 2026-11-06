@@ -1,154 +1,129 @@
 <template>
-  <div class="storefront-page">
-    <div v-if="loading" class="state-box">
-      공급사 미니사이트 및 공장 실사 성적서를 불러오는 중입니다...
+  <div class="ws-page ws-page-wide">
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 260px"></div>
+      <div class="ws-skeleton" style="height: 220px"></div>
     </div>
-    <div v-else-if="!storefront" class="state-box">
-      공급사 정보를 찾을 수 없습니다.
+    <div v-else-if="!storefront" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="factory" :size="24" /></span>
+      <h3>공급사 정보를 찾을 수 없습니다</h3>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers`" class="ws-btn ws-btn-secondary">디렉토리로 이동</router-link>
     </div>
-    <div v-else class="storefront-container">
-      <!-- Storefront Top Banner -->
-      <div class="hero-store-banner" :style="{ backgroundImage: `url(${storefront.banner_image})` }">
-        <div class="banner-overlay">
-          <div class="store-badge">✓ SGS / TÜV Verified Manufacturer</div>
-          <h1 class="store-company-name">{{ storefront.company_name }}</h1>
-          <p class="store-slogan">{{ storefront.slogan }}</p>
-          <div class="store-quick-meta">
-            <span>설립: <strong>{{ storefront.year_established }}년</strong></span>
-            <span>연간 매출: <strong>{{ storefront.total_revenue_usd }}</strong></span>
-            <span>수출 비중: <strong>{{ storefront.export_percentage }}</strong></span>
-            <span>주요 시장: <strong>{{ (storefront.main_markets || []).join(', ') }}</strong></span>
+    <div v-else class="ws-stack">
+      <!-- Banner -->
+      <section class="store-banner" :style="{ backgroundImage: `url(${storefront.banner_image})` }">
+        <div class="store-veil">
+          <span class="ws-badge ws-badge-success">SGS / TÜV Verified Manufacturer</span>
+          <h1>{{ storefront.company_name }}</h1>
+          <p>{{ storefront.slogan }}</p>
+          <div class="store-meta">
+            <span>설립 <b>{{ storefront.year_established }}년</b></span>
+            <span>연간 매출 <b>{{ storefront.total_revenue_usd }}</b></span>
+            <span>수출 비중 <b>{{ storefront.export_percentage }}</b></span>
+            <span>주요 시장 <b>{{ (storefront.main_markets || []).join(', ') }}</b></span>
           </div>
-          <div class="store-actions-row">
-            <button class="btn-audit-report" @click="openAuditModal">
-              <WsIcon name="file" :size="15" /> TÜV Rheinland 공인 실사 보고서 (Audit Report) 확인
-            </button>
-          </div>
+          <button class="ws-btn ws-btn-primary" @click="openAuditModal">
+            <WsIcon name="file" :size="14" /> TÜV 공인 실사 보고서 확인
+          </button>
         </div>
-      </div>
+      </section>
 
-      <!-- Factory Tour & Video Section -->
-      <section class="section-card factory-tour-card">
-        <div class="card-head">
-          <span class="icon"><WsIcon name="factory" :size="15" /></span>
-          <h3>제조 공장 실사 및 생산 설비 현황 (Factory Tour & QC)</h3>
-          <div class="head-badges-row">
-            <span class="iso-pill">ISO 9001:2015 공인</span>
-            <button class="btn-view-audit-link" @click="openAuditModal">
-              <WsIcon name="search" :size="15" /> 공인 실사 성적서 원본 열람 & 다운로드
-            </button>
-          </div>
+      <!-- Factory tour -->
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="factory" :size="16" class="h-ico" /> 공장 설비·인증 현황</h3>
+          <span class="ws-cluster" style="gap: 8px">
+            <span class="ws-badge ws-badge-info">ISO 9001:2015</span>
+            <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="openAuditModal"><WsIcon name="search" :size="13" /> 실사 성적서 열람</button>
+          </span>
         </div>
-        <div class="tour-grid">
-          <div class="tour-left">
-            <h4>주요 보유 공작기계 및 자동화 설비</h4>
-            <ul class="equip-list">
-              <li v-for="(eq, idx) in storefront.production_equipment" :key="idx">
-                <span class="eq-name"><WsIcon name="gear" :size="15" /> {{ eq.name }}</span>
-                <span class="eq-count">{{ eq.count }}대 가동 중</span>
-              </li>
-            </ul>
+        <div class="ws-grid-2">
+          <div>
+            <p class="ws-small ws-strong" style="margin: 0 0 8px">보유 공작기계·자동화 설비</p>
+            <div class="ws-list-row" v-for="(eq, idx) in storefront.production_equipment" :key="idx">
+              <span class="doc-ico"><WsIcon name="gear" :size="16" /></span>
+              <div class="ws-list-main"><p class="ws-list-title">{{ eq.name }}</p></div>
+              <b class="ws-small ws-figure">{{ eq.count }}대 가동 중</b>
+            </div>
           </div>
-          <div class="tour-right">
-            <h4>보유 국제 규격 인증서</h4>
-            <div class="cert-chips">
-              <div v-for="(cert, idx) in storefront.certifications" :key="idx" class="cert-chip">
-                <strong>{{ cert.name }}</strong>
-                <span>인증 기관: {{ cert.issued_by }}</span>
-                <span>유효 기간: {{ cert.valid_thru }}</span>
+          <div>
+            <p class="ws-small ws-strong" style="margin: 0 0 8px">보유 국제 규격 인증서</p>
+            <div class="ws-list-row" v-for="(cert, idx) in storefront.certifications" :key="idx">
+              <div class="ws-list-main">
+                <p class="ws-list-title">{{ cert.name }}</p>
+                <p class="ws-list-sub">{{ cert.issued_by }} · 유효 {{ cert.valid_thru }}</p>
               </div>
+              <span class="ws-badge ws-badge-success">유효</span>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Featured Product Showcase -->
-      <section class="section-card">
-        <div class="card-head">
-          <span class="icon">★</span>
-          <h3>공급사 주력 도매 상품 쇼케이스 (Featured Products)</h3>
+      <!-- Featured products -->
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="star" :size="16" class="h-ico-star" /> 주력 도매 상품 쇼케이스</h3>
         </div>
-        <div class="showcase-grid">
-          <div
-            v-for="item in showcaseProducts"
-            :key="item.id"
-            class="showcase-card"
-            @click="goToProduct(item.id)"
-          >
-            <div class="thumb-wrap">
-              <img :src="item.thumbnail || item.images[0]" :alt="item.title" />
-            </div>
-            <div class="card-desc">
-              <h4>{{ item.title }}</h4>
-              <div class="price">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</div>
-              <div class="moq">MOQ: {{ item.moq }} {{ item.unit }} | 납기: {{ item.lead_time_days }}일</div>
-            </div>
+        <div class="show-grid">
+          <div v-for="item in showcaseProducts" :key="item.id" class="show-item" @click="goToProduct(item.id)">
+            <img :src="item.thumbnail || item.images[0]" :alt="item.title" loading="lazy" />
+            <p :title="item.title">{{ item.title }}</p>
+            <b class="ws-price ws-figure">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</b>
+            <span class="ws-small ws-muted">MOQ {{ item.moq }}{{ item.unit }} · 납기 {{ item.lead_time_days }}일</span>
           </div>
         </div>
       </section>
 
-      <!-- TÜV Rheinland Official Audit Report Modal -->
-      <div v-if="showAuditModal" class="audit-modal-backdrop" @click.self="showAuditModal = false">
-        <div class="audit-modal-card">
-          <div class="audit-modal-header">
-            <div class="audit-header-title">
-              <span class="tuv-badge">TÜV Rheinland Certified</span>
-              <h3>제조공장 현장 실사 및 품질 공인 감사 보고서 (Factory Audit Report)</h3>
-            </div>
-            <button class="btn-close-modal" @click="showAuditModal = false">✕</button>
+      <!-- Audit modal -->
+      <div v-if="showAuditModal" class="ws-modal-backdrop" @click.self="showAuditModal = false">
+        <div class="ws-modal ws-modal-wide" role="dialog" aria-modal="true">
+          <div class="ws-modal-head">
+            <h3>공장 현장 실사 보고서</h3>
+            <button class="ws-icon-btn" aria-label="닫기" @click="showAuditModal = false"><WsIcon name="x" :size="15" /></button>
           </div>
-
-          <div v-if="loadingAudit" class="audit-loading">
-            공인 시험인증기관 감사 보고서 및 실사 데이터를 불러오는 중입니다...
-          </div>
-          <div v-else-if="auditData" class="audit-modal-body">
-            <div class="audit-summary-banner">
-              <div class="audit-grade-box">
-                <span class="grade-label">종합 평가 등급</span>
-                <span class="grade-value">{{ auditData.verification_grade }}</span>
-                <span class="score-badge">실사 점수: {{ auditData.overall_score }} / 100</span>
-              </div>
-              <div class="audit-meta-grid">
-                <div><span>보고서 번호:</span> <strong>{{ auditData.report_id }}</strong></div>
-                <div><span>심사 기관:</span> <strong>{{ auditData.verification_agency }}</strong></div>
-                <div><span>수석 감사원:</span> <strong>{{ auditData.lead_auditor }}</strong></div>
-                <div><span>실사 일자:</span> <strong>{{ auditData.audit_date }} (유효: ~{{ auditData.valid_until }})</strong></div>
-                <div class="seal-line"><span>디지털 무결성 Seal:</span> <code>{{ auditData.sha256_digital_seal.slice(0, 24) }}...</code></div>
-              </div>
+          <div class="ws-modal-body">
+            <div v-if="loadingAudit" class="ws-stack-sm">
+              <div class="ws-skeleton" style="height: 90px"></div>
+              <div class="ws-skeleton" style="height: 90px"></div>
             </div>
-
-            <!-- Audit Sections -->
-            <div class="audit-sections-list">
-              <h4><WsIcon name="file" :size="15" /> 공인 현장 실사 5대 항목 평가 결과</h4>
-              <div v-for="(sec, idx) in auditData.assessment_sections" :key="idx" class="audit-sec-item">
-                <div class="sec-head">
-                  <span class="sec-name">{{ sec.name }}</span>
-                  <div class="sec-score-wrap">
-                    <span class="sec-score">{{ sec.score }}점</span>
-                    <span class="sec-status-pill">{{ sec.status }}</span>
-                  </div>
+            <div v-else-if="auditData">
+              <div class="audit-hero">
+                <div class="grade">
+                  <span>종합 평가 등급</span>
+                  <b>{{ auditData.verification_grade }}</b>
+                  <span class="ws-badge ws-badge-brand">실사 점수 {{ auditData.overall_score }} / 100</span>
                 </div>
-                <p class="sec-details">{{ sec.details }}</p>
+                <table class="ws-spec-table">
+                  <tbody>
+                    <tr><th>보고서 번호</th><td class="ws-figure"><b>{{ auditData.report_id }}</b></td></tr>
+                    <tr><th>심사 기관</th><td><b>{{ auditData.verification_agency }}</b></td></tr>
+                    <tr><th>수석 감사원</th><td>{{ auditData.lead_auditor }}</td></tr>
+                    <tr><th>실사 일자</th><td>{{ auditData.audit_date }} (유효 ~{{ auditData.valid_until }})</td></tr>
+                    <tr><th>디지털 Seal</th><td><code>{{ auditData.sha256_digital_seal.slice(0, 24) }}...</code></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="ws-small ws-strong" style="margin: 16px 0 8px"><WsIcon name="file" :size="14" /> 5대 항목 평가 결과</p>
+              <div v-for="(sec, idx) in auditData.assessment_sections" :key="idx" class="audit-sec">
+                <div class="ws-split">
+                  <b>{{ sec.name }}</b>
+                  <span class="ws-cluster" style="gap: 8px">
+                    <b class="ws-price ws-figure">{{ sec.score }}점</b>
+                    <span class="ws-badge ws-badge-success">{{ sec.status }}</span>
+                  </span>
+                </div>
+                <p class="ws-small ws-muted">{{ sec.details }}</p>
+                <div class="ws-meter ws-meter-success"><span :style="{ width: sec.score + '%' }"></span></div>
+              </div>
+              <p class="ws-small ws-strong" style="margin: 16px 0 8px"><WsIcon name="camera" :size="14" /> 현장 실사 촬영 사진</p>
+              <div class="audit-photos">
+                <img v-for="(p, idx) in auditData.facility_photos" :key="idx" :src="p" alt="Inspection Photo" loading="lazy" />
               </div>
             </div>
-
-            <!-- On-Site Photos -->
-            <div class="audit-photos-wrap">
-              <h4><WsIcon name="camera" :size="15" /> 검사관 현장 실사 촬영 사진 (On-site Inspection Photos)</h4>
-              <div class="photos-grid">
-                <img v-for="(p, idx) in auditData.facility_photos" :key="idx" :src="p" alt="Inspection Photo" />
-              </div>
-            </div>
-
-            <!-- Modal Footer with Download Action -->
-            <div class="audit-modal-footer">
-              <button class="btn-download-pdf" @click="downloadAuditReport">
-                <WsIcon name="download" :size="15" /> 공인 실사 보고서 원본 다운로드 (PDF / Official Seal)
-              </button>
-              <button class="btn-close-bottom" @click="showAuditModal = false">
-                닫기
-              </button>
-            </div>
+          </div>
+          <div class="ws-modal-foot">
+            <button class="ws-btn ws-btn-secondary" @click="showAuditModal = false">닫기</button>
+            <button class="ws-btn ws-btn-primary" @click="downloadAuditReport"><WsIcon name="download" :size="14" /> 보고서 원본 다운로드 (PDF)</button>
           </div>
         </div>
       </div>
@@ -237,469 +212,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.storefront-page {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 16px 16px 60px;
-}
-.storefront-container {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-.hero-store-banner {
-  height: 280px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 10px;
-  overflow: hidden;
-  position: relative;
-}
-.banner-overlay {
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.9) 0%, rgba(15, 23, 42, 0.6) 100%);
-  height: 100%;
-  padding: 36px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  color: var(--ws-surface);
-  box-sizing: border-box;
-}
-.store-badge {
-  display: inline-block;
-  background: var(--ws-success);
-  color: var(--ws-surface);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 8px;
-  border-radius: 4px;
-  width: fit-content;
-  margin-bottom: 10px;
-}
-.store-company-name {
-  font-size: 26px;
-  font-weight: 800;
-  margin: 0 0 8px;
-}
-.store-slogan {
-  font-size: 14px;
-  color: #CBD5E1;
-  margin: 0 0 20px;
-}
-.store-quick-meta {
-  display: flex;
-  gap: 20px;
-  font-size: 12px;
-  color: var(--ws-admin-dim);
-}
-.store-quick-meta strong {
-  color: var(--ws-surface);
-}
-
-.section-card {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 20px;
-}
-.card-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 12px;
-  margin-bottom: 16px;
-}
-.card-head h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--ws-text);
-}
-.iso-pill {
-  margin-left: auto;
-  background: #EFF6FF;
-  color: var(--ws-info);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.tour-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 24px;
-}
-.tour-left h4, .tour-right h4 {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-  margin: 0 0 10px;
-}
-.equip-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.equip-list li {
-  display: flex;
-  justify-content: space-between;
-  background: var(--ws-surface-muted);
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-size: 12px;
-}
-.eq-name {
-  font-weight: 600;
-  color: var(--ws-text);
-}
-.eq-count {
-  color: #0284C7;
-  font-weight: 700;
-}
-
-.cert-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.cert-chip {
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 6px;
-  padding: 8px 12px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 11px;
-  color: var(--ws-success);
-}
-.cert-chip strong {
-  font-size: 12px;
-}
-
-.showcase-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.showcase-card {
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.15s, border-color 0.15s;
-}
-.showcase-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--ws-brand);
-}
-.thumb-wrap {
-  height: 160px;
-  background: var(--ws-surface-muted);
-}
-.thumb-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.card-desc {
-  padding: 10px;
-}
-.card-desc h4 {
-  margin: 0 0 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.card-desc .price {
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--ws-brand);
-}
-.card-desc .moq {
-  font-size: 10px;
-  color: var(--ws-text-muted);
-  margin-top: 4px;
-}
-
-.state-box {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  padding: 60px 20px;
-  text-align: center;
-  border-radius: 8px;
-}
-
-.store-actions-row {
-  margin-top: 14px;
-}
-.btn-audit-report {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 2px 8px rgba(194, 65, 12, 0.4);
-}
-.btn-audit-report:hover {
-  background: var(--ws-brand-hover);
-}
-.head-badges-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.btn-view-audit-link {
-  background: var(--ws-brand-light);
-  border: 1px solid #FDBA74;
-  color: var(--ws-brand);
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-.btn-view-audit-link:hover {
-  background: var(--ws-brand-light);
-}
-
-/* Modal */
-.audit-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  padding: 20px;
-}
-.audit-modal-card {
-  background: var(--ws-surface);
-  width: 100%;
-  max-width: 820px;
-  max-height: 90vh;
-  overflow-y: auto;
-  border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
-}
-.audit-modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 24px;
-  border-bottom: 1px solid var(--ws-border-subtle);
-}
-.audit-header-title h3 {
-  margin: 6px 0 0;
-  font-size: 16px;
-  color: var(--ws-text);
-}
-.tuv-badge {
-  background: #0284C7;
-  color: var(--ws-surface);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.btn-close-modal {
-  background: none;
-  border: none;
-  font-size: 18px;
-  color: var(--ws-text-muted);
-  cursor: pointer;
-}
-.audit-modal-body {
-  padding: 20px 24px;
-}
-.audit-loading {
-  padding: 40px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-.audit-summary-banner {
-  display: grid;
-  grid-template-columns: 200px 1fr;
-  gap: 20px;
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-}
-.audit-grade-box {
-  background: var(--ws-success);
-  color: var(--ws-surface);
-  border-radius: 8px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-.grade-label {
-  font-size: 11px;
-  opacity: 0.9;
-}
-.grade-value {
-  font-size: 24px;
-  font-weight: 900;
-  margin: 4px 0;
-}
-.score-badge {
-  font-size: 11px;
-  background: rgba(255, 255, 255, 0.25);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.audit-meta-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--ws-text-2);
-}
-.seal-line code {
-  font-size: 11px;
-  background: var(--ws-border-subtle);
-  padding: 2px 4px;
-  border-radius: 3px;
-}
-.audit-sections-list {
-  margin-bottom: 20px;
-}
-.audit-sections-list h4 {
-  font-size: 14px;
-  margin: 0 0 10px;
-  color: var(--ws-text);
-}
-.audit-sec-item {
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  padding: 10px 14px;
-  margin-bottom: 8px;
-  background: var(--ws-surface);
-}
-.sec-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.sec-name {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.sec-score-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.sec-score {
-  font-size: 13px;
-  font-weight: 800;
-  color: #0284C7;
-}
-.sec-status-pill {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.sec-details {
-  margin: 6px 0 0;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-}
-.audit-photos-wrap h4 {
-  font-size: 14px;
-  margin: 0 0 10px;
-  color: var(--ws-text);
-}
-.photos-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
-}
-.photos-grid img {
-  width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 6px;
-  border: 1px solid var(--ws-border-subtle);
-}
-.audit-modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  border-top: 1px solid var(--ws-border-subtle);
-  padding-top: 16px;
-}
-.btn-download-pdf {
-  background: #0284C7;
-  color: var(--ws-surface);
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.btn-close-bottom {
-  background: var(--ws-surface-muted);
-  border: 1px solid #CBD5E1;
-  color: var(--ws-text-2);
-  padding: 10px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-@media (max-width: 992px) {
-  .showcase-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (max-width: 768px) {
-  .hero-store-banner {
-    padding: 24px 16px;
-  }
-  .store-company-name {
-    font-size: 20px;
-  }
-  .store-quick-meta {
-    flex-wrap: wrap;
-    gap: 8px 14px;
-  }
-  .tour-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 540px) {
-  .showcase-grid {
-    grid-template-columns: 1fr;
-  }
-  .section-card {
-    padding: 16px;
-  }
+.store-banner { border-radius: var(--ws-radius-lg); background-size: cover; background-position: center; overflow: hidden; }
+.store-veil { background: linear-gradient(to right, rgb(11 28 48 / 0.92), rgb(11 28 48 / 0.55)); padding: 40px; color: #fff; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.store-veil h1 { margin: 0; font-size: 28px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); }
+.store-veil p { margin: 0 0 6px; color: #c3cede; font-size: 14px; }
+.store-meta { display: flex; gap: 22px; flex-wrap: wrap; font-size: 12px; color: #93a4bc; margin-bottom: 12px; }
+.store-meta b { color: #fff; }
+.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.h-ico-star { color: #f59e0b; vertical-align: -3px; }
+.doc-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 8px; background: var(--ws-surface-muted); color: var(--ws-text-2); }
+.show-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+.show-item { border: 1px solid var(--ws-border-subtle); border-radius: 10px; overflow: hidden; cursor: pointer; padding: 10px; display: flex; flex-direction: column; gap: 4px; }
+.show-item:hover { border-color: var(--ws-brand); }
+.show-item img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 6px; background: var(--ws-surface-muted); }
+.show-item p { margin: 4px 0 0; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.audit-hero { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; align-items: start; }
+.grade { background: var(--ws-navy-ink); color: #fff; border-radius: 10px; padding: 18px; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.grade span { font-size: 11px; color: #93a4bc; font-weight: 700; }
+.grade b { font-size: 34px; font-weight: 900; }
+.audit-sec { border-top: 1px solid var(--ws-border-subtle); padding: 12px 0; }
+.audit-sec p { margin: 4px 0 8px; }
+.audit-photos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.audit-photos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 8px; background: var(--ws-surface-muted); }
+@media (max-width: 1024px) {
+  .show-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .audit-hero { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 640px) {
+  .store-veil { padding: 28px 20px; }
 }
 </style>
-

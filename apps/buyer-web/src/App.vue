@@ -1,230 +1,215 @@
 <template>
   <div class="buyer-app">
-    <!-- Top Utility Bar -->
-    <div class="top-utility-bar">
-      <div class="utility-container">
-        <div class="util-left">
-          <span class="util-text">{{ t('platform_title', currentLocale) }}</span>
-        </div>
+    <!-- Top utility strip -->
+    <div class="util-strip">
+      <div class="util-inner">
+        <p class="util-claim">{{ t('platform_title', currentLocale) }}</p>
         <div class="util-right">
-          <div class="locale-switcher">
+          <span class="util-locale">
             <WsIcon name="globe" :size="14" />
-            <select v-model="selectedLocaleCurrency" class="mini-select" @change="changeLocale">
-              <option value="ko/KRW">한국어 (KRW ₩)</option>
-              <option value="en/USD">English (USD $)</option>
-              <option value="zh/CNY">中文 (CNY ¥)</option>
-              <option value="zh/USD">中文 (USD $)</option>
-              <option value="ja/JPY">日本語 (JPY ¥)</option>
-              <option value="ja/USD">日本語 (USD $)</option>
+            <select v-model="selectedLocaleCurrency" class="util-select" aria-label="Language and currency" @change="changeLocale">
+              <option value="ko/KRW">한국어 · KRW ₩</option>
+              <option value="en/USD">English · USD $</option>
+              <option value="zh/CNY">中文 · CNY ¥</option>
+              <option value="zh/USD">中文 · USD $</option>
+              <option value="ja/JPY">日本語 · JPY ¥</option>
+              <option value="ja/USD">日本語 · USD $</option>
             </select>
-          </div>
-          <span class="divider">|</span>
-          <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="util-link partner-link">
+          </span>
+          <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="util-link">
             <WsIcon name="factory" :size="13" /> {{ t('seller_central', currentLocale) }}
           </a>
-          <span class="divider">|</span>
-          <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="util-link admin-link">
+          <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="util-link">
             <WsIcon name="shield" :size="13" /> {{ t('admin_console', currentLocale) }}
           </a>
-          <span class="divider">|</span>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="util-link">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/login`" class="util-link util-login">
             <WsIcon name="lock" :size="13" /> 계정 전환 / 로그인
           </router-link>
         </div>
       </div>
     </div>
 
-    <!-- Main Global Header (Alibaba.com High-Fidelity Style) -->
-    <header class="app-header">
-      <div class="header-container">
-        <!-- Logo -->
-        <div class="brand-section">
-          <button class="mobile-menu-btn" aria-label="메뉴 열기" @click="mobileDrawerOpen = !mobileDrawerOpen">
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
-            <span class="hamburger-bar"></span>
+    <!-- Main header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand-zone">
+          <button class="menu-btn" aria-label="메뉴 열기" @click="mobileDrawerOpen = !mobileDrawerOpen">
+            <span></span><span></span><span></span>
           </button>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/`" class="brand-logo">
-            <span class="logo-accent">WHOLESALE</span><span class="logo-sub">.com</span>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/`" class="ws-brand-lockup">
+            <span class="ws-brand-mark">W</span>
+            <span class="ws-brand-main">WHOLESALE</span>
           </router-link>
-          <div class="assurance-tag">
-            <WsIcon name="shield" :size="12" />
-            <span>Trade Assurance</span>
+          <span class="assurance-pill"><WsIcon name="shield" :size="12" /> Trade Assurance</span>
+        </div>
+
+        <div class="search-zone">
+          <div class="search-box">
+            <div class="search-kind">
+              <select v-model="searchType" aria-label="검색 대상">
+                <option value="products">{{ t('search_products', currentLocale) }}</option>
+                <option value="suppliers">{{ t('search_suppliers', currentLocale) }}</option>
+                <option value="rfq">{{ t('search_rfq', currentLocale) }}</option>
+              </select>
+            </div>
+            <input
+              v-model="searchQuery"
+              type="text"
+              :placeholder="t('search_placeholder', currentLocale)"
+              @keyup.enter="handleSearch"
+            />
+            <button class="search-cam" title="AI 비전 이미지로 도매 품목 찾기" aria-label="이미지로 검색" @click="showImageSearchModal = true">
+              <WsIcon name="camera" :size="18" />
+            </button>
+            <button class="search-go" @click="handleSearch">
+              <WsIcon name="search" :size="15" /> {{ t('search_btn', currentLocale) }}
+            </button>
           </div>
         </div>
 
-        <!-- Search Bar with Search Type & Camera Image Search -->
-        <div class="search-bar-wrapper">
-          <div class="search-type-select">
-            <select v-model="searchType">
-              <option value="products">{{ t('search_products', currentLocale) }}</option>
-              <option value="suppliers">{{ t('search_suppliers', currentLocale) }}</option>
-              <option value="rfq">{{ t('search_rfq', currentLocale) }}</option>
-            </select>
-          </div>
-          <input
-            v-model="searchQuery"
-            type="text"
-            :placeholder="t('search_placeholder', currentLocale)"
-            @keyup.enter="handleSearch"
-          />
-          <button class="camera-btn" title="AI 비전 이미지로 도매 품목 찾기" aria-label="이미지로 검색" @click="showImageSearchModal = true">
-            <WsIcon name="camera" :size="18" />
-          </button>
-          <button class="search-submit-btn" @click="handleSearch">
-            <WsIcon name="search" :size="15" /> {{ t('search_btn', currentLocale) }}
-          </button>
-        </div>
-
-        <!-- Header Actions -->
-        <div class="header-actions">
-          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="rfq-cta-btn">
+        <div class="action-zone">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="rfq-cta">
             <WsIcon name="send" :size="14" /> {{ t('rfq_cta', currentLocale) }}
           </router-link>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="nav-icon-link">
-            <WsIcon name="chat" :size="20" />
-            <span class="label">1:1 메시지</span>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="h-icon" :title="'1:1 메시지'">
+            <WsIcon name="chat" :size="20" /><span>1:1 메시지</span>
           </router-link>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" class="nav-icon-link">
-            <WsIcon name="cart" :size="20" />
-            <span class="label">{{ t('cart', currentLocale) }}</span>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" class="h-icon" :title="t('cart', currentLocale)">
+            <WsIcon name="cart" :size="20" /><span>{{ t('cart', currentLocale) }}</span>
           </router-link>
-          <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="nav-icon-link">
-            <WsIcon name="package" :size="20" />
-            <span class="label">{{ t('orders', currentLocale) }}</span>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="h-icon" :title="t('orders', currentLocale)">
+            <WsIcon name="package" :size="20" /><span>{{ t('orders', currentLocale) }}</span>
           </router-link>
-
-          <!-- Real-Time Notification Bell & Popover -->
-          <div class="notification-wrapper">
-            <button class="nav-icon-link notif-btn" title="실시간 무역 통보" @click="notifDrawerOpen = !notifDrawerOpen">
+          <div class="notif-zone">
+            <button class="h-icon notif-btn" title="실시간 무역 통보" @click="notifDrawerOpen = !notifDrawerOpen">
               <WsIcon name="bell" :size="20" />
-              <span v-if="unreadNotifsCount > 0" class="badge-count">{{ unreadNotifsCount }}</span>
-              <span class="label">알림</span>
+              <span v-if="unreadNotifsCount > 0" class="notif-count">{{ unreadNotifsCount }}</span>
+              <span>알림</span>
             </button>
-            <div v-if="notifDrawerOpen" class="notif-popover">
+            <div v-if="notifDrawerOpen" class="notif-pop">
               <div class="notif-pop-head">
-                <h4>실시간 무역 통보 센터 (Live Notifications)</h4>
-                <button class="btn-text-sm" @click="markAllNotifsRead">모두 읽음</button>
+                <b>실시간 무역 통보 센터</b>
+                <button class="notif-read-all" @click="markAllNotifsRead">모두 읽음</button>
               </div>
               <div v-if="liveNotifs.length === 0" class="notif-empty">새로운 알림이 없습니다.</div>
-              <div v-else class="notif-pop-list">
-                <div v-for="n in liveNotifs" :key="n.id" class="notif-item" :class="{ unread: !n.is_read }">
-                  <div class="notif-top">
-                    <span class="n-title">{{ n.title }}</span>
-                    <span class="n-time">{{ formatTime(n.created_at) }}</span>
+              <div v-else class="notif-list">
+                <div v-for="n in liveNotifs" :key="n.id" class="notif-row" :class="{ unread: !n.is_read }">
+                  <div class="notif-row-top">
+                    <span class="notif-title">{{ n.title }}</span>
+                    <span class="notif-time">{{ formatTime(n.created_at) }}</span>
                   </div>
-                  <p class="n-msg">{{ n.message }}</p>
+                  <p class="notif-msg">{{ n.message }}</p>
                 </div>
               </div>
             </div>
           </div>
-
-          <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="user-profile-badge">
-            <span class="user-avatar"><WsIcon name="building" :size="22" /></span>
-            <div class="user-text">
-              <span class="corp-name">{{ currentUser.organization?.legal_name?.slice(0, 16) || 'Metro Wholesale' }}</span>
-              <span class="role-tag">{{ currentUser.role }}</span>
-            </div>
+          <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="user-chip">
+            <span class="ws-avatar ws-avatar-sm"><WsIcon name="building" :size="16" /></span>
+            <span class="user-meta">
+              <b>{{ currentUser.organization?.legal_name?.slice(0, 16) || 'Metro Wholesale' }}</b>
+              <i>{{ currentUser.role }}</i>
+            </span>
           </router-link>
         </div>
       </div>
     </header>
 
-    <!-- Mega Category Bar & Flyout Navigation -->
     <MegaFlyoutNav @select-category="filterByCategory" />
 
-    <!-- Main View Content -->
     <main class="main-content">
       <router-view />
     </main>
 
-    <!-- Footer -->
-    <footer class="app-footer">
-      <div class="footer-container">
-        <div class="footer-columns">
-          <div class="col">
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div class="footer-grid">
+          <div class="footer-brand">
+            <span class="ws-brand-lockup footer-lockup">
+              <span class="ws-brand-mark">W</span>
+              <span class="ws-brand-main">WHOLESALE</span>
+            </span>
+            <p>계약 신뢰 위에 서는 B2B 도매 무역 플랫폼. 에스크로·전자계약·이중승인으로 모든 거래를 확정한다.</p>
+          </div>
+          <div class="footer-col">
             <h4>Trade Assurance 무역보증</h4>
             <p>선급금 및 잔금 100% 에스크로 보호</p>
-            <p>생산 지연 및 품질 규격 불일치 시 환불 보장</p>
+            <p>생산 지연·품질 불일치 시 환불 보장</p>
             <p>공인 검수 기관(SGS/TÜV) 현장 실사 연계</p>
           </div>
-          <div class="col">
-            <h4>B2B 도매 계약 및 결제</h4>
+          <div class="footer-col">
+            <h4>B2B 계약 및 결제</h4>
             <p>SHA-256 전자계약서 위변조 방지</p>
             <p>복식부기 실시간 무결성 원장 분개</p>
             <p>Incoterms® 2020 표준 무역 조건 준수</p>
           </div>
-          <div class="col">
-            <h4>멀티 콘솔 독립 연동</h4>
+          <div class="footer-col">
+            <h4>콘솔 바로가기</h4>
             <p><router-link :to="`/${currentLocale}/${currentCurrency}/`">구매자 웹 콘솔 (Buyer)</router-link></p>
             <p><a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank">공급사 파트너 콘솔 (Partner)</a></p>
             <p><a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank">운영 관리자 콘솔 (Admin)</a></p>
             <p><a href="https://wholesale-api.dnjstjqppk.workers.dev/" target="_blank">공통 API 게이트웨이 (API)</a></p>
           </div>
         </div>
-        <div class="footer-bottom">
-          <p class="legal-links">
+        <div class="footer-legal">
+          <p>
             <router-link :to="`/${currentLocale}/${currentCurrency}/terms`">이용약관</router-link>
-            <span class="sep">·</span>
+            <span aria-hidden="true">·</span>
             <router-link :to="`/${currentLocale}/${currentCurrency}/privacy`">개인정보처리방침</router-link>
           </p>
           <p>© 2026 WHOLESALE B2B Enterprise Commerce Platform. All Rights Reserved.</p>
-          <p class="sub">고유 도메인 독립 배포 · 클라우드플레어 엣지 글로벌 네트워크 가동</p>
         </div>
       </div>
     </footer>
 
-    <!-- Mobile Navigation Drawer -->
-    <div v-if="mobileDrawerOpen" class="mobile-drawer-backdrop" @click="mobileDrawerOpen = false"></div>
-    <aside class="mobile-drawer" :class="{ open: mobileDrawerOpen }">
-      <div class="drawer-header">
-        <span class="drawer-brand"><span class="brand-orange">WHOLESALE</span>.com</span>
-        <button class="drawer-close" aria-label="메뉴 닫기" @click="mobileDrawerOpen = false">×</button>
+    <div v-if="mobileDrawerOpen" class="drawer-veil" @click="mobileDrawerOpen = false"></div>
+    <aside class="drawer" :class="{ open: mobileDrawerOpen }">
+      <div class="drawer-head">
+        <span class="ws-brand-lockup"><span class="ws-brand-mark">W</span><span class="ws-brand-main">WHOLESALE</span></span>
+        <button class="drawer-x" aria-label="메뉴 닫기" @click="mobileDrawerOpen = false">×</button>
       </div>
-      <div class="drawer-user-card">
-        <span class="drawer-avatar"><WsIcon name="building" :size="22" /></span>
-        <div class="d-text">
-          <span class="d-corp">{{ currentUser.organization?.legal_name || 'Metro Wholesale Imports' }}</span>
-          <span class="d-role">{{ currentUser.role }}</span>
+      <div class="drawer-user">
+        <span class="ws-avatar ws-avatar-sm"><WsIcon name="building" :size="16" /></span>
+        <div>
+          <b>{{ currentUser.organization?.legal_name || 'Metro Wholesale Imports' }}</b>
+          <span>{{ currentUser.role }}</span>
         </div>
       </div>
       <nav class="drawer-nav">
-        <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" @click="mobileDrawerOpen = false">
           <WsIcon name="tag" :size="16" /> 도매 상품 카탈로그
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/suppliers`" @click="mobileDrawerOpen = false">
           <WsIcon name="factory" :size="16" /> 검증 제조사 디렉토리 (Verified)
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfqs`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfqs`" @click="mobileDrawerOpen = false">
           <WsIcon name="bolt" :size="16" /> 구매 요청서(RFQ) 및 복수 견적
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="drawer-link highlight" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="drawer-accent" @click="mobileDrawerOpen = false">
           <WsIcon name="send" :size="16" /> 신규 RFQ 소싱 요청 발행
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/messages`" @click="mobileDrawerOpen = false">
           <WsIcon name="chat" :size="16" /> 1:1 제조사 메신저 상담
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/cart`" @click="mobileDrawerOpen = false">
           <WsIcon name="cart" :size="16" /> 도매 장바구니
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" @click="mobileDrawerOpen = false">
           <WsIcon name="package" :size="16" /> 발주 및 무역 이행 관리 (Orders)
         </router-link>
-        <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" class="drawer-link" @click="mobileDrawerOpen = false">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/my-alibaba/profile`" @click="mobileDrawerOpen = false">
           <WsIcon name="gear" :size="16" /> 기업 프로필 및 권한(SoD) 관리
         </router-link>
       </nav>
-      <div class="drawer-bottom">
-        <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext-link partner">
+      <div class="drawer-foot">
+        <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext go-partner">
           <WsIcon name="factory" :size="14" /> 공급사 셀러 콘솔 바로가기
         </a>
-        <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext-link admin">
+        <a href="https://wholesale-admin.dnjstjqppk.workers.dev/" target="_blank" class="drawer-ext go-admin">
           <WsIcon name="shield" :size="14" /> 플랫폼 운영 관리자 콘솔
         </a>
       </div>
     </aside>
 
-    <!-- Image Search Modal -->
     <ImageSearchModal
       v-model="showImageSearchModal"
       @search-matched="applyImageSearch"
@@ -347,358 +332,127 @@ function applyImageSearch(query: string) {
 </script>
 
 <style scoped>
-.buyer-app { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--ws-canvas); color: var(--ws-text); }
-.top-utility-bar { background-color: var(--ws-surface-muted); border-bottom: 1px solid var(--ws-border-subtle); font-size: 12px; color: var(--ws-text-muted); padding: 6px 24px; }
-.utility-container { max-width: 1360px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
-.util-right { display: flex; align-items: center; gap: 12px; }
-.mini-select { background: transparent; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 11px; padding: 2px 6px; color: var(--ws-text-2); }
-.divider { color: #CBD5E1; }
-.util-link { color: var(--ws-text-muted); text-decoration: none; font-weight: 500; cursor: pointer; }
-.partner-link { color: var(--ws-brand); font-weight: 600; }
-.admin-link { color: var(--ws-info); font-weight: 600; }
+.buyer-app { display: flex; flex-direction: column; min-height: 100vh; background: var(--ws-canvas); color: var(--ws-text); }
 
-.app-header { background-color: var(--ws-surface); border-bottom: 1px solid #E5E7EB; padding: 16px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-.header-container { max-width: 1360px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.brand-section { display: flex; align-items: center; gap: 12px; }
-.brand-logo { font-size: 26px; font-weight: 900; text-decoration: none; letter-spacing: -0.5px; }
-.logo-accent { color: var(--ws-brand); }
-.logo-sub { color: var(--ws-text); font-size: 18px; }
-.assurance-tag { display: flex; align-items: center; gap: 4px; background: var(--ws-brand-light); border: 1px solid #FDBA74; color: var(--ws-brand); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
+/* Utility strip */
+.util-strip { background: var(--ws-navy-ink); color: #b9c6da; font-size: 12px; }
+.util-inner { max-width: 1360px; margin: 0 auto; padding: 7px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.util-claim { margin: 0; font-weight: 600; letter-spacing: 0.01em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.util-right { display: flex; align-items: center; gap: 18px; flex: none; }
+.util-locale { display: inline-flex; align-items: center; gap: 6px; color: #dbe4f1; }
+.util-select { background: rgb(255 255 255 / 0.08); border: 1px solid rgb(255 255 255 / 0.16); color: #fff; border-radius: 6px; font-size: 12px; font-weight: 600; padding: 3px 6px; cursor: pointer; }
+.util-select option { color: #15273e; }
+.util-link { display: inline-flex; align-items: center; gap: 5px; color: #b9c6da; text-decoration: none; font-weight: 600; }
+.util-link:hover { color: #fff; }
+.util-login { color: #fbbf24; }
+.util-login:hover { color: #fcd34d; }
 
-.search-bar-wrapper { flex: 1; max-width: 640px; display: flex; align-items: center; border: 2px solid var(--ws-brand); border-radius: 24px; overflow: hidden; background: var(--ws-surface); }
-.search-type-select select { background: var(--ws-surface-muted); border: none; border-right: 1px solid var(--ws-border-subtle); padding: 10px 14px; font-size: 13px; font-weight: 600; color: var(--ws-text-2); outline: none; cursor: pointer; }
-.search-bar-wrapper input { flex: 1; border: none; padding: 10px 14px; font-size: 14px; outline: none; }
-.camera-btn { background: transparent; border: none; font-size: 16px; padding: 0 10px; cursor: pointer; opacity: 0.7; }
-.camera-btn:hover { opacity: 1; }
-.search-submit-btn { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 10px 22px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.2s; }
-.search-submit-btn:hover { background: var(--ws-brand-hover); }
+/* Header */
+.site-header { position: sticky; top: 0; z-index: 50; background: var(--ws-surface); border-bottom: 1px solid var(--ws-border-subtle); box-shadow: var(--ws-shadow-bar); }
+.header-inner { max-width: 1360px; margin: 0 auto; padding: 12px 20px; display: flex; align-items: center; gap: 28px; }
+.brand-zone { display: flex; align-items: center; gap: 12px; flex: none; }
+.menu-btn { display: none; background: none; border: 1px solid var(--ws-border); border-radius: 8px; width: 38px; height: 38px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+.menu-btn span { width: 18px; height: 2px; background: var(--ws-text); border-radius: 2px; }
+.assurance-pill { display: inline-flex; align-items: center; gap: 5px; background: var(--ws-brand-faint); border: 1px solid var(--ws-brand-light); color: var(--ws-brand); font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 9999px; white-space: nowrap; }
 
-.header-actions { display: flex; align-items: center; gap: 16px; }
-.rfq-cta-btn { background: var(--ws-navy); color: var(--ws-surface); text-decoration: none; padding: 8px 16px; border-radius: 20px; font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 6px; }
-.rfq-cta-btn:hover { background: var(--ws-navy-dark); }
-.nav-icon-link { display: flex; flex-direction: column; align-items: center; text-decoration: none; color: var(--ws-text-2); font-size: 11px; font-weight: 600; }
-.nav-icon-link .icon { font-size: 18px; }
-.user-profile-badge { display: flex; align-items: center; gap: 8px; border-left: 1px solid var(--ws-border-subtle); padding-left: 14px; text-decoration: none; }
-.user-avatar { font-size: 24px; background: var(--ws-surface-muted); border-radius: 50%; padding: 4px; }
-.user-text { display: flex; flex-direction: column; font-size: 12px; }
-.corp-name { font-weight: 700; color: var(--ws-text); }
-.role-tag { font-size: 10px; color: var(--ws-success); font-weight: 700; }
+/* Search */
+.search-zone { flex: 1; min-width: 0; }
+.search-box { display: flex; align-items: stretch; border: 2px solid var(--ws-navy); border-radius: 10px; overflow: hidden; background: #fff; max-width: 660px; }
+.search-box:focus-within { border-color: var(--ws-brand); box-shadow: 0 0 0 3px rgb(194 65 12 / 0.12); }
+.search-kind select { height: 100%; background: var(--ws-surface-muted); border: 0; border-right: 1px solid var(--ws-border-subtle); padding: 0 10px; font-size: 13px; font-weight: 700; color: var(--ws-text-2); cursor: pointer; font-family: var(--ws-font); }
+.search-box input { flex: 1; min-width: 0; border: 0; padding: 11px 14px; font-size: 14px; font-family: var(--ws-font); color: var(--ws-text); }
+.search-box input:focus { outline: none; }
+.search-box input::placeholder { color: var(--ws-text-faint); }
+.search-cam { background: none; border: 0; padding: 0 12px; color: var(--ws-text-muted); cursor: pointer; display: inline-flex; align-items: center; }
+.search-cam:hover { color: var(--ws-brand); }
+.search-go { background: var(--ws-navy); color: #fff; border: 0; padding: 0 22px; font-size: 14px; font-weight: 800; font-family: var(--ws-font); cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.search-go:hover { background: var(--ws-brand); }
 
-.main-content { flex: 1; max-width: 1360px; margin: 0 auto; width: 100%; padding: 24px 20px; box-sizing: border-box; }
+/* Header actions */
+.action-zone { display: flex; align-items: center; gap: 6px; flex: none; }
+.rfq-cta { display: inline-flex; align-items: center; gap: 7px; background: var(--ws-brand); color: #fff; text-decoration: none; font-size: 13px; font-weight: 800; padding: 10px 16px; border-radius: 8px; margin-right: 8px; box-shadow: 0 1px 2px rgb(194 65 12 / 0.35); white-space: nowrap; }
+.rfq-cta:hover { background: var(--ws-brand-hover); }
+.h-icon { position: relative; display: inline-flex; flex-direction: column; align-items: center; gap: 3px; color: var(--ws-text-2); text-decoration: none; font-size: 10px; font-weight: 700; padding: 6px 10px; border-radius: 8px; background: none; border: 0; cursor: pointer; font-family: var(--ws-font); }
+.h-icon:hover { background: var(--ws-surface-muted); color: var(--ws-text); }
+.notif-zone { position: relative; }
+.notif-count { position: absolute; top: 0; right: 4px; background: var(--ws-danger); color: #fff; font-size: 10px; font-weight: 800; border-radius: 9999px; padding: 1px 6px; line-height: 1.5; }
+.notif-pop { position: absolute; top: calc(100% + 10px); right: 0; width: 360px; background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 12px; box-shadow: var(--ws-shadow-pop); z-index: 80; overflow: hidden; }
+.notif-pop-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--ws-surface-muted); border-bottom: 1px solid var(--ws-border-subtle); font-size: 13px; }
+.notif-read-all { background: none; border: 0; color: var(--ws-info); font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--ws-font); }
+.notif-empty { padding: 28px 16px; text-align: center; font-size: 13px; color: var(--ws-text-muted); }
+.notif-list { max-height: 340px; overflow-y: auto; }
+.notif-row { padding: 12px 16px; border-bottom: 1px solid var(--ws-border-subtle); }
+.notif-row:last-child { border-bottom: 0; }
+.notif-row.unread { background: var(--ws-brand-faint); }
+.notif-row-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.notif-title { font-size: 13px; font-weight: 800; color: var(--ws-text); }
+.notif-time { font-size: 11px; color: var(--ws-text-faint); flex: none; }
+.notif-msg { margin: 0; font-size: 12px; color: var(--ws-text-2); line-height: 1.5; }
+.user-chip { display: inline-flex; align-items: center; gap: 9px; margin-left: 8px; padding: 5px 12px 5px 5px; border: 1px solid var(--ws-border-subtle); border-radius: 9999px; text-decoration: none; }
+.user-chip:hover { border-color: var(--ws-border-strong); background: var(--ws-surface-muted); }
+.user-meta { display: flex; flex-direction: column; line-height: 1.3; }
+.user-meta b { font-size: 12px; color: var(--ws-text); }
+.user-meta i { font-style: normal; font-size: 10px; color: var(--ws-success); font-weight: 800; }
 
-.app-footer { background: var(--ws-navy-dark); color: #CBD5E1; padding: 48px 24px 32px 24px; margin-top: 48px; border-top: 1px solid #334155; }
-.footer-container { max-width: 1360px; margin: 0 auto; }
-.footer-columns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; margin-bottom: 32px; }
-.footer-columns h4 { color: var(--ws-surface); font-size: 16px; margin-top: 0; margin-bottom: 16px; font-weight: 700; }
-.footer-columns p { margin: 6px 0; font-size: 13px; color: var(--ws-admin-dim); }
-.footer-columns a { color: var(--ws-admin-link); text-decoration: none; font-weight: 500; }
-.footer-bottom { border-top: 1px solid #334155; padding-top: 24px; text-align: center; font-size: 13px; color: var(--ws-text-muted); }
-.footer-bottom .legal-links { margin: 0 0 12px; }
-.footer-bottom .legal-links a { color: var(--ws-admin-link); text-decoration: none; font-weight: 600; }
-.footer-bottom .legal-links .sep { margin: 0 8px; color: var(--ws-admin-dim); }
-.footer-bottom .sub { font-size: 12px; margin-top: 4px; }
+.main-content { flex: 1; width: 100%; max-width: 1360px; margin: 0 auto; padding: 0; box-sizing: border-box; }
 
-/* Mobile Menu & Drawer Styles */
-.mobile-menu-btn {
-  display: none;
-  background: transparent;
-  border: none;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px;
-  cursor: pointer;
-}
-.hamburger-bar {
-  width: 20px;
-  height: 2px;
-  background: var(--ws-text);
-  border-radius: 2px;
-}
+/* Footer */
+.site-footer { background: var(--ws-navy-ink); color: #9fb0c7; margin-top: 64px; }
+.footer-inner { max-width: 1360px; margin: 0 auto; padding: 48px 20px 28px; }
+.footer-grid { display: grid; grid-template-columns: 1.3fr 1fr 1fr 1fr; gap: 36px; padding-bottom: 32px; border-bottom: 1px solid rgb(255 255 255 / 0.1); }
+.footer-lockup .ws-brand-main { color: #fff; }
+.footer-brand p { font-size: 13px; line-height: 1.6; margin: 14px 0 0; max-width: 32ch; }
+.footer-col h4 { margin: 0 0 14px; font-size: 13px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: #e6ecf5; }
+.footer-col p { margin: 0 0 9px; font-size: 13px; }
+.footer-col a { color: #7dd3fc; text-decoration: none; }
+.footer-col a:hover { text-decoration: underline; }
+.footer-col .router-link-active { color: #7dd3fc; }
+.footer-legal { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding-top: 22px; font-size: 12px; }
+.footer-legal p { margin: 0; }
+.footer-legal a { color: #e6ecf5; font-weight: 700; text-decoration: none; }
+.footer-legal a:hover { text-decoration: underline; }
+.footer-legal span { margin: 0 8px; color: #54678a; }
 
-.mobile-drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 200;
-  backdrop-filter: blur(2px);
-}
+/* Drawer */
+.drawer-veil { position: fixed; inset: 0; background: rgb(11 28 48 / 0.5); z-index: 200; }
+.drawer { position: fixed; top: 0; left: -300px; width: 288px; height: 100dvh; background: #fff; z-index: 210; box-shadow: var(--ws-shadow-pop); transition: left 220ms ease; display: flex; flex-direction: column; }
+.drawer.open { left: 0; }
+.drawer-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--ws-border-subtle); }
+.drawer-x { background: var(--ws-surface-muted); border: 0; width: 32px; height: 32px; border-radius: 8px; font-size: 20px; color: var(--ws-text-2); cursor: pointer; line-height: 1; }
+.drawer-user { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: var(--ws-surface-muted); border-bottom: 1px solid var(--ws-border-subtle); }
+.drawer-user div { display: flex; flex-direction: column; }
+.drawer-user b { font-size: 13px; }
+.drawer-user span { font-size: 11px; color: var(--ws-success); font-weight: 700; }
+.drawer-nav { flex: 1; overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+.drawer-nav a { display: flex; align-items: center; gap: 12px; padding: 11px 12px; border-radius: 8px; text-decoration: none; color: var(--ws-text-2); font-size: 13px; font-weight: 600; }
+.drawer-nav a:hover, .drawer-nav a.router-link-active { background: var(--ws-brand-faint); color: var(--ws-brand); }
+.drawer-nav a.drawer-accent { color: var(--ws-brand); font-weight: 800; }
+.drawer-foot { padding: 14px 16px; border-top: 1px solid var(--ws-border-subtle); display: flex; flex-direction: column; gap: 10px; }
+.drawer-ext { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-decoration: none; }
+.drawer-ext.go-partner { color: var(--ws-brand); }
+.drawer-ext.go-admin { color: var(--ws-info); }
 
-.mobile-drawer {
-  position: fixed;
-  top: 0;
-  left: -300px;
-  width: 280px;
-  height: 100vh;
-  background: var(--ws-surface);
-  z-index: 210;
-  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
-  transition: left 0.25s ease;
-  display: flex;
-  flex-direction: column;
+@media (max-width: 1100px) {
+  .header-inner { flex-wrap: wrap; gap: 12px; }
+  .search-zone { order: 3; flex-basis: 100%; }
+  .search-box { max-width: none; }
+  .rfq-cta { display: none; }
+  .user-meta { display: none; }
+  .user-chip { padding: 5px; border: 0; margin-left: 0; }
 }
-.mobile-drawer.open {
-  left: 0;
-}
-
-.drawer-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--ws-border-subtle);
-}
-.drawer-brand {
-  font-weight: 900;
-  font-size: 18px;
-  color: var(--ws-text);
-}
-.brand-orange {
-  color: var(--ws-brand);
-}
-.drawer-close {
-  background: transparent;
-  border: none;
-  font-size: 24px;
-  color: var(--ws-text-muted);
-  cursor: pointer;
-}
-
-.drawer-user-card {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  padding: 14px 20px;
-  background: var(--ws-surface-muted);
-  border-bottom: 1px solid var(--ws-border-subtle);
-}
-.drawer-avatar {
-  font-size: 22px;
-}
-.d-text {
-  display: flex;
-  flex-direction: column;
-}
-.d-corp {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.d-role {
-  font-size: 11px;
-  color: var(--ws-success);
-  font-weight: 600;
-}
-
-.drawer-nav {
-  flex: 1;
-  overflow-y: auto;
-  padding: 10px 0;
-  display: flex;
-  flex-direction: column;
-}
-.drawer-link {
-  padding: 12px 20px;
-  text-decoration: none;
-  color: var(--ws-text-2);
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border-left: 3px solid transparent;
-  transition: all 0.15s;
-}
-.drawer-link:hover,
-.drawer-link.router-link-active {
-  background: var(--ws-brand-light);
-  color: var(--ws-brand);
-  border-left-color: var(--ws-brand);
-}
-.drawer-link.highlight {
-  color: var(--ws-brand);
-  font-weight: 700;
-}
-
-.drawer-bottom {
-  padding: 16px 20px;
-  border-top: 1px solid var(--ws-border-subtle);
-  background: var(--ws-surface-muted);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.drawer-ext-link {
-  font-size: 12px;
-  text-decoration: none;
-  font-weight: 600;
-}
-.drawer-ext-link.partner { color: var(--ws-brand); }
-.drawer-ext-link.admin { color: var(--ws-info); }
-
-/* Responsive Media Queries */
 @media (max-width: 992px) {
-  .mobile-menu-btn {
-    display: flex;
-  }
-  .app-header {
-    padding: 12px 16px;
-  }
-  .header-container {
-    flex-wrap: wrap;
-    gap: 12px;
-  }
-  .search-bar-wrapper {
-    order: 3;
-    max-width: 100%;
-    width: 100%;
-  }
-  .rfq-cta-btn {
-    display: none;
-  }
-  .user-text {
-    display: none;
-  }
-  .user-profile-badge {
-    padding-left: 6px;
-    border-left: none;
-  }
-  .footer-columns {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 28px;
-  }
+  .menu-btn { display: inline-flex; }
+  .assurance-pill { display: none; }
+  .util-claim { display: none; }
+  .util-inner { justify-content: flex-end; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
 }
-
-/* Notification Popover & Bell */
-.notification-wrapper {
-  position: relative;
-}
-.notif-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  position: relative;
-}
-.badge-count {
-  position: absolute;
-  top: -4px;
-  right: 2px;
-  background: var(--ws-danger);
-  color: var(--ws-surface);
-  font-size: 10px;
-  font-weight: 800;
-  border-radius: 9999px;
-  padding: 1px 5px;
-  line-height: 1;
-}
-.notif-popover {
-  position: absolute;
-  top: 48px;
-  right: 0;
-  width: 340px;
-  background: var(--ws-surface);
-  border-radius: 8px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--ws-border-subtle);
-  z-index: 1000;
-  overflow: hidden;
-}
-.notif-pop-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 12px 14px;
-  background: var(--ws-surface-muted);
-  border-bottom: 1px solid var(--ws-border-subtle);
-}
-.notif-pop-head h4 {
-  margin: 0;
-  font-size: 12px;
-  color: var(--ws-text);
-  font-weight: 700;
-}
-.btn-text-sm {
-  background: none;
-  border: none;
-  font-size: 11px;
-  color: #0284C7;
-  cursor: pointer;
-  font-weight: 600;
-}
-.notif-empty {
-  padding: 24px;
-  text-align: center;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-}
-.notif-pop-list {
-  max-height: 320px;
-  overflow-y: auto;
-}
-.notif-item {
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  font-size: 12px;
-}
-.notif-item.unread {
-  background: #F0FDF4;
-}
-.notif-top {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 4px;
-}
-.n-title {
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.n-time {
-  font-size: 10px;
-  color: var(--ws-admin-dim);
-}
-.n-msg {
-  margin: 0;
-  color: var(--ws-text-2);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
 @media (max-width: 640px) {
-  .top-utility-bar {
-    display: none;
-  }
-  .assurance-tag {
-    display: none;
-  }
-  .brand-logo {
-    font-size: 22px;
-  }
-  .header-actions {
-    gap: 10px;
-  }
-  .nav-icon-link .label {
-    display: none;
-  }
-  .search-type-select select {
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-  .search-bar-wrapper input {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-  .search-submit-btn {
-    padding: 8px 14px;
-    font-size: 13px;
-  }
-  .main-content {
-    padding: 16px 12px;
-  }
-  .footer-columns {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
-  .app-footer {
-    padding: 32px 16px 24px;
-  }
+  .util-strip { display: none; }
+  .h-icon span { display: none; }
+  .h-icon { padding: 8px; }
+  .search-go { padding: 0 14px; }
+  .footer-grid { grid-template-columns: 1fr; gap: 24px; }
+  .notif-pop { width: min(340px, calc(100vw - 32px)); position: fixed; top: 120px; right: 16px; }
 }
 </style>

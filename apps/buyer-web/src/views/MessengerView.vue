@@ -1,190 +1,137 @@
 <template>
-  <div class="messenger-page">
-    <div class="messenger-header">
-      <div>
-        <h2><WsIcon name="chat" :size="15" /> 글로벌 B2B 메신저 & 1:1 견적 문의 센터 (Alibaba Message Center)</h2>
-        <p class="subtitle">인증 제조사와 실시간 기술 협의, 도면 공유 및 맞춤형 견적 카드를 주고받으세요.</p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Message Center</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">B2B 메신저·1:1 문의 센터</h1>
+        <span class="ws-badge ws-badge-success"><WsIcon name="lock" :size="12" /> TLS 1.3 · 대화 기록 보관</span>
       </div>
-      <span class="encryption-badge"><WsIcon name="lock" :size="15" /> TLS 1.3 & Trade Assurance 대화 기록 보관</span>
+      <p class="ws-page-sub">인증 제조사와 실시간 기술 협의, 도면 공유, 맞춤형 견적 카드를 주고받으세요.</p>
     </div>
 
-    <div class="messenger-layout">
-      <!-- Left: Thread List -->
-      <aside class="thread-sidebar">
-        <div class="sidebar-top">
-          <h3>전체 대화 스레드 ({{ threads.length }})</h3>
-          <button class="btn-refresh" @click="loadInquiries"><WsIcon name="refresh" :size="15" /></button>
+    <div class="msg-grid">
+      <aside class="ws-card ws-card-pad-sm threads">
+        <div class="ws-card-head">
+          <h3>대화 스레드 ({{ threads.length }})</h3>
+          <button class="ws-icon-btn" aria-label="새로고침" @click="loadInquiries"><WsIcon name="refresh" :size="15" /></button>
         </div>
-
-        <div v-if="loading" class="thread-empty">대화 목록 불러오는 중...</div>
-        <div v-else-if="threads.length === 0" class="thread-empty">
-          진행 중인 1:1 문의 내역이 없습니다.<br />상품 상세 또는 카탈로그에서 문의를 시작하세요.
+        <div v-if="loading" class="ws-stack-sm">
+          <div class="ws-skeleton" style="height: 64px"></div>
+          <div class="ws-skeleton" style="height: 64px"></div>
+        </div>
+        <div v-else-if="threads.length === 0" class="ws-empty" style="padding: 28px 12px">
+          <h3>진행 중인 문의가 없습니다</h3>
+          <p>상품 상세·카탈로그에서 문의를 시작하세요.</p>
         </div>
         <div v-else class="thread-list">
-          <div
+          <button
             v-for="t in threads"
             :key="t.id"
-            class="thread-item"
+            class="thread"
             :class="{ active: activeThread?.id === t.id }"
             @click="selectThread(t)"
           >
-            <div class="thread-row-top">
-              <strong class="sup-name"><WsIcon name="factory" :size="15" /> {{ t.supplier_name }}</strong>
-              <span class="status-pill" :class="t.status.toLowerCase()">{{ t.status }}</span>
-            </div>
-            <div class="thread-subject">{{ t.listing_title || t.subject }}</div>
-            <div class="thread-preview">
-              {{ t.messages?.[t.messages.length - 1]?.content || t.subject }}
-            </div>
-          </div>
+            <span class="thread-top">
+              <b><WsIcon name="factory" :size="14" /> {{ t.supplier_name }}</b>
+              <span class="ws-badge ws-badge-outline">{{ t.status }}</span>
+            </span>
+            <span class="thread-sub">{{ t.listing_title || t.subject }}</span>
+            <span class="thread-prev">{{ t.messages?.[t.messages.length - 1]?.content || t.subject }}</span>
+          </button>
         </div>
       </aside>
 
-      <!-- Right: Active Conversation -->
-      <section class="chat-panel">
-        <div v-if="!activeThread" class="chat-placeholder">
+      <section class="ws-card chat">
+        <div v-if="!activeThread" class="ws-empty">
+          <span class="ws-empty-icon"><WsIcon name="chat" :size="24" /></span>
+          <h3>대화방을 선택하세요</h3>
           <p>좌측 목록에서 공급사 대화방을 선택하세요.</p>
         </div>
         <template v-else>
-          <div class="chat-head">
+          <div class="ws-card-head chat-head">
             <div>
               <h3>{{ activeThread.supplier_name }}</h3>
-              <span class="chat-sub">문의 품목: {{ activeThread.listing_title || activeThread.subject }}</span>
+              <p class="ws-small ws-muted" style="margin: 2px 0 0">문의 품목: {{ activeThread.listing_title || activeThread.subject }}</p>
             </div>
             <router-link
               v-if="activeThread.listing_id"
               :to="`/${currentLocale}/${currentCurrency}/products/${activeThread.listing_id}`"
-              class="btn-view-prod"
+              class="ws-btn ws-btn-secondary ws-btn-sm"
             >
               상품 상세 보기 →
             </router-link>
           </div>
 
-          <div class="chat-messages">
-            <div
-              v-for="msg in activeThread.messages"
-              :key="msg.id"
-              class="msg-bubble-row"
-              :class="{ mine: msg.sender_role?.startsWith('BUYER') }"
-            >
-              <div class="msg-bubble" :class="{ 'card-bubble': msg.message_type && msg.message_type !== 'TEXT' }">
-                <div class="msg-meta">
-                  <strong>{{ msg.sender_name }}</strong>
-                  <span class="role-chip">{{ msg.sender_role }}</span>
-                  <span class="time">{{ formatTime(msg.sent_at) }}</span>
-                </div>
+          <div class="ws-chat chat-body">
+            <template v-for="msg in activeThread.messages" :key="msg.id">
+              <div class="ws-chat-msg" :class="msg.sender_role?.startsWith('BUYER') ? 'ws-chat-me' : 'ws-chat-them'">
+                <p class="msg-meta"><b>{{ msg.sender_name }}</b> · {{ msg.sender_role }} · {{ formatTime(msg.sent_at) }}</p>
 
-                <!-- 1. Interactive Quote Offer Card (TradeManager Standard) -->
-                <div v-if="msg.message_type === 'QUOTE_OFFER' || msg.quote_card" class="interactive-quote-card">
-                  <div class="iq-badge"><WsIcon name="tag" :size="15" /> 실시간 공식 견적 제안서 (Official Quotation Offer)</div>
-                  <h4 class="iq-title">{{ msg.quote_card?.title || activeThread.listing_title || activeThread.subject }}</h4>
-                  <div class="iq-grid">
-                    <div class="iq-item"><span class="k">제안 단가:</span><strong class="v">${{ msg.quote_card?.unit_price || '2.15' }} / {{ msg.quote_card?.unit || 'pcs' }}</strong></div>
-                    <div class="iq-item"><span class="k">발주 수량:</span><strong class="v">{{ msg.quote_card?.quantity || 1000 }} {{ msg.quote_card?.unit || 'pcs' }}</strong></div>
-                    <div class="iq-item"><span class="k">인도 조건:</span><strong class="v">{{ msg.quote_card?.incoterms || 'FOB Busan Port' }}</strong></div>
-                    <div class="iq-item"><span class="k">생산 납기:</span><strong class="v">{{ msg.quote_card?.lead_time_days || 10 }}일 이내 출고</strong></div>
-                  </div>
-                  <div class="iq-total-bar">
-                    <span>총 제안 공급가액:</span>
-                    <strong class="iq-total-val">${{ ((Number(msg.quote_card?.unit_price) || 2.15) * (Number(msg.quote_card?.quantity) || 1000)).toLocaleString() }} USD</strong>
-                  </div>
-                  <div class="iq-actions">
-                    <button class="btn-iq-accept" @click="acceptQuoteAndOrder(msg.quote_card)">
-                      ✓ 견적 수락 및 발주서 작성 →
-                    </button>
-                    <button class="btn-iq-counter" @click="openQuoteComposer(msg.quote_card)">
-                      ✕ 조건 수정 반대 제안 (Counter-Offer)
-                    </button>
+                <div v-if="msg.message_type === 'QUOTE_OFFER' || msg.quote_card" class="q-card">
+                  <p class="q-badge"><WsIcon name="tag" :size="13" /> 공식 견적 제안서</p>
+                  <b>{{ msg.quote_card?.title || activeThread.listing_title || activeThread.subject }}</b>
+                  <dl>
+                    <div><dt>제안 단가</dt><dd class="ws-price ws-figure">${{ msg.quote_card?.unit_price || '2.15' }} / {{ msg.quote_card?.unit || 'pcs' }}</dd></div>
+                    <div><dt>발주 수량</dt><dd class="ws-figure">{{ msg.quote_card?.quantity || 1000 }} {{ msg.quote_card?.unit || 'pcs' }}</dd></div>
+                    <div><dt>인도 조건</dt><dd>{{ msg.quote_card?.incoterms || 'FOB Busan Port' }}</dd></div>
+                    <div><dt>생산 납기</dt><dd>{{ msg.quote_card?.lead_time_days || 10 }}일 이내 출고</dd></div>
+                  </dl>
+                  <p class="q-total">총 제안 공급가액 <b class="ws-figure">${{ ((Number(msg.quote_card?.unit_price) || 2.15) * (Number(msg.quote_card?.quantity) || 1000)).toLocaleString() }} USD</b></p>
+                  <div class="q-actions">
+                    <button class="ws-btn ws-btn-primary ws-btn-sm" @click="acceptQuoteAndOrder(msg.quote_card)">견적 수락·발주서 작성 →</button>
+                    <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="openQuoteComposer(msg.quote_card)">조건 수정 반대 제안</button>
                   </div>
                 </div>
 
-                <!-- 2. Interactive Contract Signing Card -->
-                <div v-else-if="msg.message_type === 'CONTRACT_SIGN' || msg.contract_card" class="interactive-contract-card">
-                  <div class="ic-badge"><WsIcon name="file" :size="15" /> 전자 무역 매매계약서 체결 요청 (ICC Model Contract)</div>
-                  <div class="ic-details">
-                    <p>계약서 식별 번호: <code>{{ msg.contract_card?.contract_number || 'CTR-2026-001' }}</code></p>
-                    <p>총 계약 금액: <strong>${{ msg.contract_card?.total_amount || '4,200.00' }} USD</strong></p>
-                    <p class="ic-hash">무결성 SHA-256 서명 해시: <code>{{ msg.contract_card?.sha256_hash || 'c67469723725e6e0d3c03848b1d619997f7bb7fa...' }}</code></p>
-                  </div>
-                  <router-link
-                    :to="`/${currentLocale}/${currentCurrency}/contracts/CTR-2026-001`"
-                    class="btn-ic-sign"
-                  >
-                    <WsIcon name="pencil" :size="15" /> 계약서 원문 열람 및 인앱 즉시 전자서명
+                <div v-else-if="msg.message_type === 'CONTRACT_SIGN' || msg.contract_card" class="q-card">
+                  <p class="q-badge"><WsIcon name="file" :size="13" /> 전자계약 체결 요청 (ICC)</p>
+                  <p class="ws-small">계약 번호 <code>{{ msg.contract_card?.contract_number || 'CTR-2026-001' }}</code></p>
+                  <p class="ws-small">총 계약 금액 <b class="ws-figure">${{ msg.contract_card?.total_amount || '4,200.00' }} USD</b></p>
+                  <p class="ws-small ws-muted hash-line">SHA-256 <code>{{ msg.contract_card?.sha256_hash || 'c67469723725e6e0d3c03848b1d619997f7bb7fa...' }}</code></p>
+                  <router-link :to="`/${currentLocale}/${currentCurrency}/contracts/CTR-2026-001`" class="ws-btn ws-btn-navy ws-btn-sm">
+                    <WsIcon name="pencil" :size="13" /> 원문 열람·인앱 전자서명
                   </router-link>
                 </div>
 
-                <!-- 3. Interactive Escrow Payment Request Card -->
-                <div v-else-if="msg.message_type === 'PAYMENT_REQUEST' || msg.payment_card" class="interactive-payment-card">
-                  <div class="ip-badge"><WsIcon name="shield" :size="15" /> Trade Assurance 에스크로 예치 청구</div>
-                  <div class="ip-details">
-                    <p>1차 선급금 예치액 (30%): <strong>${{ msg.payment_card?.amount_usd || '1,260.00' }} USD</strong></p>
-                    <p>보관 기관: <strong>신한은행 B2B 무역 에스크로 신탁</strong></p>
-                  </div>
-                  <router-link
-                    :to="`/${currentLocale}/${currentCurrency}/orders/ord-20261018-001`"
-                    class="btn-ip-pay"
-                  >
-                    <WsIcon name="building" :size="15" /> 에스크로 가상계좌 입금 및 결제 바로가기 →
+                <div v-else-if="msg.message_type === 'PAYMENT_REQUEST' || msg.payment_card" class="q-card">
+                  <p class="q-badge"><WsIcon name="shield" :size="13" /> 에스크로 예치 청구</p>
+                  <p class="ws-small">1차 선급금 (30%) <b class="ws-price ws-figure">${{ msg.payment_card?.amount_usd || '1,260.00' }} USD</b></p>
+                  <p class="ws-small">보관 기관 <b>신한은행 B2B 무역 에스크로 신탁</b></p>
+                  <router-link :to="`/${currentLocale}/${currentCurrency}/orders/ord-20261018-001`" class="ws-btn ws-btn-primary ws-btn-sm">
+                    <WsIcon name="building" :size="13" /> 가상계좌 입금·결제 바로가기 →
                   </router-link>
                 </div>
 
-                <!-- 4. Standard Text Message -->
                 <div v-else>
                   <p class="msg-text">{{ translatedMessages[msg.id] || msg.content }}</p>
-                  <div class="msg-translate-actions">
-                    <button
-                      type="button"
-                      class="btn-translate-pill"
-                      :disabled="translatingId === msg.id"
-                      @click="toggleTranslate(msg)"
-                    >
-                      <WsIcon name="globe" :size="15" /> {{ translatingId === msg.id ? '번역 중...' : (translatedMessages[msg.id] ? '원본 보기' : '실시간 AI 번역') }}
+                  <p class="translate-row">
+                    <button type="button" class="ws-btn ws-btn-ghost ws-btn-sm" :disabled="translatingId === msg.id" @click="toggleTranslate(msg)">
+                      <WsIcon name="globe" :size="13" /> {{ translatingId === msg.id ? '번역 중...' : (translatedMessages[msg.id] ? '원본 보기' : 'AI 번역') }}
                     </button>
-                    <span v-if="translatedMessages[msg.id]" class="translated-meta-tag">
-                      ✓ AI 번역됨 (Gemini B2B Neural)
-                    </span>
-                  </div>
+                    <span v-if="translatedMessages[msg.id]" class="ws-badge ws-badge-success">AI 번역됨</span>
+                  </p>
                 </div>
 
-                <div v-if="msg.attachment_url" class="msg-attachment">
-                  <WsIcon name="file" :size="15" /> 첨부 도면/사양서: <a :href="msg.attachment_url" target="_blank">{{ msg.attachment_url }}</a>
-                </div>
+                <p v-if="msg.attachment_url" class="attach-line">
+                  <WsIcon name="file" :size="13" /> 첨부 도면/사양서: <a :href="msg.attachment_url" target="_blank">{{ msg.attachment_url }}</a>
+                </p>
               </div>
-            </div>
+            </template>
           </div>
 
-          <!-- Quick Negotiation Action Bar (TradeManager Bar) -->
-          <div class="chat-negotiation-bar">
-            <span class="neg-title"><WsIcon name="bolt" :size="15" /> 빠른 무역 협상 도구:</span>
-            <button class="btn-neg-tool" @click="openQuoteComposer()">
-              <WsIcon name="tag" :size="15" /> 맞춤 견적 카드 제안
-            </button>
-            <button class="btn-neg-tool" @click="sendQuickCard('CONTRACT_SIGN')">
-              <WsIcon name="file" :size="15" /> 전자계약서 송부
-            </button>
-            <button class="btn-neg-tool" @click="sendQuickCard('PAYMENT_REQUEST')">
-              <WsIcon name="shield" :size="15" /> 에스크로 청구서 송부
-            </button>
+          <div class="neg-bar">
+            <span class="ws-small ws-strong"><WsIcon name="bolt" :size="14" class="neg-ico" /> 빠른 무역 협상</span>
+            <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="openQuoteComposer()"><WsIcon name="tag" :size="13" /> 견적 카드 제안</button>
+            <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="sendQuickCard('CONTRACT_SIGN')"><WsIcon name="file" :size="13" /> 전자계약서 송부</button>
+            <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="sendQuickCard('PAYMENT_REQUEST')"><WsIcon name="shield" :size="13" /> 에스크로 청구서 송부</button>
           </div>
 
-          <div class="chat-input-bar">
-            <input
-              v-model="attachmentUrl"
-              type="text"
-              class="input-attach"
-              placeholder="첨부 도면/CAD URL (선택)"
-            />
-            <div class="send-row">
-              <input
-                v-model="newMessage"
-                type="text"
-                class="input-msg"
-                placeholder="공급사 담당자에게 기술 규격, 납기, 단가 협상 메시지를 입력하세요..."
-                @keyup.enter="sendMessage"
-              />
-              <button class="btn-send" :disabled="sending || !newMessage.trim()" @click="sendMessage">
-                {{ sending ? '전송 중...' : '메시지 전송' }}
+          <div class="composer">
+            <input v-model="attachmentUrl" type="text" class="ws-input" placeholder="첨부 도면/CAD URL (선택)" />
+            <div class="composer-row">
+              <input v-model="newMessage" type="text" class="ws-input" placeholder="기술 규격·납기·단가 협상 메시지를 입력하세요..." @keyup.enter="sendMessage" />
+              <button class="ws-btn ws-btn-primary" :disabled="sending || !newMessage.trim()" @click="sendMessage">
+                {{ sending ? '전송 중...' : '전송' }}
               </button>
             </div>
           </div>
@@ -192,46 +139,39 @@
       </section>
     </div>
 
-    <!-- Interactive Quote Offer Composer Modal -->
-    <div v-if="showQuoteModal" class="quote-modal-overlay" @click.self="showQuoteModal = false">
-      <div class="quote-modal-card">
-        <div class="qm-head">
-          <h3><WsIcon name="tag" :size="15" /> 1:1 맞춤형 무역 견적 제안서 작성</h3>
-          <button class="btn-close" @click="showQuoteModal = false">✕</button>
+    <div v-if="showQuoteModal" class="ws-modal-backdrop" @click.self="showQuoteModal = false">
+      <div class="ws-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>맞춤형 견적 제안서 작성</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showQuoteModal = false"><WsIcon name="x" :size="15" /></button>
         </div>
-        <div class="qm-body">
-          <div class="qm-form-grid">
-            <div>
-              <label>제안 단가 (USD Unit Price)</label>
-              <input v-model.number="quoteForm.unit_price" type="number" step="0.05" />
-            </div>
-            <div>
-              <label>제안 수량 (Order Quantity)</label>
-              <input v-model.number="quoteForm.quantity" type="number" step="10" />
-            </div>
-            <div>
-              <label>무역 조건 (Incoterms 2020)</label>
-              <select v-model="quoteForm.incoterms">
-                <option value="FOB Busan Port">FOB Busan Port (본선인도)</option>
-                <option value="CIF Incheon">CIF Incheon (운임보험료포함)</option>
-                <option value="EXW Factory">EXW Factory (공장인도)</option>
-                <option value="DDP Destination">DDP Destination (관세지급인도)</option>
-              </select>
-            </div>
-            <div>
-              <label>예상 생산 납기 (Lead Time)</label>
-              <input v-model.number="quoteForm.lead_time_days" type="number" />
-            </div>
+        <div class="ws-modal-body">
+          <div class="ws-grid-2">
+            <div class="ws-field"><label>제안 단가 (USD)</label><input v-model.number="quoteForm.unit_price" type="number" step="0.05" /></div>
+            <div class="ws-field"><label>제안 수량</label><input v-model.number="quoteForm.quantity" type="number" step="10" /></div>
           </div>
-          <div class="qm-total-summary">
-            <span>총 제안 거래 공급가:</span>
-            <strong class="qm-total-price">${{ (quoteForm.unit_price * quoteForm.quantity).toLocaleString() }} USD</strong>
+          <div class="ws-field">
+            <label>무역 조건 (Incoterms 2020)</label>
+            <select v-model="quoteForm.incoterms">
+              <option value="FOB Busan Port">FOB Busan Port (본선인도)</option>
+              <option value="CIF Incheon">CIF Incheon (운임보험료포함)</option>
+              <option value="EXW Factory">EXW Factory (공장인도)</option>
+              <option value="DDP Destination">DDP Destination (관세지급인도)</option>
+            </select>
+          </div>
+          <div class="ws-field">
+            <label>예상 생산 납기 (일)</label>
+            <input v-model.number="quoteForm.lead_time_days" type="number" />
+          </div>
+          <div class="pay-amount">
+            <span>총 제안 거래 공급가</span>
+            <b class="ws-figure">${{ (quoteForm.unit_price * quoteForm.quantity).toLocaleString() }} USD</b>
           </div>
         </div>
-        <div class="qm-foot">
-          <button class="btn-qm-cancel" @click="showQuoteModal = false">취소</button>
-          <button class="btn-qm-submit" :disabled="sending" @click="sendQuoteOfferCard">
-            {{ sending ? '전송 중...' : '견적 카드 대화방에 전송' }}
+        <div class="ws-modal-foot">
+          <button class="ws-btn ws-btn-secondary" @click="showQuoteModal = false">취소</button>
+          <button class="ws-btn ws-btn-primary" :disabled="sending" @click="sendQuoteOfferCard">
+            {{ sending ? '전송 중...' : '견적 카드 전송' }}
           </button>
         </div>
       </div>
@@ -452,334 +392,42 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.messenger-page { display: flex; flex-direction: column; gap: 20px; }
-.messenger-header { display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface); padding: 20px 24px; border-radius: 10px; border: 1px solid var(--ws-border-subtle); }
-.messenger-header h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { margin: 0; font-size: 13px; color: var(--ws-text-muted); }
-.encryption-badge { background: #F0FDF4; color: var(--ws-success); border: 1px solid #86EFAC; padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; }
-
-.messenger-layout { display: grid; grid-template-columns: 360px 1fr; gap: 20px; height: 680px; }
-.thread-sidebar { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
-.sidebar-top { padding: 16px; border-bottom: 1px solid var(--ws-border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface-muted); }
-.sidebar-top h3 { margin: 0; font-size: 14px; color: var(--ws-text); }
-.btn-refresh { background: var(--ws-surface); border: 1px solid #CBD5E1; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
-.thread-empty { padding: 32px 16px; text-align: center; color: var(--ws-text-muted); font-size: 13px; }
-.thread-list { flex: 1; overflow-y: auto; }
-.thread-item { padding: 14px 16px; border-bottom: 1px solid var(--ws-surface-muted); cursor: pointer; transition: background 0.15s; }
-.thread-item:hover { background: var(--ws-surface-muted); }
-.thread-item.active { background: var(--ws-brand-light); border-left: 4px solid var(--ws-brand); }
-.thread-row-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-.sup-name { font-size: 13px; color: var(--ws-text); }
-.status-pill { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; background: var(--ws-border-subtle); color: var(--ws-text-2); }
-.status-pill.replied { background: var(--ws-success-bg); color: var(--ws-success); }
-.thread-subject { font-size: 12px; font-weight: 700; color: var(--ws-brand); margin-bottom: 4px; }
-.thread-preview { font-size: 12px; color: var(--ws-text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.chat-panel { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 10px; display: flex; flex-direction: column; overflow: hidden; }
-.chat-placeholder { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--ws-text-muted); }
-.chat-head { padding: 16px 24px; border-bottom: 1px solid var(--ws-border-subtle); display: flex; justify-content: space-between; align-items: center; background: var(--ws-surface-muted); }
-.chat-head h3 { margin: 0 0 2px 0; font-size: 16px; color: var(--ws-text); }
-.chat-sub { font-size: 12px; color: var(--ws-text-muted); }
-.btn-view-prod { font-size: 12px; font-weight: 700; color: var(--ws-brand); text-decoration: none; background: var(--ws-brand-light); padding: 6px 12px; border-radius: 6px; border: 1px solid #FDBA74; }
-
-.chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; background: var(--ws-surface-muted); }
-.msg-bubble-row { display: flex; justify-content: flex-start; }
-.msg-bubble-row.mine { justify-content: flex-end; }
-.msg-bubble { max-width: 76%; background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); padding: 12px 16px; border-radius: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); }
-.msg-bubble-row.mine .msg-bubble { background: var(--ws-brand-light); border-color: #FDBA74; }
-.msg-bubble.card-bubble { width: 420px; max-width: 90%; background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); }
-.msg-bubble-row.mine .msg-bubble.card-bubble { background: #FFFDF9; border-color: #FDBA74; }
-.msg-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--ws-text-muted); margin-bottom: 6px; }
-.role-chip { background: var(--ws-surface-muted); padding: 1px 6px; border-radius: 4px; font-weight: 600; }
-.msg-text { margin: 0; font-size: 13px; color: var(--ws-text); line-height: 1.5; }
-.msg-attachment { margin-top: 8px; padding-top: 6px; border-top: 1px dashed #CBD5E1; font-size: 12px; }
-
-/* Interactive Cards Styling */
-.interactive-quote-card {
-  background: var(--ws-surface);
-  border: 1px solid #FED7AA;
-  border-radius: 8px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.iq-badge {
-  background: var(--ws-brand-light);
-  color: var(--ws-brand);
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
-  display: inline-block;
-  width: fit-content;
-}
-.iq-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.iq-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  font-size: 12px;
-  background: var(--ws-surface-muted);
-  padding: 8px;
-  border-radius: 6px;
-}
-.iq-item .k { color: var(--ws-text-muted); margin-right: 4px; }
-.iq-item .v { color: var(--ws-text); }
-.iq-total-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-  padding-top: 6px;
-  border-top: 1px solid #FED7AA;
-}
-.iq-total-val {
-  font-size: 16px;
-  color: var(--ws-brand);
-}
-.iq-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.btn-iq-accept {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border: none;
-  padding: 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-iq-accept:hover { background: #EA580C; }
-.btn-iq-counter {
-  background: var(--ws-surface);
-  color: var(--ws-text-2);
-  border: 1px solid #CBD5E1;
-  padding: 6px;
-  border-radius: 6px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.interactive-contract-card {
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 8px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ic-badge {
-  color: var(--ws-success);
-  font-weight: 700;
-  font-size: 12px;
-}
-.ic-details { font-size: 12px; color: var(--ws-text); line-height: 1.6; }
-.ic-details p { margin: 2px 0; }
-.ic-hash { font-size: 10px; color: var(--ws-text-muted); word-break: break-all; }
-.btn-ic-sign {
-  background: var(--ws-success);
-  color: var(--ws-surface);
-  text-align: center;
-  text-decoration: none;
-  padding: 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.interactive-payment-card {
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: 8px;
-  padding: 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.ip-badge {
-  color: var(--ws-info);
-  font-weight: 700;
-  font-size: 12px;
-}
-.ip-details { font-size: 12px; color: var(--ws-text); line-height: 1.6; }
-.ip-details p { margin: 2px 0; }
-.btn-ip-pay {
-  background: var(--ws-info);
-  color: var(--ws-surface);
-  text-align: center;
-  text-decoration: none;
-  padding: 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.msg-translate-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 6px;
-  padding-top: 4px;
-  border-top: 1px dashed rgba(226, 232, 240, 0.8);
-}
-.btn-translate-pill {
-  background: none;
-  border: 1px solid #CBD5E1;
-  color: #0284C7;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.15s;
-}
-.btn-translate-pill:hover {
-  background: #F0F9FF;
-  border-color: var(--ws-info);
-}
-.translated-meta-tag {
-  font-size: 10px;
-  color: var(--ws-success);
-  font-weight: 700;
-}
-
-/* Negotiation Tool Bar */
-.chat-negotiation-bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: var(--ws-brand-light);
-  border-top: 1px solid #FED7AA;
-  font-size: 12px;
-  flex-wrap: wrap;
-}
-.neg-title { font-weight: 700; color: var(--ws-brand-hover); }
-.btn-neg-tool {
-  background: var(--ws-surface);
-  border: 1px solid #FDBA74;
-  color: var(--ws-brand);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-neg-tool:hover { background: var(--ws-brand-light); }
-
-.chat-input-bar { padding: 12px 16px; border-top: 1px solid var(--ws-border-subtle); background: var(--ws-surface); display: flex; flex-direction: column; gap: 8px; }
-.input-attach { border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 6px 10px; font-size: 12px; }
-.send-row { display: flex; gap: 10px; }
-.input-msg { flex: 1; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 14px; font-size: 13px; outline: none; }
-.input-msg:focus { border-color: var(--ws-brand); }
-.btn-send { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 0 22px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-
-/* Quote Composer Modal */
-.quote-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-.quote-modal-card {
-  background: var(--ws-surface);
-  border-radius: 10px;
-  width: 520px;
-  max-width: 90vw;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.25);
-  overflow: hidden;
-}
-.qm-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 18px;
-  background: var(--ws-brand-light);
-  border-bottom: 1px solid #FED7AA;
-}
-.qm-head h3 { margin: 0; font-size: 15px; color: var(--ws-brand-hover); }
-.btn-close { background: transparent; border: none; font-size: 16px; cursor: pointer; color: var(--ws-text-muted); }
-.qm-body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
-.qm-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.qm-form-grid label {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-  display: block;
-  margin-bottom: 4px;
-}
-.qm-form-grid input, .qm-form-grid select {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #CBD5E1;
-  border-radius: 6px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-.qm-total-summary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  background: var(--ws-surface-muted);
-  border-radius: 6px;
-  font-size: 13px;
-}
-.qm-total-price { font-size: 18px; color: var(--ws-brand); }
-.qm-foot {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 14px 18px;
-  border-top: 1px solid var(--ws-border-subtle);
-  background: var(--ws-surface-muted);
-}
-.btn-qm-cancel {
-  background: var(--ws-surface);
-  border: 1px solid #CBD5E1;
-  padding: 8px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-}
-.btn-qm-submit {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border: none;
-  padding: 8px 18px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-@media (max-width: 768px) {
-  .messenger-header { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px; }
-  .messenger-layout { grid-template-columns: 1fr; height: auto; }
-  .thread-sidebar { max-height: 280px; }
-  .chat-panel { min-height: 440px; }
-  .chat-head { padding: 12px 16px; }
-  .chat-messages { padding: 14px; }
-  .msg-bubble { max-width: 90%; }
+.msg-grid { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 16px; align-items: start; }
+.threads { max-height: calc(100vh - 220px); overflow-y: auto; }
+.thread-list { display: flex; flex-direction: column; gap: 6px; }
+.thread { display: flex; flex-direction: column; gap: 4px; text-align: left; background: none; border: 1px solid transparent; border-radius: 10px; padding: 12px; cursor: pointer; font-family: var(--ws-font); }
+.thread:hover { background: var(--ws-surface-muted); }
+.thread.active { background: var(--ws-brand-faint); border-color: var(--ws-brand-light); }
+.thread-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--ws-text); }
+.thread-sub { font-size: 13px; font-weight: 700; color: var(--ws-text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.thread-prev { font-size: 12px; color: var(--ws-text-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chat { display: flex; flex-direction: column; min-height: 560px; }
+.chat-head { border-bottom: 1px solid var(--ws-border-subtle); padding-bottom: 14px; }
+.chat-body { flex: 1; max-height: 520px; overflow-y: auto; padding: 16px 4px; }
+.msg-meta { margin: 0 0 6px; font-size: 11px; opacity: 0.75; }
+.msg-text { margin: 0; }
+.translate-row { display: flex; align-items: center; gap: 8px; margin: 8px 0 0; }
+.ws-chat-me .translate-row .ws-btn { color: #fff; }
+.attach-line { margin: 8px 0 0; font-size: 12px; }
+.attach-line a { color: inherit; }
+.q-card { background: rgb(255 255 255 / 0.96); color: var(--ws-text); border-radius: 8px; padding: 12px 14px; margin-top: 6px; font-size: 13px; }
+.q-badge { margin: 0 0 6px; font-size: 11px; font-weight: 800; color: var(--ws-brand); display: flex; align-items: center; gap: 5px; }
+.q-card dl { margin: 8px 0; }
+.q-card dl div { display: flex; justify-content: space-between; gap: 12px; padding: 4px 0; border-top: 1px solid var(--ws-border-subtle); }
+.q-card dl dt { color: var(--ws-text-muted); font-size: 12px; }
+.q-card dl dd { margin: 0; font-weight: 800; font-size: 13px; }
+.q-card .ws-small { margin: 4px 0; }
+.hash-line code { font-size: 10px; word-break: break-all; }
+.q-total { display: flex; justify-content: space-between; gap: 10px; background: var(--ws-brand-faint); border-radius: 6px; padding: 8px 10px; margin: 8px 0; font-size: 13px; }
+.q-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.neg-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--ws-border-subtle); padding: 12px 0; }
+.neg-ico { color: var(--ws-brand); vertical-align: -2px; }
+.composer { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--ws-border-subtle); padding-top: 12px; }
+.composer-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.pay-amount { display: flex; align-items: baseline; justify-content: space-between; background: var(--ws-brand-faint); border-radius: 8px; padding: 12px 14px; font-size: 13px; }
+.pay-amount b { font-size: 18px; color: var(--ws-brand); }
+@media (max-width: 900px) {
+  .msg-grid { grid-template-columns: minmax(0, 1fr); }
+  .threads { max-height: 260px; }
 }
 </style>
-

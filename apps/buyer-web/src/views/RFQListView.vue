@@ -1,27 +1,25 @@
 <template>
-  <div class="rfq-list-page">
-    <div class="page-head">
-      <div class="head-text">
-        <h2>구매 요청서(RFQ) 및 복수 공급사 견적 비교 (RFQ Marketplace)</h2>
-        <p class="subtitle">
-          발행된 소싱 요청서에 대해 글로벌 공급사들이 제출한 1:N 복수 견적을 비교하고 수락하여 정식 무역 계약으로 전환합니다.
-        </p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">RFQ Marketplace</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">구매 요청서·견적 비교</h1>
+        <div class="ws-page-actions">
+          <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-primary"><WsIcon name="plus" :size="14" /> 신규 RFQ 작성</router-link>
+        </div>
       </div>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="btn-post-rfq">
-        + 신규 견적 요청서(RFQ) 작성
-      </router-link>
+      <p class="ws-page-sub">발행된 소싱 요청서에 제출된 1:N 복수 견적을 비교하고 수락하여 정식 무역 계약으로 전환합니다.</p>
     </div>
 
-    <!-- Alert / Toast -->
-    <div v-if="toastMessage" class="toast-banner" :class="toastType">
-      {{ toastMessage }}
+    <div v-if="toastMessage" class="ws-banner" :class="toastType === 'error' ? 'ws-banner-danger' : 'ws-banner-success'">
+      <WsIcon :name="toastType === 'error' ? 'alert' : 'check'" :size="16" />
+      <span>{{ toastMessage }}</span>
     </div>
 
-    <!-- Filter Bar -->
-    <div class="filter-bar">
-      <div class="filter-left">
-        <label>산업 카테고리:</label>
-        <select v-model="selectedCategory" @change="fetchRFQs">
+    <div class="ws-split filter-strip">
+      <label class="sort-box">
+        <span>산업 카테고리</span>
+        <select v-model="selectedCategory" class="ws-input" @change="fetchRFQs">
           <option value="ALL">전체 카테고리</option>
           <option value="CAT-IND">기계 & 장비 (Industrial Machinery)</option>
           <option value="CAT-ELE">전자 & 전기 부품 (Electronics)</option>
@@ -29,138 +27,89 @@
           <option value="CAT-HOM">홈 & 주방용품 (Home & Living)</option>
           <option value="CAT-CHM">화학 & 원자재 (Chemicals)</option>
         </select>
-      </div>
-      <div class="refresh-box">
-        <button class="btn-refresh" :disabled="loading" @click="fetchRFQs">
-          <WsIcon name="refresh" :size="15" /> 새로고침
-        </button>
-      </div>
+      </label>
+      <button class="ws-btn ws-btn-secondary ws-btn-sm" :disabled="loading" @click="fetchRFQs">
+        <WsIcon name="refresh" :size="14" /> 새로고침
+      </button>
     </div>
 
-    <div v-if="loading" class="state-box">
-      <p>견적 요청서 및 제출된 견적을 불러오는 중입니다...</p>
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 220px"></div>
+      <div class="ws-skeleton" style="height: 220px"></div>
     </div>
 
-    <div v-else-if="rfqs.length === 0" class="empty-box">
-      <p>등록된 구매 요청서(RFQ)가 없습니다.</p>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="btn-primary">
-        첫 번째 RFQ 발행하기
-      </router-link>
+    <div v-else-if="rfqs.length === 0" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="file" :size="24" /></span>
+      <h3>등록된 구매 요청서가 없습니다</h3>
+      <p>첫 번째 RFQ를 발행하고 복수 견적을 받아 보세요.</p>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/sourcing/rfq/new`" class="ws-btn ws-btn-primary">첫 번째 RFQ 발행하기</router-link>
     </div>
 
-    <!-- RFQ Cards with 1:N Quotes Comparison -->
-    <div v-else class="rfq-list">
-      <div v-for="rfq in rfqs" :key="rfq.id" class="rfq-card">
-        <div class="rfq-card-header">
-          <div class="rfq-title-group">
-            <span class="category-badge">{{ formatCategory(rfq.category) }}</span>
-            <h3 class="rfq-title">{{ rfq.title }}</h3>
-            <span class="rfq-id">#{{ rfq.id }}</span>
+    <div v-else class="ws-stack">
+      <article v-for="rfq in rfqs" :key="rfq.id" class="ws-card rfq-card">
+        <div class="ws-split">
+          <div class="rfq-title">
+            <span class="ws-badge ws-badge-navy">{{ formatCategory(rfq.category) }}</span>
+            <h3>{{ rfq.title }}</h3>
+            <span class="ws-small ws-muted ws-figure">#{{ rfq.id }}</span>
           </div>
-          <div class="rfq-status-group">
-            <span class="status-badge" :class="rfq.status.toLowerCase()">
-              {{ rfq.status }}
-            </span>
-          </div>
+          <span class="ws-badge ws-badge-info">{{ rfq.status }}</span>
         </div>
 
-        <div class="rfq-specs-grid">
-          <div class="spec-cell">
-            <span class="k">요청 수량:</span>
-            <span class="v font-bold">{{ Number(rfq.requested_qty).toLocaleString() }} {{ rfq.unit }}</span>
-          </div>
-          <div class="spec-cell">
-            <span class="k">희망 목표 단가:</span>
-            <span class="v text-orange-600 font-bold">${{ rfq.target_price }} / {{ rfq.unit }}</span>
-          </div>
-          <div class="spec-cell">
-            <span class="k">요구 납기:</span>
-            <span class="v">{{ rfq.lead_time_days }}일 이내</span>
-          </div>
-          <div class="spec-cell">
-            <span class="k">인도 조건:</span>
-            <span class="v">{{ rfq.incoterms }}</span>
-          </div>
-          <div class="spec-cell">
-            <span class="k">목적국:</span>
-            <span class="v">{{ rfq.destination_country }}</span>
-          </div>
-          <div class="spec-cell">
-            <span class="k">등록일:</span>
-            <span class="v text-gray-500">{{ formatDate(rfq.created_at) }}</span>
-          </div>
+        <div class="spec-strip">
+          <div><i>요청 수량</i><b class="ws-figure">{{ Number(rfq.requested_qty).toLocaleString() }} {{ rfq.unit }}</b></div>
+          <div><i>희망 목표 단가</i><b class="ws-price ws-figure">${{ rfq.target_price }} / {{ rfq.unit }}</b></div>
+          <div><i>요구 납기</i><b>{{ rfq.lead_time_days }}일 이내</b></div>
+          <div><i>인도 조건</i><b>{{ rfq.incoterms }}</b></div>
+          <div><i>목적국</i><b>{{ rfq.destination_country }}</b></div>
+          <div><i>등록일</i><b class="ws-muted">{{ formatDate(rfq.created_at) }}</b></div>
         </div>
 
-        <!-- 1:N Quotes Comparison Section -->
-        <div class="quotes-section">
-          <div class="quotes-head">
-            <h4>제출된 공급사 견적 (1:N Quotes Comparison Matrix)</h4>
-            <span class="quote-count">총 {{ getQuotesForRfq(rfq.id).length }}건 접수</span>
-          </div>
+        <div class="ws-split quotes-head">
+          <b>제출된 공급사 견적 비교</b>
+          <span class="ws-badge ws-badge-outline">총 {{ getQuotesForRfq(rfq.id).length }}건 접수</span>
+        </div>
 
-          <div v-if="getQuotesForRfq(rfq.id).length === 0" class="no-quotes">
-            <span>현재 검증된 공급사들의 견적 산정이 진행 중입니다. 잠시 후 확인해 주세요.</span>
-          </div>
+        <p v-if="getQuotesForRfq(rfq.id).length === 0" class="ws-small ws-muted" style="margin: 0">
+          검증 공급사들의 견적 산정이 진행 중입니다. 잠시 후 확인해 주세요.
+        </p>
 
-          <div v-else class="quotes-table-wrap">
-            <table class="quotes-table">
+        <div v-else class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
               <thead>
-                <tr>
-                  <th>공급사명</th>
-                  <th>제안 단가 (Unit Price)</th>
-                  <th>총 견적 금액 (Total)</th>
-                  <th>예상 납기 (Lead Time)</th>
-                  <th>인도 조건 (Incoterms)</th>
-                  <th>개정 차수 (Revision)</th>
-                  <th>상태</th>
-                  <th>견적 승낙 / 발주 조치</th>
-                </tr>
+                <tr><th>공급사명</th><th class="ws-num">제안 단가</th><th class="ws-num">총 견적 금액</th><th>납기</th><th>인도 조건</th><th>Rev</th><th>상태</th><th>조치</th></tr>
               </thead>
               <tbody>
                 <tr v-for="q in getQuotesForRfq(rfq.id)" :key="q.id">
                   <td>
-                    <div class="supplier-info">
-                      <span class="supp-name">{{ q.supplier_name || 'Precision Korea Co., Ltd.' }}</span>
-                      <span class="supp-badge">✓ Verified</span>
-                    </div>
+                    <span class="ws-cell-main">{{ q.supplier_name || 'Precision Korea Co., Ltd.' }}</span><br />
+                    <span class="ws-badge ws-badge-success">Verified</span>
                   </td>
-                  <td>
-                    <span class="quote-price font-bold">${{ q.unit_price }}</span>
-                    <span class="unit-sub">/ {{ q.unit || 'pcs' }}</span>
-                  </td>
-                  <td>
-                    <strong class="total-price">${{ calculateTotal(q.unit_price, rfq.requested_qty) }}</strong>
-                  </td>
-                  <td>{{ q.lead_time_days }}일 (D+{{ q.lead_time_days }})</td>
+                  <td class="ws-num"><b class="ws-figure">${{ q.unit_price }}</b> <span class="ws-cell-sub">/ {{ q.unit || 'pcs' }}</span></td>
+                  <td class="ws-num"><b class="ws-price ws-figure">${{ calculateTotal(q.unit_price, rfq.requested_qty) }}</b></td>
+                  <td>{{ q.lead_time_days }}일</td>
                   <td>{{ q.incoterms }}</td>
-                  <td>
-                    <span class="rev-badge">Rev #{{ q.revision_number || 1 }}</span>
-                  </td>
-                  <td>
-                    <span class="quote-status" :class="q.status.toLowerCase()">{{ q.status }}</span>
-                  </td>
+                  <td><span class="ws-badge ws-badge-outline">Rev {{ q.revision_number || 1 }}</span></td>
+                  <td><span class="ws-badge" :class="q.status === 'ACCEPTED' ? 'ws-badge-success' : 'ws-badge-info'">{{ q.status }}</span></td>
                   <td>
                     <button
                       v-if="q.status === 'ISSUED'"
-                      class="btn-accept"
+                      class="ws-btn ws-btn-primary ws-btn-sm"
                       :disabled="acceptingQuoteId === q.id"
                       @click="acceptQuote(q, rfq)"
                     >
-                      {{ acceptingQuoteId === q.id ? '발주 생성 중...' : '✓ 견적 수락 및 발주' }}
+                      {{ acceptingQuoteId === q.id ? '발주 생성 중...' : '견적 수락·발주' }}
                     </button>
-                    <span v-else-if="q.status === 'ACCEPTED'" class="accepted-tag">
-                      ✓ 수락 완료 (발주 생성됨)
-                    </span>
-                    <span v-else class="superseded-tag">
-                      {{ q.status }}
-                    </span>
+                    <span v-else-if="q.status === 'ACCEPTED'" class="ws-badge ws-badge-success">수락 완료</span>
+                    <span v-else class="ws-small ws-muted">{{ q.status }}</span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
@@ -277,336 +226,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.rfq-list-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 16px 80px;
+.filter-strip { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+.sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }
+.sort-box .ws-input { width: auto; font-size: 13px; padding: 8px 10px; }
+.rfq-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.rfq-title h3 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: var(--ws-tracking-tight); }
+.spec-strip { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; background: var(--ws-surface-muted); border-radius: 8px; padding: 12px 14px; margin: 14px 0; }
+.spec-strip div { display: flex; flex-direction: column; gap: 2px; }
+.spec-strip i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
+.spec-strip b { font-size: 13px; }
+.quotes-head { margin-bottom: 10px; font-size: 14px; }
+@media (max-width: 1024px) {
+  .spec-strip { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-  gap: 20px;
-}
-
-.head-text h2 {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--ws-text);
-  margin: 0 0 6px 0;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--ws-text-muted);
-  margin: 0;
-}
-
-.btn-post-rfq {
-  background: var(--ws-brand);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  font-weight: 700;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.btn-post-rfq:hover {
-  background: var(--ws-brand-hover);
-}
-
-.toast-banner {
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.toast-banner.success {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  border: 1px solid #a7f3d0;
-}
-
-.toast-banner.error {
-  background: #fef2f2;
-  color: var(--ws-danger);
-  border: 1px solid #fecaca;
-}
-
-.filter-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--ws-surface-muted);
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 12px 16px;
-  margin-bottom: 20px;
-}
-
-.filter-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.filter-left select {
-  padding: 6px 12px;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  font-size: 13px;
-}
-
-.btn-refresh {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.rfq-list {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.rfq-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.rfq-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 12px;
-}
-
-.rfq-title-group {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.category-badge {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-2);
-  font-size: 12px;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-
-.rfq-title {
-  margin: 0;
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-
-.rfq-id {
-  font-size: 12px;
-  color: var(--ws-admin-dim);
-  font-family: monospace;
-}
-
-.status-badge {
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 10px;
-  border-radius: 9999px;
-  background: var(--ws-info-bg);
-  color: var(--ws-info);
-}
-
-.rfq-specs-grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: 12px;
-  background: var(--ws-surface-muted);
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 20px;
-}
-
-.spec-cell .k {
-  display: block;
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  margin-bottom: 2px;
-}
-
-.spec-cell .v {
-  font-size: 13px;
-  color: var(--ws-text);
-}
-
-.quotes-section {
-  border-top: 1px solid var(--ws-surface-muted);
-  padding-top: 16px;
-}
-
-.quotes-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.quotes-head h4 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-}
-
-.quote-count {
-  font-size: 12px;
-  color: var(--ws-brand);
-  font-weight: 600;
-}
-
-.no-quotes {
-  background: var(--ws-surface-muted);
-  border: 1px dashed #e5e7eb;
-  border-radius: 6px;
-  padding: 16px;
-  text-align: center;
-  font-size: 13px;
-  color: var(--ws-text-muted);
-}
-
-.quotes-table-wrap {
-  overflow-x: auto;
-}
-
-.quotes-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-}
-
-.quotes-table th {
-  background: var(--ws-surface-muted);
-  padding: 8px 12px;
-  text-align: left;
-  font-weight: 600;
-  color: var(--ws-text-2);
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.quotes-table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.supplier-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.supp-name {
-  font-weight: 600;
-  color: var(--ws-text);
-}
-
-.supp-badge {
-  font-size: 10px;
-  color: #0284c7;
-  font-weight: 700;
-}
-
-.rev-badge {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-2);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-}
-
-.quote-status.issued {
-  color: var(--ws-info);
-  font-weight: 600;
-}
-
-.quote-status.accepted {
-  color: var(--ws-success);
-  font-weight: 700;
-}
-
-.btn-accept {
-  background: var(--ws-success);
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-accept:hover {
-  background: var(--ws-success);
-}
-
-.accepted-tag {
-  color: var(--ws-success);
-  font-weight: 700;
-  font-size: 12px;
-}
-
-.superseded-tag {
-  color: var(--ws-admin-dim);
-  font-size: 12px;
-}
-
-.state-box, .empty-box {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 40px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .page-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .rfq-specs-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-  }
-}
-
 @media (max-width: 640px) {
-  .rfq-specs-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .filter-bar {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-  }
-  .btn-post-rfq {
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
-  }
+  .spec-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>
-

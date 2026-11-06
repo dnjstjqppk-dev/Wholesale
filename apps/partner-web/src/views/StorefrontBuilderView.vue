@@ -1,145 +1,105 @@
 <template>
-  <div class="storefront-builder-page">
-    <div class="page-head">
-      <div class="head-text">
-        <h2>공급사 미니사이트(Storefront) 커스텀 빌더</h2>
-        <p class="subtitle">
-          Alibaba.com 글로벌 바이어에게 노출되는 브랜드 히어로 배너, 공장 360° VR 투어, 주력 쇼케이스 품목, 공장 설비 스펙을 실시간 편집하고 게시합니다.
-        </p>
-      </div>
-      <div class="head-actions">
-        <a :href="`https://wholesale.dnjstjqppk.workers.dev/ko/KRW/suppliers/${storefront.organization_id}`" target="_blank" class="btn-preview">
-          <WsIcon name="eye" :size="15" /> 실제 바이어 뷰 보기
-        </a>
-        <button class="btn-save" :disabled="saving" @click="saveStorefront">
-          {{ saving ? '저장 중...' : '✓ 미니사이트 변경사항 저장' }}
-        </button>
-      </div>
-    </div>
-
-    <!-- Toast Banner -->
-    <div v-if="toastMessage" class="toast-banner" :class="toastType">
-      {{ toastMessage }}
-    </div>
-
-    <div v-if="loading" class="state-box">
-      <p>미니사이트 설정 데이터를 불러오는 중입니다...</p>
-    </div>
-
-    <div v-else class="builder-layout">
-      <!-- Left: Editor Forms -->
-      <div class="editor-col">
-        <!-- Section 1: Hero Banner & Brand Slogan -->
-        <div class="card-section">
-          <h3>1. 브랜드 헤더 및 히어로 배너 (Hero Banner)</h3>
-          <div class="form-group">
-            <label>기업 공식 브랜드명</label>
-            <input v-model="storefront.company_name" type="text" />
-          </div>
-          <div class="form-group">
-            <label>브랜드 대표 슬로건 (Slogan)</label>
-            <input v-model="storefront.slogan" type="text" />
-          </div>
-          <div class="form-group">
-            <label>히어로 배너 이미지 URL (1600x400 권장)</label>
-            <input v-model="storefront.banner_image" type="text" />
-          </div>
-          <div class="banner-preview-box">
-            <img :src="storefront.banner_image" alt="Banner Preview" class="preview-img" />
-          </div>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Storefront Builder</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">미니사이트 커스텀 빌더</h1>
+        <div class="ws-page-actions">
+          <a :href="`https://wholesale.dnjstjqppk.workers.dev/ko/KRW/suppliers/${storefront.organization_id}`" target="_blank" class="ws-btn ws-btn-secondary ws-btn-sm">
+            <WsIcon name="eye" :size="14" /> 실제 바이어 뷰
+          </a>
+          <button class="ws-btn ws-btn-primary ws-btn-sm" :disabled="saving" @click="saveStorefront">
+            <span v-if="saving" class="ws-spinner"></span> {{ saving ? '저장 중...' : '✓ 변경사항 저장' }}
+          </button>
         </div>
+      </div>
+      <p class="ws-page-sub">브랜드 히어로 배너·공장 VR 투어·쇼케이스 품목·설비 스펙을 실시간 편집하고 게시합니다.</p>
+    </div>
 
-        <!-- Section 2: Factory Virtual Tour & Video -->
-        <div class="card-section">
-          <h3>2. 공장 360° VR 및 현장 투어 영상 (Factory Tour)</h3>
-          <div class="form-group">
+    <div v-if="toastMessage" class="ws-banner" :class="toastType === 'error' ? 'ws-banner-danger' : 'ws-banner-success'">
+      <WsIcon :name="toastType === 'error' ? 'alert' : 'check'" :size="16" />
+      <span>{{ toastMessage }}</span>
+    </div>
+
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 200px"></div>
+      <div class="ws-skeleton" style="height: 200px"></div>
+    </div>
+
+    <div v-else class="builder-grid">
+      <div class="ws-stack">
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>1 · 브랜드 헤더·히어로 배너</h3></div>
+          <div class="ws-field"><label>기업 공식 브랜드명</label><input v-model="storefront.company_name" type="text" /></div>
+          <div class="ws-field"><label>브랜드 대표 슬로건</label><input v-model="storefront.slogan" type="text" /></div>
+          <div class="ws-field"><label>히어로 배너 이미지 URL (1600×400 권장)</label><input v-model="storefront.banner_image" type="text" /></div>
+          <div class="banner-preview"><img :src="storefront.banner_image" alt="Banner Preview" /></div>
+        </section>
+
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>2 · 공장 VR·현장 투어 영상</h3></div>
+          <div class="ws-field">
             <label>공장 실사 비디오 / 360 VR 스트리밍 URL</label>
             <input v-model="storefront.video_tour_url" type="text" placeholder="https://..." />
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>설립 연도</label>
-              <input v-model.number="storefront.year_established" type="number" />
-            </div>
-            <div class="form-group">
-              <label>수출 비중 (%)</label>
-              <input v-model="storefront.export_percentage" type="text" />
-            </div>
-            <div class="form-group">
-              <label>연간 총 매출액 (USD)</label>
-              <input v-model="storefront.total_revenue_usd" type="text" />
-            </div>
+          <div class="ws-grid-3">
+            <div class="ws-field"><label>설립 연도</label><input v-model.number="storefront.year_established" type="number" /></div>
+            <div class="ws-field"><label>수출 비중 (%)</label><input v-model="storefront.export_percentage" type="text" /></div>
+            <div class="ws-field"><label>연간 총 매출액 (USD)</label><input v-model="storefront.total_revenue_usd" type="text" /></div>
           </div>
-        </div>
+        </section>
 
-        <!-- Section 3: Equipment & Facilities -->
-        <div class="card-section">
-          <div class="sec-head-row">
-            <h3>3. 공장 핵심 생산 설비 (Production Machinery)</h3>
-            <button class="btn-add-item" @click="addEquipment">+ 설비 추가</button>
+        <section class="ws-card">
+          <div class="ws-card-head">
+            <h3>3 · 핵심 생산 설비</h3>
+            <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="addEquipment"><WsIcon name="plus" :size="13" /> 설비 추가</button>
           </div>
-          <div class="equip-list">
-            <div v-for="(eq, idx) in storefront.production_equipment" :key="idx" class="equip-row">
-              <input v-model="eq.name" type="text" placeholder="설비 명칭 (예: 500-Ton Hydraulic Press)" class="flex-2" />
-              <input v-model.number="eq.count" type="number" min="1" placeholder="보유 대수" class="flex-1" />
-              <button class="btn-del" @click="removeEquipment(idx)">×</button>
-            </div>
+          <div v-for="(eq, idx) in storefront.production_equipment" :key="idx" class="equip-row">
+            <input v-model="eq.name" type="text" class="ws-input" placeholder="설비 명칭 (예: 500-Ton Hydraulic Press)" />
+            <input v-model.number="eq.count" type="number" min="1" class="ws-input equip-count" placeholder="대수" />
+            <button class="ws-icon-btn" aria-label="삭제" @click="removeEquipment(idx)"><WsIcon name="x" :size="14" /></button>
           </div>
-        </div>
+        </section>
 
-        <!-- Section 4: Spotlight Showcase Products -->
-        <div class="card-section">
-          <h3>4. 스토어 전면 쇼케이스 품목 (Top Showcase Products)</h3>
-          <p class="guide-text">바이어가 미니사이트 진입 시 상단에 우선 노출할 대표 제품 ID를 지정합니다.</p>
-          <div class="showcase-inputs">
-            <div v-for="(pId, idx) in storefront.showcase_product_ids" :key="idx" class="showcase-row">
-              <span class="slot-badge">슬롯 {{ idx + 1 }}</span>
-              <input v-model="storefront.showcase_product_ids[idx]" type="text" placeholder="상품 ID 입력" class="flex-1" />
-              <button class="btn-del" @click="removeShowcaseProduct(idx)">×</button>
-            </div>
-            <button v-if="storefront.showcase_product_ids.length < 6" class="btn-add-item" @click="addShowcaseProduct">
-              + 쇼케이스 슬롯 추가
-            </button>
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>4 · 전면 쇼케이스 품목</h3></div>
+          <p class="ws-card-sub">미니사이트 진입 시 상단 우선 노출할 대표 제품 ID를 지정합니다.</p>
+          <div v-for="(pId, idx) in storefront.showcase_product_ids" :key="idx" class="equip-row">
+            <span class="ws-badge ws-badge-navy">슬롯 {{ idx + 1 }}</span>
+            <input v-model="storefront.showcase_product_ids[idx]" type="text" class="ws-input" placeholder="상품 ID 입력" />
+            <button class="ws-icon-btn" aria-label="삭제" @click="removeShowcaseProduct(idx)"><WsIcon name="x" :size="14" /></button>
           </div>
-        </div>
+          <button v-if="storefront.showcase_product_ids.length < 6" class="ws-btn ws-btn-ghost ws-btn-sm" @click="addShowcaseProduct">
+            <WsIcon name="plus" :size="13" /> 쇼케이스 슬롯 추가
+          </button>
+        </section>
       </div>
 
-      <!-- Right: Live Storefront Mini Preview -->
-      <div class="preview-col">
-        <div class="preview-sticky-card">
-          <h4><WsIcon name="phone" :size="15" /> 바이어 화면 라이브 프리뷰</h4>
-          <div class="mini-storefront-frame">
-            <div class="frame-banner">
-              <img :src="storefront.banner_image" alt="Banner" />
-              <div class="frame-overlay">
-                <h5>{{ storefront.company_name }}</h5>
-                <p>{{ storefront.slogan }}</p>
-              </div>
-            </div>
-            <div class="frame-meta">
-              <span><WsIcon name="calendar" :size="15" /> 설립: {{ storefront.year_established }}년</span>
-              <span><WsIcon name="truck" :size="15" /> 수출: {{ storefront.export_percentage }}</span>
-              <span><WsIcon name="card" :size="15" /> 매출: {{ storefront.total_revenue_usd }}</span>
-            </div>
-            <div class="frame-section">
-              <h6>주요 인증 규격</h6>
-              <div class="certs-chips">
-                <span v-for="c in storefront.certifications" :key="c.name" class="chip">
-                  {{ c.name }} ({{ c.issued_by }})
-                </span>
-              </div>
-            </div>
-            <div class="frame-section">
-              <h6>보유 생산 설비 요약</h6>
-              <ul class="equip-ul">
-                <li v-for="eq in storefront.production_equipment" :key="eq.name">
-                  {{ eq.name }} - <strong>{{ eq.count }}대</strong>
-                </li>
-              </ul>
-            </div>
+      <aside class="ws-card preview-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="phone" :size="15" class="h-ico" /> 바이어 화면 라이브 프리뷰</h3>
+        </div>
+        <div class="pv-banner">
+          <img :src="storefront.banner_image" alt="Banner" />
+          <div class="pv-overlay">
+            <b>{{ storefront.company_name }}</b>
+            <span>{{ storefront.slogan }}</span>
           </div>
         </div>
-      </div>
+        <div class="pv-meta">
+          <span><WsIcon name="calendar" :size="13" /> 설립 {{ storefront.year_established }}년</span>
+          <span><WsIcon name="truck" :size="13" /> 수출 {{ storefront.export_percentage }}</span>
+          <span><WsIcon name="card" :size="13" /> 매출 {{ storefront.total_revenue_usd }}</span>
+        </div>
+        <p class="pv-cap">주요 인증 규격</p>
+        <div class="ws-cluster" style="gap: 6px">
+          <span v-for="c in storefront.certifications" :key="c.name" class="ws-badge ws-badge-outline">{{ c.name }} ({{ c.issued_by }})</span>
+        </div>
+        <p class="pv-cap">보유 생산 설비 요약</p>
+        <ul class="pv-equip">
+          <li v-for="eq in storefront.production_equipment" :key="eq.name">{{ eq.name }} — <b>{{ eq.count }}대</b></li>
+        </ul>
+      </aside>
     </div>
   </div>
 </template>
@@ -229,353 +189,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.storefront-builder-page {
-  padding: 24px 32px 80px;
-}
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.head-text h2 {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ws-text);
-  margin: 0 0 4px 0;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: var(--ws-text-muted);
-  margin: 0;
-}
-
-.head-actions {
-  display: flex;
-  gap: 10px;
-}
-
-.btn-preview {
-  padding: 8px 16px;
-  background: white;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  text-decoration: none;
-  color: var(--ws-text-2);
-  display: flex;
-  align-items: center;
-}
-
-.btn-save {
-  padding: 8px 18px;
-  background: var(--ws-brand);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.btn-save:hover {
-  background: var(--ws-brand-hover);
-}
-
-.toast-banner {
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.toast-banner.success {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  border: 1px solid #a7f3d0;
-}
-
-.toast-banner.error {
-  background: #fef2f2;
-  color: var(--ws-danger);
-  border: 1px solid #fecaca;
-}
-
-.builder-layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
-}
-
-.card-section {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.card-section h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ws-text);
-  margin: 0 0 16px 0;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 8px;
-}
-
-.sec-head-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 8px;
-  margin-bottom: 16px;
-}
-
-.sec-head-row h3 {
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-2);
-  margin-bottom: 4px;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-
-.form-row {
-  display: flex;
-  gap: 12px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.banner-preview-box {
-  border-radius: 6px;
-  overflow: hidden;
-  height: 120px;
-  background: var(--ws-surface-muted);
-  margin-top: 8px;
-}
-
-.preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.equip-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.equip-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.flex-2 { flex: 2; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
-.flex-1 { flex: 1; padding: 8px; border: 1px solid #cbd5e1; border-radius: 4px; }
-
-.btn-add-item {
-  background: var(--ws-surface-muted);
-  border: 1px solid #cbd5e1;
-  padding: 6px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-del {
-  background: transparent;
-  border: none;
-  color: var(--ws-danger);
-  font-size: 18px;
-  cursor: pointer;
-}
-
-.showcase-inputs {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.showcase-row {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.slot-badge {
-  background: var(--ws-surface-muted);
-  border: 1px solid #cbd5e1;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
-.guide-text {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  margin-top: -8px;
-  margin-bottom: 12px;
-}
-
-/* Right Sticky Preview */
-.preview-sticky-card {
-  position: sticky;
-  top: 20px;
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 16px;
-}
-
-.preview-sticky-card h4 {
-  margin: 0 0 12px 0;
-  font-size: 14px;
-  color: var(--ws-text);
-}
-
-.mini-storefront-frame {
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  overflow: hidden;
-  background: var(--ws-surface-muted);
-}
-
-.frame-banner {
-  position: relative;
-  height: 100px;
-  background: var(--ws-text);
-}
-
-.frame-banner img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: 0.6;
-}
-
-.frame-overlay {
-  position: absolute;
-  bottom: 8px;
-  left: 10px;
-  right: 10px;
-  color: white;
-}
-
-.frame-overlay h5 {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.frame-overlay p {
-  margin: 2px 0 0;
-  font-size: 10px;
-  opacity: 0.9;
-}
-
-.frame-meta {
-  display: flex;
-  justify-content: space-around;
-  padding: 8px;
-  background: white;
-  border-bottom: 1px solid var(--ws-border-subtle);
-  font-size: 11px;
-  color: var(--ws-text-2);
-}
-
-.frame-section {
-  padding: 10px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.frame-section h6 {
-  margin: 0 0 6px 0;
-  font-size: 11px;
-  color: var(--ws-text-muted);
-}
-
-.certs-chips {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.chip {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 3px;
-}
-
-.equip-ul {
-  margin: 0;
-  padding-left: 16px;
-  font-size: 11px;
-  color: var(--ws-text-2);
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .storefront-builder-page {
-    padding: 16px 12px;
-  }
-  .page-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .builder-layout {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .form-row {
-    flex-direction: column;
-  }
-  .head-actions {
-    width: 100%;
-    flex-direction: column;
-  }
-  .btn-preview, .btn-save {
-    width: 100%;
-    text-align: center;
-    box-sizing: border-box;
-    justify-content: center;
-  }
+.builder-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; }
+.ws-field { margin-bottom: 12px; }
+.banner-preview { border: 1px solid var(--ws-border-subtle); border-radius: 8px; overflow: hidden; background: var(--ws-surface-muted); aspect-ratio: 4 / 1; }
+.banner-preview img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.equip-row { display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+.equip-count { width: 110px; }
+.preview-card { position: sticky; top: 84px; }
+.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.pv-banner { position: relative; border-radius: 8px; overflow: hidden; background: var(--ws-surface-muted); aspect-ratio: 16 / 7; }
+.pv-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pv-overlay { position: absolute; inset: auto 0 0 0; padding: 12px; background: linear-gradient(transparent, rgb(11 28 48 / 0.85)); color: #fff; display: flex; flex-direction: column; gap: 2px; }
+.pv-overlay b { font-size: 15px; }
+.pv-overlay span { font-size: 12px; color: #c3cede; }
+.pv-meta { display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: var(--ws-text-2); margin: 12px 0; }
+.pv-meta span { display: inline-flex; align-items: center; gap: 6px; }
+.pv-cap { margin: 12px 0 8px; font-size: 12px; font-weight: 800; }
+.pv-equip { margin: 0; padding-left: 18px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
+@media (max-width: 1024px) {
+  .builder-grid { grid-template-columns: minmax(0, 1fr); }
+  .preview-card { position: static; }
 }
 </style>
-

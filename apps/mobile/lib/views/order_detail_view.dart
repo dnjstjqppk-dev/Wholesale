@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 import 'contract_sign_view.dart';
 
 class OrderDetailScreen extends StatefulWidget {
@@ -46,23 +47,62 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('주문 상세')),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: WsColors.brand))
           : _error != null
-              ? Center(child: Text(_error!))
+              ? WsEmpty(
+                  icon: Icons.error_outline,
+                  title: '주문을 불러오지 못했습니다',
+                  body: _error,
+                  actionLabel: '다시 시도',
+                  onAction: _load,
+                )
               : _order == null
-                  ? const Center(child: Text('주문을 찾을 수 없습니다.'))
+                  ? const WsEmpty(
+                      icon: Icons.shopping_bag_outlined,
+                      title: '주문을 찾을 수 없습니다',
+                    )
                   : SingleChildScrollView(
                       padding: const EdgeInsets.all(16),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Text('주문 ID: ${_order!['id'] ?? widget.orderId}',
-                              style: const TextStyle(fontWeight: FontWeight.bold)),
-                          const SizedBox(height: 8),
-                          Text('상태: ${_order!['order_status'] ?? '-'}'),
-                          Text('결제: ${_order!['payment_status'] ?? '-'}'),
-                          Text('총액: ${_order!['total_amount_minor'] ?? '-'}'),
-                          const SizedBox(height: 16),
+                          Card(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text('주문 ${_order!['id'] ?? widget.orderId}',
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 16,
+                                          fontFamily: 'monospace')),
+                                  const SizedBox(height: 12),
+                                  _StatusRow(
+                                      label: '주문 상태',
+                                      value: '${_order!['order_status'] ?? '-'}'),
+                                  _StatusRow(
+                                      label: '결제 상태',
+                                      value: '${_order!['payment_status'] ?? '-'}'),
+                                  const Divider(height: 20),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const Text('총 계약 금액',
+                                          style: TextStyle(
+                                              fontSize: 13, color: WsColors.muted)),
+                                      Text('\$${_order!['total_amount_minor'] ?? '-'}',
+                                          style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w900,
+                                              color: WsColors.brand)),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () => Navigator.push(
                               context,
@@ -76,6 +116,26 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                         ],
                       ),
                     ),
+    );
+  }
+}
+
+class _StatusRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _StatusRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: WsColors.muted)),
+          WsBadge.info(value),
+        ],
+      ),
     );
   }
 }

@@ -1,55 +1,48 @@
 <template>
-  <div class="rfq-market-page">
-    <h2>공개 RFQ 입찰 시장 (RFQ Marketplace)</h2>
-    <p class="subtitle">국내외 검증된 바이어 기업들이 발행한 조달 프로젝트에 공식 입찰합니다.</p>
-
-    <div v-if="loading" class="loading-state">
-      RFQ 시장 목록을 API 서버에서 조회 중입니다...
+  <div class="ws-page">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">RFQ Marketplace</p>
+      <h1 class="ws-page-title">공개 RFQ 입찰 시장</h1>
+      <p class="ws-page-sub">검증 바이어 기업이 발행한 조달 프로젝트에 공식 입찰합니다.</p>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 220px"></div>
+      <div class="ws-skeleton" style="height: 220px"></div>
     </div>
 
-    <div v-else class="rfq-list">
-      <div v-for="rfq in rfqs" :key="rfq.id" class="rfq-card">
-        <div class="card-head">
-          <span class="dest-badge">{{ rfq.destination_country }}</span>
-          <h3 class="rfq-title">{{ rfq.title }}</h3>
-          <span class="expires">마감: {{ rfq.expires_at }}</span>
-        </div>
+    <div v-else-if="error" class="ws-banner ws-banner-danger">
+      <WsIcon name="alert" :size="16" />
+      <span>{{ error }}</span>
+    </div>
 
-        <div class="card-info">
-          <div><span class="k">요청 수량:</span> <strong>{{ rfq.requested_qty }} {{ rfq.unit }}</strong></div>
-          <div><span class="k">목표 단가:</span> <strong>${{ rfq.target_price }}</strong></div>
-          <div><span class="k">바이어:</span> <span class="mask">[보호된 검증 구매사]</span></div>
+    <div v-else class="ws-stack">
+      <article v-for="rfq in rfqs" :key="rfq.id" class="ws-card rfq-card">
+        <div class="ws-split rfq-head">
+          <span class="ws-cluster" style="gap: 10px">
+            <span class="ws-badge ws-badge-navy">{{ rfq.destination_country }}</span>
+            <h3>{{ rfq.title }}</h3>
+          </span>
+          <span class="ws-small ws-muted">마감: {{ rfq.expires_at }}</span>
         </div>
-
-        <!-- Bidding section -->
-        <div class="bid-section">
-          <h4>공식 견적서(Quote) 발행 / 수정 (Revision)</h4>
-          <div class="bid-inputs">
-            <div>
-              <label>제안 단가 (USD)</label>
-              <input v-model="rfq.bidPrice" type="text" placeholder="예: 4.80" />
-            </div>
-            <div>
-              <label>납기일수</label>
-              <input v-model.number="rfq.bidLeadTime" type="number" placeholder="14" />
-            </div>
-            <div>
-              <label>Incoterms 2020</label>
-              <input v-model="rfq.bidIncoterm" type="text" placeholder="FOB Busan" />
-            </div>
-            <button class="btn-bid" :disabled="submitting" @click="submitBid(rfq)">
+        <div class="spec-strip">
+          <div><i>요청 수량</i><b class="ws-figure">{{ rfq.requested_qty }} {{ rfq.unit }}</b></div>
+          <div><i>목표 단가</i><b class="ws-price ws-figure">${{ rfq.target_price }}</b></div>
+          <div><i>바이어</i><b><span class="ws-badge ws-badge-outline">보호된 검증 구매사</span></b></div>
+        </div>
+        <div class="bid-box">
+          <p class="ws-small ws-strong" style="margin: 0 0 10px">공식 견적서 발행·수정 (Revision)</p>
+          <div class="bid-grid">
+            <div class="ws-field" style="margin-bottom: 0"><label>제안 단가 (USD)</label><input v-model="rfq.bidPrice" type="text" placeholder="예: 4.80" /></div>
+            <div class="ws-field" style="margin-bottom: 0"><label>납기일수</label><input v-model.number="rfq.bidLeadTime" type="number" placeholder="14" /></div>
+            <div class="ws-field" style="margin-bottom: 0"><label>Incoterms 2020</label><input v-model="rfq.bidIncoterm" type="text" placeholder="FOB Busan" /></div>
+            <button class="ws-btn ws-btn-primary" :disabled="submitting" @click="submitBid(rfq)">
               {{ submitting ? '제출 중...' : (rfq.hasBid ? '견적 수정본(Rev 2) 발행' : '신규 견적 제출 (Rev 1)') }}
             </button>
           </div>
-          <p v-if="rfq.hasBid" class="history-note">
-            ※ 신규 견적 발행 시 이전 제출본은 자동으로 <code>SUPERSEDED</code> 처리되어 동결됩니다.
-          </p>
+          <p v-if="rfq.hasBid" class="ws-hint">신규 견적 발행 시 이전 제출본은 자동으로 <code>SUPERSEDED</code> 처리되어 동결됩니다.</p>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
@@ -109,32 +102,17 @@ async function submitBid(rfq: any) {
 </script>
 
 <style scoped>
-.rfq-market-page { max-width: 1000px; margin: 0 auto; }
-h2 { margin: 0 0 6px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin-bottom: 24px; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-text-muted); }
-.error-banner { background: #FEF2F2; color: var(--ws-danger); padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-.rfq-list { display: flex; flex-direction: column; gap: 20px; }
-.rfq-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
-.card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 12px; }
-.dest-badge { background: var(--ws-navy); color: var(--ws-surface); font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-.rfq-title { margin: 0; font-size: 16px; color: var(--ws-text); flex: 1; }
-.expires { font-size: 12px; color: var(--ws-text-muted); }
-.card-info { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; margin-bottom: 20px; }
-.card-info .k { color: var(--ws-text-muted); margin-right: 4px; }
-.mask { background: var(--ws-surface-muted); color: var(--ws-text-2); font-size: 11px; padding: 2px 6px; border-radius: 4px; }
-.bid-section { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
-.bid-section h4 { margin: 0 0 12px 0; font-size: 14px; color: var(--ws-text); }
-.bid-inputs { display: grid; grid-template-columns: 1fr 1fr 1.5fr auto; gap: 12px; align-items: flex-end; }
-.bid-inputs label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
-.bid-inputs input { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; box-sizing: border-box; }
-.btn-bid { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 9px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; white-space: nowrap; }
-.history-note { font-size: 11px; color: var(--ws-text-muted); margin-top: 10px; }
-
+.rfq-head { margin-bottom: 12px; }
+.rfq-head h3 { margin: 0; font-size: 17px; font-weight: 800; letter-spacing: var(--ws-tracking-tight); }
+.spec-strip { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; background: var(--ws-surface-muted); border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; }
+.spec-strip div { display: flex; flex-direction: column; gap: 2px; }
+.spec-strip i { font-style: normal; font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
+.spec-strip b { font-size: 14px; }
+.bid-box { background: var(--ws-brand-faint); border: 1px solid var(--ws-brand-light); border-radius: 10px; padding: 16px; }
+.bid-grid { display: grid; grid-template-columns: 1fr 1fr 1.2fr auto; gap: 10px; align-items: end; }
 @media (max-width: 768px) {
-  .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .card-info { grid-template-columns: 1fr; gap: 8px; }
-  .bid-inputs { grid-template-columns: 1fr; gap: 10px; }
-  .btn-bid { width: 100%; padding: 12px; }
+  .spec-strip { grid-template-columns: minmax(0, 1fr); }
+  .bid-grid { grid-template-columns: minmax(0, 1fr); }
+  .bid-grid .ws-btn { width: 100%; }
 }
 </style>

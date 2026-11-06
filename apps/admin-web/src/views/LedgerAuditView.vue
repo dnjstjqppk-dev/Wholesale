@@ -1,73 +1,64 @@
 <template>
-  <div class="ledger-audit-page">
-    <h2>복식부기 회계 원장 감사 (Double-Entry Ledger Audit)</h2>
-    <p class="subtitle">모든 거래는 차변(Debit)=대변(Credit) 일치 전표로 영구 보존되며, 정정은 역분개로만 처리됩니다.</p>
-
-    <div v-if="loading" class="loading-state">
-      원장 감사 데이터를 API 게이트웨이에서 집계 중입니다...
+  <div class="ws-admin-page ledger">
+    <div class="admin-head">
+      <div>
+        <p class="admin-eyebrow">Ledger Audit</p>
+        <h1>복식부기 원장 감사</h1>
+        <p class="admin-sub">차변=대변 일치 전표 영구 보존 · 정정은 역분개로만 처리.</p>
+      </div>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton sk-dark" style="height: 90px"></div>
+      <div class="ws-skeleton sk-dark" style="height: 180px"></div>
     </div>
 
-    <div v-else class="journals-list">
-      <div class="audit-summary-strip">
-        <div class="summary-col">
-          <span class="lbl">감사 기준 시각:</span>
-          <span class="val">{{ auditData?.audit_timestamp }}</span>
-        </div>
-        <div class="summary-col">
-          <span class="lbl">총 차변 합계 (Debit):</span>
-          <span class="val">${{ ((auditData?.total_debit_minor || 0) / 100).toFixed(2) }}</span>
-        </div>
-        <div class="summary-col">
-          <span class="lbl">총 대변 합계 (Credit):</span>
-          <span class="val">${{ ((auditData?.total_credit_minor || 0) / 100).toFixed(2) }}</span>
-        </div>
-        <div class="summary-col">
-          <span class="lbl">차대변 차액 (Variance):</span>
-          <span class="val" :class="{ ok: auditData?.variance_minor === 0 }">
-            ${{ ((auditData?.variance_minor || 0) / 100).toFixed(2) }}
+    <div v-else-if="error" class="admin-error">
+      <WsIcon name="alert" :size="16" /> {{ error }}
+    </div>
+
+    <div v-else class="ws-stack">
+      <div class="sum-strip">
+        <div><span>감사 기준 시각</span><b class="ws-figure">{{ auditData?.audit_timestamp }}</b></div>
+        <div><span>총 차변 (Debit)</span><b class="ws-figure">${{ ((auditData?.total_debit_minor || 0) / 100).toFixed(2) }}</b></div>
+        <div><span>총 대변 (Credit)</span><b class="ws-figure">${{ ((auditData?.total_credit_minor || 0) / 100).toFixed(2) }}</b></div>
+        <div><span>차액 (Variance)</span><b class="ws-figure" :class="auditData?.variance_minor === 0 ? 'ok' : 'bad'">${{ ((auditData?.variance_minor || 0) / 100).toFixed(2) }}</b></div>
+      </div>
+
+      <section v-for="j in auditData?.journals" :key="j.id" class="ws-admin-card">
+        <div class="ws-split j-head">
+          <span class="ws-cluster" style="gap: 10px">
+            <b class="j-num ws-figure">{{ j.id }}</b>
+            <span class="ws-admin-badge ws-admin-badge-idle">{{ j.type }}</span>
+            <span class="ws-small dim">{{ j.created_at }}</span>
+          </span>
+          <span class="ws-admin-badge" :class="j.is_balanced ? 'ws-admin-badge-ok' : 'ws-admin-badge-bad'">
+            {{ j.is_balanced ? '✓ BALANCED' : '✕ ERROR' }}
           </span>
         </div>
-      </div>
-
-      <div v-for="j in auditData?.journals" :key="j.id" class="journal-card">
-        <div class="j-head">
-          <div>
-            <span class="j-num">{{ j.id }}</span>
-            <span class="j-type">{{ j.type }}</span>
-            <span class="j-date">{{ j.created_at }}</span>
-          </div>
-          <div class="balance-indicator" :class="{ balanced: j.is_balanced }">
-            {{ j.is_balanced ? '✓ 차대변 일치 (BALANCED)' : '✕ 불일치 (ERROR)' }}
-          </div>
+        <div class="ws-admin-table-wrap">
+          <table class="ws-admin-table">
+            <thead><tr><th>계정과목 / 설명</th><th>차변 (Debit)</th><th>대변 (Credit)</th></tr></thead>
+            <tbody>
+              <tr>
+                <td>{{ j.debit_account }} ({{ j.memo }})</td>
+                <td class="ws-figure">${{ (j.amount_minor / 100).toFixed(2) }}</td>
+                <td>-</td>
+              </tr>
+              <tr>
+                <td>{{ j.credit_account }} ({{ j.memo }})</td>
+                <td>-</td>
+                <td class="ws-figure">${{ (j.amount_minor / 100).toFixed(2) }}</td>
+              </tr>
+              <tr class="total-row">
+                <td><b>합계</b></td>
+                <td class="ws-figure"><b>${{ (j.amount_minor / 100).toFixed(2) }}</b></td>
+                <td class="ws-figure"><b>${{ (j.amount_minor / 100).toFixed(2) }}</b></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <table class="entries-table">
-          <thead>
-            <tr><th>계정과목 / 설명</th><th class="num">차변 (Debit)</th><th class="num">대변 (Credit)</th></tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{{ j.debit_account }} ({{ j.memo }})</td>
-              <td class="num">${{ (j.amount_minor / 100).toFixed(2) }}</td>
-              <td class="num">-</td>
-            </tr>
-            <tr>
-              <td>{{ j.credit_account }} ({{ j.memo }})</td>
-              <td class="num">-</td>
-              <td class="num">${{ (j.amount_minor / 100).toFixed(2) }}</td>
-            </tr>
-            <tr class="total-row">
-              <td>합계 (Total)</td>
-              <td class="num bold">${{ (j.amount_minor / 100).toFixed(2) }}</td>
-              <td class="num bold">${{ (j.amount_minor / 100).toFixed(2) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -99,27 +90,23 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.ledger-audit-page { max-width: 1000px; margin: 0 auto; }
-h2 { margin: 0 0 6px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin-bottom: 24px; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-.error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-.audit-summary-strip { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 16px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
-.summary-col .lbl { display: block; font-size: 11px; color: var(--ws-admin-dim); margin-bottom: 4px; }
-.summary-col .val { font-size: 15px; font-weight: 700; color: #FFF; font-variant-numeric: tabular-nums; }
-.summary-col .val.ok { color: #34D399; }
-.journals-list { display: flex; flex-direction: column; gap: 20px; }
-.journal-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 20px; }
-.j-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--ws-admin-line); padding-bottom: 12px; }
-.j-num { font-weight: 700; color: var(--ws-admin-link); font-size: 15px; margin-right: 12px; }
-.j-type { background: var(--ws-admin-panel-2); color: var(--ws-admin-text); font-size: 11px; padding: 2px 6px; border-radius: 4px; margin-right: 8px; }
-.j-date { font-size: 12px; color: var(--ws-admin-dim); }
-.balance-indicator { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; }
-.balance-indicator.balanced { background: #065F46; color: #A7F3D0; }
-.entries-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.entries-table th, .entries-table td { border-bottom: 1px solid var(--ws-admin-line); padding: 8px 12px; text-align: left; }
-.entries-table th { background: var(--ws-admin-panel-2); color: var(--ws-admin-dim); }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.total-row { border-top: 2px solid var(--ws-admin-link); font-weight: 700; color: #FFF; }
-.bold { font-weight: 700; }
+.ledger { display: flex; flex-direction: column; gap: 18px; }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); }
+.admin-error { background: rgb(239 68 68 / 0.12); border: 1px solid rgb(239 68 68 / 0.4); color: #fca5a5; border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.sum-strip { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 10px; padding: 16px 20px; }
+.sum-strip div { display: flex; flex-direction: column; gap: 4px; }
+.sum-strip span { font-size: 11px; color: var(--ws-admin-dim); font-weight: 700; }
+.sum-strip b { font-size: 16px; }
+.ok { color: #6ee7b7; }
+.bad { color: #fca5a5; }
+.j-head { margin-bottom: 12px; }
+.j-num { color: var(--ws-admin-link); font-size: 15px; }
+.dim { color: var(--ws-admin-dim); }
+.total-row td { border-top: 2px solid var(--ws-admin-link); }
+.sk-dark { background: var(--ws-admin-panel); }
+@media (max-width: 768px) {
+  .sum-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 </style>

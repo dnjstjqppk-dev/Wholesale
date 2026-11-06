@@ -1,219 +1,135 @@
 <template>
-  <div class="order-calculator-card">
-    <!-- Mode Switcher: Alibaba Multi-SKU Matrix vs Single Quick -->
-    <div class="order-mode-tabs">
-      <button
-        type="button"
-        class="mode-tab-btn"
-        :class="{ active: orderMode === 'MATRIX' }"
-        @click="orderMode = 'MATRIX'"
-      >
-        <WsIcon name="trend" :size="15" /> 다차원 SKU 일괄 발주 (Multi-SKU Matrix)
+  <div class="ws-card calc">
+    <div class="ws-tabs mode-tabs">
+      <button type="button" class="ws-tab" :class="{ 'ws-tab-active': orderMode === 'MATRIX' }" @click="orderMode = 'MATRIX'">
+        <WsIcon name="trend" :size="14" /> Multi-SKU 일괄 발주
       </button>
-      <button
-        type="button"
-        class="mode-tab-btn"
-        :class="{ active: orderMode === 'SINGLE' }"
-        @click="orderMode = 'SINGLE'"
-      >
-        <WsIcon name="bolt" :size="15" /> 단일 규격 빠른 주문 (Single)
+      <button type="button" class="ws-tab" :class="{ 'ws-tab-active': orderMode === 'SINGLE' }" @click="orderMode = 'SINGLE'">
+        <WsIcon name="bolt" :size="14" /> 단일 규격 빠른 주문
       </button>
     </div>
 
-    <!-- Multi-SKU Matrix Table (Alibaba Standard) -->
-    <div v-if="orderMode === 'MATRIX'" class="sku-matrix-container">
-      <div class="matrix-hint">
-        <span>※ 여러 규격/옵션의 수량을 한 번에 입력하여 <strong>총 발주 수량 합산 기준의 도매 우대 구간 단가</strong>를 일괄 적용받으세요.</span>
+    <div v-if="orderMode === 'MATRIX'">
+      <p class="ws-hint matrix-hint">여러 규격 수량을 한 번에 입력하면 <b>합산 기준 도매 우대 구간 단가</b>가 일괄 적용됩니다.</p>
+      <div class="ws-table-wrap">
+        <div class="ws-table-scroll">
+          <table class="ws-table">
+            <thead>
+              <tr><th>규격 / Variant</th><th class="ws-num">구간 단가</th><th class="ws-num">가용 재고</th><th class="ws-num">발주 수량</th></tr>
+            </thead>
+            <tbody>
+              <tr v-for="v in productVariants" :key="v.id">
+                <td><span class="ws-cell-main">{{ v.name }}</span><br /><span class="ws-cell-sub">SKU: {{ v.sku }}</span></td>
+                <td class="ws-num"><b class="ws-price ws-figure">{{ formatMoney(activeUnitPrice) }}</b> <span class="ws-cell-sub">/ {{ product?.unit || 'pcs' }}</span></td>
+                <td class="ws-num"><span class="ws-badge ws-badge-outline ws-figure">{{ (v.stock || 5000).toLocaleString() }}개</span></td>
+                <td class="ws-num">
+                  <span class="stepper">
+                    <button type="button" aria-label="감소" @click="decrementVariantQty(v.id)">−</button>
+                    <input type="number" min="0" :step="product?.quantity_step || 10" :value="variantQuantities[v.id] || 0" @input="onInputVariantQty(v.id, ($event.target as HTMLInputElement).value)" />
+                    <button type="button" aria-label="증가" @click="incrementVariantQty(v.id)">+</button>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-      <table class="sku-matrix-table">
-        <thead>
-          <tr>
-            <th>규격 및 사양 (Spec / Variant)</th>
-            <th>구간 단가 (Unit Price)</th>
-            <th>가용 재고 (Stock)</th>
-            <th class="th-qty">발주 수량 (Order Qty)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="v in productVariants" :key="v.id" class="sku-row">
-            <td class="td-spec">
-              <strong class="sku-name">{{ v.name }}</strong>
-              <span class="sku-code">SKU: {{ v.sku }}</span>
-            </td>
-            <td class="td-price">
-              <span class="sku-price">{{ formatMoney(activeUnitPrice) }}</span>
-              <span class="sku-unit">/ {{ product?.unit || 'pcs' }}</span>
-            </td>
-            <td class="td-stock">
-              <span class="stock-pill">가용 {{ (v.stock || 5000).toLocaleString() }}개</span>
-            </td>
-            <td class="td-qty">
-              <div class="matrix-qty-wrap">
-                <button type="button" class="m-step-btn" @click="decrementVariantQty(v.id)">-</button>
-                <input
-                  type="number"
-                  min="0"
-                  :step="product?.quantity_step || 10"
-                  :value="variantQuantities[v.id] || 0"
-                  class="m-qty-input"
-                  @input="onInputVariantQty(v.id, ($event.target as HTMLInputElement).value)"
-                />
-                <button type="button" class="m-step-btn" @click="incrementVariantQty(v.id)">+</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="matrix-aggregate-bar">
-        <div class="agg-item">
-          <span>합산 총 발주 수량:</span>
-          <strong class="agg-qty">{{ effectiveOrderQty }} {{ product?.unit || 'pcs' }}</strong>
-        </div>
-        <div class="agg-item">
-          <span>최소 발주(MOQ {{ product?.moq || 100 }}) 상태:</span>
-          <span :class="effectiveOrderQty >= (Number(product?.moq) || 100) ? 'moq-ok' : 'moq-warn'">
-            <WsIcon v-if="effectiveOrderQty < (Number(product?.moq) || 100)" name="alert" :size="14" /> {{ effectiveOrderQty >= (Number(product?.moq) || 100) ? '✓ MOQ 충족' : `${(Number(product?.moq) || 100) - effectiveOrderQty}개 부족` }}
-          </span>
-        </div>
+      <div class="agg-bar">
+        <span class="ws-small">합산 총 발주 수량 <b class="ws-figure">{{ effectiveOrderQty }} {{ product?.unit || 'pcs' }}</b></span>
+        <span v-if="effectiveOrderQty >= (Number(product?.moq) || 100)" class="ws-badge ws-badge-success">MOQ 충족</span>
+        <span v-else class="ws-badge ws-badge-warning"><WsIcon name="alert" :size="12" /> {{ (Number(product?.moq) || 100) - effectiveOrderQty }}개 부족</span>
       </div>
     </div>
 
-    <!-- Single Quick Stepper -->
-    <div v-else class="calc-row">
-      <div class="qty-field">
-        <label>발주 수량 (Order Quantity)</label>
-        <div class="qty-input-wrap">
-          <button class="step-btn" @click="decrementQty">-</button>
-          <input
-            :value="orderQty"
-            type="number"
-            :min="product?.moq || 100"
-            :step="product?.quantity_step || 10"
-            @input="onInputQty(($event.target as HTMLInputElement).value)"
-          />
-          <button class="step-btn" @click="incrementQty">+</button>
-          <span class="unit-text">{{ product?.unit || 'pcs' }}</span>
-        </div>
+    <div v-else class="single-row">
+      <div class="ws-field" style="margin-bottom: 0">
+        <label>발주 수량 ({{ product?.unit || 'pcs' }})</label>
+        <span class="stepper stepper-lg">
+          <button type="button" aria-label="감소" @click="decrementQty">−</button>
+          <input :value="orderQty" type="number" :min="product?.moq || 100" :step="product?.quantity_step || 10" @input="onInputQty(($event.target as HTMLInputElement).value)" />
+          <button type="button" aria-label="증가" @click="incrementQty">+</button>
+        </span>
       </div>
-      <div class="rules-hint">
-        <span>최소 발주(MOQ): <strong>{{ product?.moq }} {{ product?.unit }}</strong></span>
-        <span>발주 단위(Step): <strong>{{ product?.quantity_step || 10 }} {{ product?.unit }} 배수</strong></span>
-      </div>
+      <p class="ws-hint">MOQ <b>{{ product?.moq }}{{ product?.unit }}</b> · {{ product?.quantity_step || 10 }}{{ product?.unit }} 배수 단위</p>
     </div>
 
-    <p v-if="quantityError" class="calc-err">{{ quantityError }}</p>
+    <p v-if="quantityError" class="ws-error-text">{{ quantityError }}</p>
 
-    <!-- Real-Time Calculation Matrix -->
-    <div class="calc-summary-panel">
-      <div class="summary-line">
-        <span>적용 구간 단가 (Tier Unit Price)</span>
-        <span class="num">{{ formatMoney(activeUnitPrice) }} / {{ product?.unit }}</span>
-      </div>
-      <div class="summary-line">
-        <span>예상 생산 소요 납기 (Lead Time)</span>
-        <span class="num">{{ estimatedLeadTimeDays }}일 (선적항 출고 기준)</span>
-      </div>
-      <div class="summary-line">
-        <span>선급금 에스크로 (30% Down Payment)</span>
-        <span class="num highlight">{{ formatMoney(downPaymentAmount) }}</span>
-      </div>
-      <div class="summary-line total">
-        <span>총 발주 공급가액 (Subtotal)</span>
-        <span class="num total-price">{{ formatMoney(subtotalAmount) }}</span>
-      </div>
-    </div>
+    <dl class="sum-rows">
+      <div><dt>적용 구간 단가</dt><dd class="ws-figure">{{ formatMoney(activeUnitPrice) }} / {{ product?.unit }}</dd></div>
+      <div><dt>예상 납기</dt><dd>{{ estimatedLeadTimeDays }}일 (선적항 출고 기준)</dd></div>
+      <div><dt>선급금 에스크로 (30%)</dt><dd class="ws-price ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
+      <div class="total"><dt>총 발주 공급가액</dt><dd class="ws-figure">{{ formatMoney(subtotalAmount) }}</dd></div>
+    </dl>
 
-    <!-- Live Landed Cost Calculator Widget -->
-    <div class="landed-cost-widget">
-      <div class="widget-header" @click="showLandedCost = !showLandedCost">
-        <span class="w-icon"><WsIcon name="truck" :size="15" /></span>
-        <strong>예상 총 도입원가 (Landed Cost) 산출기</strong>
-        <span class="toggle-icon">{{ showLandedCost ? '▲ 닫기' : '▼ 계산하기' }}</span>
-      </div>
-
-      <div v-if="showLandedCost" class="widget-body">
-        <div class="landed-form-grid">
-          <div>
-            <label>무역 인도조건 (Incoterms)</label>
+    <div class="landed">
+      <button type="button" class="landed-head" @click="showLandedCost = !showLandedCost">
+        <span><WsIcon name="truck" :size="15" class="landed-ico" /> <b>총 도입원가(Landed Cost) 산출기</b></span>
+        <span class="ws-small ws-muted">{{ showLandedCost ? '▲ 닫기' : '▼ 계산하기' }}</span>
+      </button>
+      <div v-if="showLandedCost" class="landed-body">
+        <div class="ws-grid-3">
+          <div class="ws-field">
+            <label>인도조건</label>
             <select v-model="selectedIncoterms" @change="calculateLandedCost">
-              <option value="FOB">FOB (본선인도조건 - 부산항)</option>
-              <option value="CIF">CIF (운임보험료포함 - 도착항)</option>
-              <option value="DDP">DDP (관세지급인도 - 문앞배송)</option>
-              <option value="EXW">EXW (공장인도조건 - 제조사출고)</option>
-              <option value="CFR">CFR (운임포함인도 - 도착항)</option>
+              <option value="FOB">FOB (부산항)</option>
+              <option value="CIF">CIF (도착항)</option>
+              <option value="DDP">DDP (문앞배송)</option>
+              <option value="EXW">EXW (공장인도)</option>
+              <option value="CFR">CFR (도착항)</option>
             </select>
           </div>
-          <div>
-            <label>도착국가 (Destination)</label>
+          <div class="ws-field">
+            <label>도착국가</label>
             <select v-model="shippingDestination" @change="calculateLandedCost">
-              <option value="US">미국 (United States)</option>
-              <option value="KR">대한민국 (South Korea)</option>
-              <option value="JP">일본 (Japan)</option>
-              <option value="DE">독일 (Germany)</option>
+              <option value="US">미국 (US)</option>
+              <option value="KR">대한민국 (KR)</option>
+              <option value="JP">일본 (JP)</option>
+              <option value="DE">독일 (DE)</option>
             </select>
           </div>
-          <div>
-            <label>운송 방식 (Shipping Method)</label>
+          <div class="ws-field">
+            <label>운송 방식</label>
             <select v-model="shippingMethod" @change="calculateLandedCost">
-              <option value="SEA_FCL">해상 FCL (컨테이너 만재)</option>
-              <option value="SEA_LCL">해상 LCL (소량 혼적)</option>
-              <option value="AIR">항공 화물 (Air Cargo)</option>
-              <option value="EXPRESS">특송 (DHL/FedEx Express)</option>
+              <option value="SEA_FCL">해상 FCL</option>
+              <option value="SEA_LCL">해상 LCL</option>
+              <option value="AIR">항공 화물</option>
+              <option value="EXPRESS">특송 (Express)</option>
             </select>
           </div>
         </div>
-
-        <div v-if="landedCostData" class="landed-results">
-          <div class="cargo-specs-bar">
-            <span><WsIcon name="package" :size="15" /> 화물 용적: <strong>{{ landedCargoSpec?.total_cbm || '0.50' }} CBM</strong></span>
-            <span><WsIcon name="alert" :size="15" /> 총 중량: <strong>{{ landedCargoSpec?.gross_weight_kg || '45.0' }} kg</strong></span>
-            <span v-if="landedCargoSpec?.is_fcl_recommended" class="fcl-rec-pill"><WsIcon name="bolt" :size="15" /> FCL 컨테이너 추천</span>
-          </div>
-          <div class="res-row">
-            <span>해상/항공 추정 운임 ({{ selectedIncoterms }}):</span>
-            <strong>{{ formatMoney(landedCostData.freight_estimate) }}</strong>
-          </div>
-          <div v-if="Number(landedCostData.origin_inland_freight) > 0" class="res-row">
-            <span>공장-선적항 내륙운임:</span>
-            <strong>{{ formatMoney(landedCostData.origin_inland_freight) }}</strong>
-          </div>
-          <div class="res-row">
-            <span>적하보험료 (0.3%):</span>
-            <strong>{{ formatMoney(landedCostData.marine_insurance) }}</strong>
-          </div>
-          <div class="res-row">
-            <span>예상 수입관세 ({{ landedCostData.duty_rate }}):</span>
-            <strong>{{ formatMoney(landedCostData.customs_duty) }}</strong>
-          </div>
-          <div v-if="Number(landedCostData.import_vat) > 0" class="res-row">
-            <span>수입 부가세 ({{ landedCostData.vat_rate }}):</span>
-            <strong>{{ formatMoney(landedCostData.import_vat) }}</strong>
-          </div>
-          <div class="res-row total-landed">
-            <span>개당 예상 착하원가 (Landed Cost):</span>
-            <strong class="unit-landed">{{ formatMoney(landedCostData.unit_landed_cost) }} / {{ product?.unit }}</strong>
-          </div>
+        <div v-if="landedCostData" class="landed-res">
+          <p class="ws-small cargo-line">
+            <WsIcon name="package" :size="13" /> {{ landedCargoSpec?.total_cbm || '0.50' }} CBM ·
+            <WsIcon name="alert" :size="13" /> {{ landedCargoSpec?.gross_weight_kg || '45.0' }} kg
+            <span v-if="landedCargoSpec?.is_fcl_recommended" class="ws-badge ws-badge-brand">FCL 추천</span>
+          </p>
+          <dl class="sum-rows">
+            <div><dt>추정 운임 ({{ selectedIncoterms }})</dt><dd class="ws-figure">{{ formatMoney(landedCostData.freight_estimate) }}</dd></div>
+            <div v-if="Number(landedCostData.origin_inland_freight) > 0"><dt>공장-선적항 내륙운임</dt><dd class="ws-figure">{{ formatMoney(landedCostData.origin_inland_freight) }}</dd></div>
+            <div><dt>적하보험료 (0.3%)</dt><dd class="ws-figure">{{ formatMoney(landedCostData.marine_insurance) }}</dd></div>
+            <div><dt>예상 수입관세 ({{ landedCostData.duty_rate }})</dt><dd class="ws-figure">{{ formatMoney(landedCostData.customs_duty) }}</dd></div>
+            <div v-if="Number(landedCostData.import_vat) > 0"><dt>수입 부가세 ({{ landedCostData.vat_rate }})</dt><dd class="ws-figure">{{ formatMoney(landedCostData.import_vat) }}</dd></div>
+            <div class="total"><dt>개당 착하원가</dt><dd class="ws-price ws-figure">{{ formatMoney(landedCostData.unit_landed_cost) }} / {{ product?.unit }}</dd></div>
+          </dl>
         </div>
       </div>
     </div>
 
-    <!-- Action Buttons -->
-    <div class="action-buttons-group">
-      <button class="btn-add-cart" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
+    <div class="cta-stack">
+      <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="!!quantityError || addingCart" @click="handleAddToCart">
         <WsIcon name="cart" :size="15" /> {{ addingCart ? '담는 중...' : (orderMode === 'MATRIX' ? '선택 규격 일괄 장바구니 담기' : '도매 장바구니 담기') }}
       </button>
-      <button class="btn-start-trade-order" :disabled="!!quantityError" @click="handleInstantOrder">
+      <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="!!quantityError" @click="handleInstantOrder">
         <WsIcon name="pencil" :size="15" /> {{ orderMode === 'MATRIX' ? '선택 규격 일괄 발주서 작성' : '즉시 도매 발주서 생성' }}
       </button>
     </div>
-
-    <div class="secondary-actions-group">
-      <button class="btn-sample-request" :disabled="requestingSample" @click="handleSampleOrder">
-        <WsIcon name="package" :size="15" /> {{ requestingSample ? '주문 처리 중...' : `유료 샘플 신청 (${formatMoney(product?.sample_price || 25)})` }}
+    <div class="cta-duo">
+      <button class="ws-btn ws-btn-secondary ws-btn-block ws-btn-sm" :disabled="requestingSample" @click="handleSampleOrder">
+        <WsIcon name="package" :size="14" /> {{ requestingSample ? '주문 처리 중...' : `유료 샘플 신청 (${formatMoney(product?.sample_price || 25)})` }}
       </button>
-      <button class="btn-inquiry" @click="$emit('open-inquiry')">
-        <WsIcon name="chat" :size="15" /> 공급사 1:1 견적 문의
+      <button class="ws-btn ws-btn-secondary ws-btn-block ws-btn-sm" @click="$emit('open-inquiry')">
+        <WsIcon name="chat" :size="14" /> 공급사 1:1 견적 문의
       </button>
     </div>
   </div>
@@ -488,408 +404,32 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.order-calculator-card {
-  background: var(--ws-surface);
-  border: 1px solid #FED7AA;
-  border-radius: 10px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(234, 88, 12, 0.05);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.order-mode-tabs {
-  display: flex;
-  gap: 8px;
-  background: var(--ws-surface-muted);
-  padding: 4px;
-  border-radius: 8px;
-  border: 1px solid var(--ws-border-subtle);
-}
-.mode-tab-btn {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  border: none;
-  background: transparent;
-  color: var(--ws-text-muted);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.mode-tab-btn.active {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  box-shadow: 0 2px 4px rgba(194, 65, 12, 0.2);
-}
-.sku-matrix-container {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.matrix-hint {
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  background: var(--ws-brand-light);
-  border: 1px solid var(--ws-brand-light);
-  padding: 8px 12px;
-  border-radius: 6px;
-}
-.sku-matrix-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.sku-matrix-table th {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-2);
-  font-weight: 700;
-  text-align: left;
-  padding: 8px 10px;
-  border-bottom: 2px solid var(--ws-border-subtle);
-}
-.sku-matrix-table th.th-qty {
-  text-align: right;
-}
-.sku-row {
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-.sku-row:hover {
-  background: #FFFDF9;
-}
-.sku-row td {
-  padding: 10px 10px;
-  vertical-align: middle;
-}
-.td-spec {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.sku-name {
-  color: var(--ws-text);
-  font-size: 12px;
-}
-.sku-code {
-  font-family: monospace;
-  font-size: 10px;
-  color: var(--ws-admin-dim);
-}
-.sku-price {
-  font-weight: 700;
-  color: var(--ws-brand);
-}
-.sku-unit {
-  font-size: 10px;
-  color: var(--ws-text-muted);
-}
-.stock-pill {
-  font-size: 11px;
-  color: var(--ws-success);
-  background: var(--ws-success-bg);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 600;
-}
-.td-qty {
-  text-align: right;
-}
-.matrix-qty-wrap {
-  display: inline-flex;
-  align-items: center;
-  border: 1px solid #CBD5E1;
-  border-radius: 6px;
-  overflow: hidden;
-}
-.m-step-btn {
-  background: var(--ws-surface-muted);
-  border: none;
-  width: 28px;
-  height: 28px;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.m-step-btn:hover {
-  background: var(--ws-border-subtle);
-}
-.m-qty-input {
-  width: 60px;
-  height: 28px;
-  border: none;
-  text-align: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.matrix-aggregate-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 14px;
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  font-size: 12px;
-}
-.agg-qty {
-  color: var(--ws-brand);
-  font-size: 14px;
-  margin-left: 6px;
-}
-.moq-ok {
-  color: var(--ws-success);
-  font-weight: 700;
-}
-.moq-warn {
-  color: var(--ws-danger);
-  font-weight: 700;
-}
-.calc-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.qty-field label {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--ws-text);
-  display: block;
-  margin-bottom: 6px;
-}
-.qty-input-wrap {
-  display: flex;
-  align-items: center;
-  border: 1px solid #CBD5E1;
-  border-radius: 6px;
-  overflow: hidden;
-  width: fit-content;
-}
-.step-btn {
-  background: var(--ws-surface-muted);
-  border: none;
-  width: 36px;
-  height: 36px;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.step-btn:hover {
-  background: var(--ws-border-subtle);
-}
-.qty-input-wrap input {
-  width: 80px;
-  height: 36px;
-  border: none;
-  text-align: center;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.unit-text {
-  padding: 0 10px;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  font-weight: 600;
-  background: var(--ws-surface-muted);
-  height: 36px;
-  display: flex;
-  align-items: center;
-}
-.rules-hint {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  text-align: right;
-}
-.rules-hint strong {
-  color: var(--ws-text);
-}
-.calc-err {
-  color: var(--ws-danger);
-  font-size: 12px;
-  font-weight: 700;
-  margin: 0;
-}
-.calc-summary-panel {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.summary-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  color: var(--ws-text-2);
-}
-.summary-line .num {
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.summary-line .highlight {
-  color: #0284C7;
-}
-.summary-line.total {
-  border-top: 1px solid var(--ws-border-subtle);
-  padding-top: 8px;
-  font-size: 14px;
-  font-weight: 800;
-  color: var(--ws-text);
-}
-.total-price {
-  font-size: 18px;
-  color: var(--ws-brand);
-}
-
-/* Landed Cost Widget */
-.landed-cost-widget {
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: 8px;
-  overflow: hidden;
-}
-.widget-header {
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 13px;
-  color: var(--ws-info);
-}
-.toggle-icon {
-  margin-left: auto;
-  font-size: 11px;
-  font-weight: 700;
-}
-.widget-body {
-  padding: 12px 14px;
-  border-top: 1px solid var(--ws-info-bg);
-  background: var(--ws-surface);
-}
-.landed-form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-.landed-form-grid label {
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  display: block;
-  margin-bottom: 2px;
-}
-.landed-form-grid select {
-  width: 100%;
-  padding: 6px;
-  border: 1px solid #CBD5E1;
-  border-radius: 4px;
-  font-size: 12px;
-}
-.landed-results {
-  background: var(--ws-surface-muted);
-  padding: 10px;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 12px;
-}
-.res-row {
-  display: flex;
-  justify-content: space-between;
-  color: var(--ws-text-2);
-}
-.res-row.total-landed {
-  border-top: 1px solid var(--ws-border-subtle);
-  padding-top: 6px;
-  margin-top: 4px;
-  font-weight: 800;
-  color: var(--ws-text);
-}
-.unit-landed {
-  color: var(--ws-info);
-}
-
-/* Buttons */
-.action-buttons-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btn-add-cart {
-  background: var(--ws-brand-light);
-  border: 1px solid #FED7AA;
-  color: var(--ws-brand);
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.btn-start-trade-order {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border: none;
-  padding: 12px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.btn-start-trade-order:hover {
-  background: var(--ws-brand);
-}
-.secondary-actions-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-.btn-sample-request {
-  background: var(--ws-surface-muted);
-  border: 1px solid #CBD5E1;
-  color: var(--ws-text-2);
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.btn-inquiry {
-  background: var(--ws-surface-muted);
-  border: 1px solid #CBD5E1;
-  color: var(--ws-text-2);
-  padding: 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.cargo-specs-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  background: var(--ws-brand-light);
-  padding: 8px 12px;
-  border-radius: 6px;
-  border: 1px solid var(--ws-brand-light);
-  font-size: 11px;
-  color: var(--ws-brand-hover);
-  margin-bottom: 8px;
-  align-items: center;
-}
-.fcl-rec-pill {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-weight: 700;
+.mode-tabs { margin-bottom: 14px; }
+.matrix-hint { margin: 0 0 10px; }
+.agg-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; }
+.single-row { display: flex; flex-direction: column; gap: 8px; }
+.stepper { display: inline-flex; border: 1px solid var(--ws-border); border-radius: 8px; overflow: hidden; vertical-align: middle; }
+.stepper button { width: 32px; height: 34px; border: 0; background: var(--ws-surface-muted); font-size: 15px; font-weight: 800; cursor: pointer; color: var(--ws-text-2); }
+.stepper button:hover { background: var(--ws-surface-hover); }
+.stepper input { width: 72px; border: 0; border-left: 1px solid var(--ws-border-subtle); border-right: 1px solid var(--ws-border-subtle); text-align: center; font-size: 14px; font-weight: 800; font-family: var(--ws-font); padding: 6px 4px; }
+.stepper input:focus { outline: none; background: var(--ws-brand-faint); }
+.stepper-lg input { width: 110px; font-size: 16px; }
+.stepper-lg button { width: 40px; height: 40px; }
+.sum-rows { margin: 14px 0 0; }
+.sum-rows div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ws-border-subtle); font-size: 13px; }
+.sum-rows div:last-child { border-bottom: 0; }
+.sum-rows dt { color: var(--ws-text-2); }
+.sum-rows dd { margin: 0; font-weight: 800; }
+.sum-rows .total dd { font-size: 18px; }
+.landed { border: 1px solid var(--ws-border-subtle); border-radius: 10px; margin-top: 14px; }
+.landed-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; background: var(--ws-surface-muted); border: 0; border-radius: 10px; padding: 12px 14px; cursor: pointer; font-family: var(--ws-font); font-size: 13px; color: var(--ws-text); }
+.landed-ico { color: var(--ws-navy); vertical-align: -2px; }
+.landed-body { padding: 14px; }
+.landed-body .ws-field { margin-bottom: 10px; }
+.cargo-line { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 4px 0 6px; }
+.cta-stack { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.cta-duo { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+@media (max-width: 640px) {
+  .cta-duo { grid-template-columns: minmax(0, 1fr); }
 }
 </style>

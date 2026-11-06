@@ -1,89 +1,79 @@
 <template>
-  <div class="audit-page">
-    <div class="head-row">
+  <div class="ws-admin-page audit">
+    <div class="admin-head">
       <div>
-        <h2>기업 및 공급사 입점 심사 (Verification Audit)</h2>
-        <p class="subtitle">제출된 사업자등록증 및 SGS/TÜV 현장 공장 실사 성적서를 인앱 뷰어로 검수하고 Verified Supplier 자격을 부여합니다.</p>
+        <p class="admin-eyebrow">KYB Review</p>
+        <h1>기업·공급사 입점 심사</h1>
+        <p class="admin-sub">사업자등록증·SGS/TÜV 실사 성적서를 인앱 뷰어로 검수하고 Verified 자격을 부여합니다.</p>
       </div>
-      <button class="btn-refresh" @click="loadVerifications"><WsIcon name="refresh" :size="15" /> 심사 대기열 새로고침</button>
+      <button class="ws-admin-btn" @click="loadVerifications"><WsIcon name="refresh" :size="14" /> 대기열 새로고침</button>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      심사 대기열 데이터를 API 서버에서 조회 중입니다...
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton sk-dark" style="height: 220px"></div>
+      <div class="ws-skeleton sk-dark" style="height: 220px"></div>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-else-if="error" class="admin-error">
+      <WsIcon name="alert" :size="16" /> {{ error }}
     </div>
 
-    <div v-else class="requests-list">
-      <div v-for="req in requests" :key="req.id" class="audit-card">
-        <div class="card-head">
+    <div v-else class="ws-stack">
+      <section v-for="req in requests" :key="req.id" class="ws-admin-card">
+        <div class="ws-split req-head">
           <div>
-            <h3 class="company-name">{{ req.company_name }}</h3>
-            <span class="meta">사업자등록번호: {{ req.business_number }} | 사업 형태: {{ req.business_type }} | 국가: {{ req.country }}</span>
+            <h3>{{ req.company_name }}</h3>
+            <p class="ws-small dim ws-figure">{{ req.business_number }} · {{ req.business_type }} · {{ req.country }}</p>
           </div>
-          <span class="status-badge" :class="req.status.toLowerCase()">{{ req.status }}</span>
+          <span class="ws-admin-badge" :class="req.status === 'APPROVED' ? 'ws-admin-badge-ok' : req.status === 'REJECTED' ? 'ws-admin-badge-bad' : 'ws-admin-badge-warn'">{{ req.status }}</span>
         </div>
 
-        <!-- Korean NTS (국세청) & Global D-U-N-S Status Bar -->
-        <div class="nts-badge-box">
-          <span class="nts-title"><WsIcon name="building" :size="15" /> 국세청(NTS) 법인실사 & D-U-N-S:</span>
-          <span v-if="req.nts_status" class="nts-status-tag" :class="req.nts_status.is_valid ? 'valid' : 'invalid'">
+        <div class="nts-bar">
+          <span class="ws-small dim"><WsIcon name="building" :size="14" /> 국세청 법인실사·D-U-N-S</span>
+          <span v-if="req.nts_status" class="ws-admin-badge" :class="req.nts_status.is_valid ? 'ws-admin-badge-ok' : 'ws-admin-badge-bad'">
             ✓ {{ req.nts_status.tax_status_kr }} ({{ req.nts_status.tax_type }})
           </span>
-          <span v-else class="nts-status-tag unverified">
-            <WsIcon name="clock" :size="15" /> 국세청 미조회 (검증 대기)
-          </span>
-          <span v-if="req.nts_status?.duns_number" class="duns-tag">
-            <WsIcon name="globe" :size="15" /> D-U-N-S®: {{ req.nts_status.duns_number }}
-          </span>
-          <button type="button" class="btn-nts-verify" :disabled="verifyingId === req.id" @click="verifyWithNTS(req)">
-            <WsIcon v-if="!(verifyingId === req.id)" name="search" :size="14" /> {{ verifyingId === req.id ? '검증 중...' : '실시간 국세청 MOD-10 검증' }}
+          <span v-else class="ws-admin-badge ws-admin-badge-idle"><WsIcon name="clock" :size="12" /> 국세청 미조회</span>
+          <span v-if="req.nts_status?.duns_number" class="ws-admin-badge ws-admin-badge-info ws-figure">D-U-N-S® {{ req.nts_status.duns_number }}</span>
+          <button type="button" class="ws-admin-btn" :disabled="verifyingId === req.id" @click="verifyWithNTS(req)">
+            <WsIcon v-if="verifyingId !== req.id" name="search" :size="13" /> {{ verifyingId === req.id ? '검증 중...' : '국세청 MOD-10 검증' }}
           </button>
         </div>
 
         <div class="v-metrics">
-          <span><WsIcon name="factory" :size="15" /> 공장 부지 면적: <strong>{{ req.facilities_sqm?.toLocaleString() }} m²</strong></span>
-          <span><WsIcon name="gear" :size="15" /> 생산 라인 수: <strong>{{ req.production_lines }}개</strong></span>
-          <span><WsIcon name="search" :size="15" /> 품질 검수원: <strong>{{ req.qc_inspectors }}명</strong></span>
-          <span><WsIcon name="file" :size="15" /> 보유 인증: <strong>{{ (req.certificates || []).join(', ') }}</strong></span>
+          <span><WsIcon name="factory" :size="14" /> {{ req.facilities_sqm?.toLocaleString() }} m²</span>
+          <span><WsIcon name="gear" :size="14" /> 라인 {{ req.production_lines }}개</span>
+          <span><WsIcon name="search" :size="14" /> QC {{ req.qc_inspectors }}명</span>
+          <span><WsIcon name="file" :size="14" /> {{ (req.certificates || []).join(', ') }}</span>
         </div>
 
-        <div class="doc-links">
-          <button class="doc-btn" @click="previewDoc('사업자등록증 원본 사본', req.license_url)">
-            <WsIcon name="file" :size="15" /> 사업자등록증 인앱 서류 열람
+        <div class="ws-cluster" style="margin-top: 12px">
+          <button class="ws-admin-btn" @click="previewDoc('사업자등록증 원본 사본', req.license_url)">
+            <WsIcon name="file" :size="14" /> 사업자등록증 열람
           </button>
-          <button class="doc-btn" @click="previewDoc('SGS/TÜV 공장 실사 성적서', req.audit_report_url)">
-            <WsIcon name="factory" :size="15" /> 공장 실사 성적서 원문 열람
+          <button class="ws-admin-btn" @click="previewDoc('SGS/TÜV 공장 실사 성적서', req.audit_report_url)">
+            <WsIcon name="factory" :size="14" /> 실사 성적서 원문
           </button>
         </div>
 
-        <div v-if="req.status === 'PENDING'" class="actions">
-          <button class="btn-approve" :disabled="submitting" @click="approve(req)">
-            {{ submitting ? '처리 중...' : '✓ 실사 승인 (Verified Supplier 자격 부여)' }}
+        <div v-if="req.status === 'PENDING'" class="ws-cluster verdict" style="gap: 8px">
+          <button class="ws-admin-btn ws-admin-btn-primary" :disabled="submitting" @click="approve(req)">
+            {{ submitting ? '처리 중...' : '✓ 승인 · Verified 자격 부여' }}
           </button>
-          <button class="btn-reject" :disabled="submitting" @click="reject(req)">
-            ✕ 보완 요구 및 반려 (POST reject)
-          </button>
+          <button class="ws-admin-btn ws-admin-btn-danger" :disabled="submitting" @click="reject(req)">✕ 보완 요구·반려</button>
         </div>
-        <div v-else-if="req.status === 'APPROVED'" class="approved-info">
-          <span>✓ 심사 승인 완료 (승인일시: {{ req.approved_at || 'UTC 검증됨' }})</span>
-        </div>
-        <div v-else class="rejected-info">
-          <span>✕ 반려 처리됨 (반려 사유: {{ req.rejection_reason || '서류 불충분' }})</span>
-        </div>
-      </div>
+        <p v-else-if="req.status === 'APPROVED'" class="verdict-note ok">✓ 심사 승인 완료 ({{ req.approved_at || 'UTC 검증됨' }})</p>
+        <p v-else class="verdict-note bad">✕ 반려 처리됨 — {{ req.rejection_reason || '서류 불충분' }}</p>
+      </section>
     </div>
 
-    <!-- In-App Document Viewer Modal -->
-    <div v-if="modalDoc" class="modal-overlay" @click.self="modalDoc = null">
-      <div class="modal-box">
-        <div class="modal-head">
+    <div v-if="modalDoc" class="ws-modal-backdrop" @click.self="modalDoc = null">
+      <div class="ws-modal ws-modal-wide doc-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
           <h3>{{ modalDoc.title }}</h3>
-          <button class="btn-close" @click="modalDoc = null">✕</button>
+          <button class="ws-icon-btn" aria-label="닫기" @click="modalDoc = null"><WsIcon name="x" :size="15" /></button>
         </div>
-        <div class="modal-body">
+        <div class="ws-modal-body">
           <img :src="modalDoc.url" alt="Document Preview" class="doc-img" />
         </div>
       </div>
@@ -199,93 +189,23 @@ async function reject(req: any) {
 </script>
 
 <style scoped>
-.audit-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
-.btn-refresh { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-.error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; }
-.requests-list { display: flex; flex-direction: column; gap: 18px; }
-.audit-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 22px; }
-.card-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; border-bottom: 1px solid #2B3A55; padding-bottom: 12px; }
-.company-name { margin: 0 0 4px 0; font-size: 17px; color: #FFF; }
-.meta { font-size: 12px; color: var(--ws-admin-dim); }
-.status-badge { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
-.status-badge.approved { background: #065F46; color: #A7F3D0; }
-.status-badge.pending { background: #854D0E; color: #FEF08A; }
-.status-badge.rejected { background: #7F1D1D; color: #FECACA; }
-.nts-badge-box {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: var(--ws-admin-bg);
-  border: 1px solid #334155;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  font-size: 12px;
-  flex-wrap: wrap;
-}
-.nts-title {
-  color: var(--ws-admin-dim);
-  font-weight: 700;
-}
-.nts-status-tag {
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-.nts-status-tag.valid {
-  background: #065F46;
-  color: #A7F3D0;
-}
-.nts-status-tag.invalid {
-  background: #7F1D1D;
-  color: #FECACA;
-}
-.nts-status-tag.unverified {
-  background: #334155;
-  color: #CBD5E1;
-}
-.duns-tag {
-  color: var(--ws-admin-link);
-  font-family: monospace;
-  font-weight: 700;
-}
-.btn-nts-verify {
-  margin-left: auto;
-  background: #0284C7;
-  color: #FFF;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.btn-nts-verify:hover:not(:disabled) {
-  background: #0369A1;
-}
-.btn-nts-verify:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.v-metrics { display: flex; gap: 18px; font-size: 12px; color: #CBD5E1; margin-bottom: 14px; flex-wrap: wrap; }
-.doc-links { display: flex; gap: 10px; margin-bottom: 16px; }
-.doc-btn { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-link); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
-.actions { display: flex; gap: 10px; }
-.btn-approve { background: #059669; color: #FFF; border: none; padding: 9px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.btn-reject { background: var(--ws-danger); color: #FFF; border: none; padding: 9px 18px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.approved-info { color: #10B981; font-weight: 700; font-size: 13px; }
-.rejected-info { color: #EF4444; font-weight: 700; font-size: 13px; }
-
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-.modal-box { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; width: 680px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; }
-.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; border-bottom: 1px solid #2B3A55; }
-.modal-head h3 { margin: 0; font-size: 15px; color: #FFF; }
-.btn-close { background: transparent; border: none; color: var(--ws-admin-dim); font-size: 18px; cursor: pointer; }
-.modal-body { padding: 16px; overflow-y: auto; text-align: center; }
-.doc-img { max-width: 100%; border-radius: 6px; }
+.audit { display: flex; flex-direction: column; gap: 18px; }
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); }
+.admin-error { background: rgb(239 68 68 / 0.12); border: 1px solid rgb(239 68 68 / 0.4); color: #fca5a5; border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.req-head h3 { margin: 0 0 4px; font-size: 17px; color: #fff; }
+.dim { color: var(--ws-admin-dim); }
+.nts-bar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 10px 14px; margin-top: 12px; }
+.nts-bar .ws-admin-btn { margin-left: auto; }
+.v-metrics { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12px; color: var(--ws-admin-text); margin-top: 12px; }
+.v-metrics span { display: inline-flex; align-items: center; gap: 6px; }
+.verdict { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--ws-admin-line); }
+.verdict-note { margin: 14px 0 0; padding-top: 14px; border-top: 1px solid var(--ws-admin-line); font-size: 13px; font-weight: 700; }
+.verdict-note.ok { color: #86efac; }
+.verdict-note.bad { color: #fca5a5; }
+.doc-modal { background: var(--ws-surface); color: var(--ws-text); }
+.doc-img { width: 100%; border-radius: 8px; display: block; }
+.sk-dark { background: var(--ws-admin-panel); }
 </style>

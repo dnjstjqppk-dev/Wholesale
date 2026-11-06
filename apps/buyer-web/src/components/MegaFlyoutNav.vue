@@ -1,38 +1,30 @@
 <template>
-  <nav class="category-nav-bar">
-    <div class="cat-nav-container">
-      <div class="mega-menu-trigger" @mouseenter="isMegaOpen = true" @mouseleave="isMegaOpen = false">
-        <span class="menu-icon"><WsIcon name="menu" :size="15" /></span>
-        <span class="menu-title">전체 산업별 카테고리 (5대 핵심 분류)</span>
-        <span class="arrow-down">▼</span>
-
-        <!-- Mega Flyout Dropdown -->
+  <nav class="cat-bar">
+    <div class="cat-inner">
+      <div class="mega-trigger" @mouseenter="isMegaOpen = true" @mouseleave="isMegaOpen = false">
+        <WsIcon name="menu" :size="15" />
+        <b>전체 산업별 카테고리</b>
+        <span class="mega-arrow">▾</span>
         <div v-show="isMegaOpen" class="mega-flyout">
-          <div class="mega-grid">
-            <div
-              v-for="cat in macroCategories"
-              :key="cat.id"
-              class="mega-col"
-              @click="onSelectCategory(cat.id)"
-            >
-              <div class="cat-head">
-                <span class="cat-icon"><WsIcon :name="cat.icon" :size="18" /></span>
-                <span class="cat-name">{{ cat.name }}</span>
-              </div>
-              <ul class="subcat-list">
-                <li v-for="sub in cat.subcategories" :key="sub">{{ sub }}</li>
-              </ul>
-            </div>
+          <div
+            v-for="cat in macroCategories"
+            :key="cat.id"
+            class="mega-col"
+            @click="onSelectCategory(cat.id)"
+          >
+            <p class="mega-head"><WsIcon :name="cat.icon" :size="16" class="mega-ico" /> {{ cat.name }}</p>
+            <ul>
+              <li v-for="sub in cat.subcategories" :key="sub">{{ sub }}</li>
+            </ul>
           </div>
         </div>
       </div>
-
-      <div class="quick-nav-links">
-        <router-link to="/ko/KRW/catalog" class="quick-link">전체 도매 상품</router-link>
-        <router-link to="/ko/KRW/catalog?verified=true" class="quick-link">인증 공장(Verified Supplier)</router-link>
-        <router-link to="/ko/KRW/catalog?fast=true" class="quick-link">빠른 출고(Ready to Ship)</router-link>
-        <router-link to="/ko/KRW/sourcing/rfq/new" class="quick-link">맞춤 제작(OEM/ODM)</router-link>
-        <router-link to="/ko/KRW/orders" class="quick-link highlight">무역보증 에스크로</router-link>
+      <div class="quick-links">
+        <router-link to="/ko/KRW/catalog">전체 도매 상품</router-link>
+        <router-link to="/ko/KRW/catalog?verified=true">인증 공장</router-link>
+        <router-link to="/ko/KRW/catalog?fast=true">빠른 출고</router-link>
+        <router-link to="/ko/KRW/sourcing/rfq/new">맞춤 제작(OEM/ODM)</router-link>
+        <router-link to="/ko/KRW/orders" class="accent">무역보증 에스크로</router-link>
       </div>
     </div>
   </nav>
@@ -89,62 +81,26 @@ function onSelectCategory(catId: string) {
 </script>
 
 <style scoped>
-.category-nav-bar { background: var(--ws-surface); border-bottom: 1px solid #E5E7EB; position: relative; z-index: 50; }
-.cat-nav-container { max-width: 1360px; margin: 0 auto; display: flex; align-items: center; }
-.mega-menu-trigger { position: relative; background: var(--ws-brand); color: var(--ws-surface); padding: 12px 20px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; width: 280px; box-sizing: border-box; }
-.arrow-down { font-size: 10px; margin-left: auto; }
-.mega-flyout { position: absolute; top: 100%; left: 0; width: 1000px; background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.15); border-radius: 0 0 8px 8px; padding: 24px; z-index: 100; }
-.mega-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
-.mega-col { cursor: pointer; padding: 10px; border-radius: 6px; transition: background 0.15s; }
-.mega-col:hover { background: var(--ws-brand-light); }
-.cat-head { display: flex; align-items: center; gap: 6px; font-weight: 800; font-size: 14px; color: var(--ws-text); margin-bottom: 12px; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 8px; }
-.cat-icon { font-size: 18px; }
-.subcat-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 12px; color: var(--ws-text-muted); }
-.subcat-list li:hover { color: var(--ws-brand); font-weight: 600; }
-.quick-nav-links { display: flex; gap: 24px; padding-left: 24px; }
-.quick-link { text-decoration: none; font-size: 14px; font-weight: 600; color: var(--ws-text-2); }
-.quick-link:hover { color: var(--ws-brand); }
-.quick-link.highlight { color: var(--ws-brand); font-weight: 700; }
-
+.cat-bar { background: #fff; border-bottom: 1px solid var(--ws-border-subtle); position: relative; z-index: 40; }
+.cat-inner { max-width: 1360px; margin: 0 auto; padding: 0 20px; display: flex; align-items: stretch; }
+.mega-trigger { position: relative; display: flex; align-items: center; gap: 9px; background: var(--ws-navy-ink); color: #fff; font-size: 13px; padding: 11px 18px; cursor: pointer; min-width: 240px; }
+.mega-trigger b { font-weight: 800; }
+.mega-arrow { margin-left: auto; font-size: 11px; color: #93a4bc; }
+.mega-flyout { position: absolute; top: 100%; left: 0; width: min(1020px, calc(100vw - 32px)); background: #fff; border: 1px solid var(--ws-border-subtle); border-top: 0; border-radius: 0 0 12px 12px; box-shadow: var(--ws-shadow-pop); padding: 20px; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 18px; z-index: 60; }
+.mega-col { cursor: pointer; border-radius: 8px; padding: 10px; }
+.mega-col:hover { background: var(--ws-brand-faint); }
+.mega-head { display: flex; align-items: center; gap: 7px; margin: 0 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--ws-border-subtle); font-size: 13px; font-weight: 800; color: var(--ws-text); }
+.mega-ico { color: var(--ws-brand); }
+.mega-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 7px; font-size: 12px; color: var(--ws-text-muted); }
+.mega-col li:hover { color: var(--ws-brand); font-weight: 700; }
+.quick-links { display: flex; align-items: center; gap: 24px; padding: 0 0 0 24px; overflow-x: auto; }
+.quick-links a { font-size: 13px; font-weight: 700; color: var(--ws-text-2); text-decoration: none; white-space: nowrap; padding: 11px 0; }
+.quick-links a:hover { color: var(--ws-brand); }
+.quick-links a.accent { color: var(--ws-brand); }
 @media (max-width: 992px) {
-  .cat-nav-container {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-  }
-  .cat-nav-container::-webkit-scrollbar {
-    display: none;
-  }
-  .mega-menu-trigger {
-    width: auto;
-    padding: 10px 14px;
-    font-size: 13px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .mega-flyout {
-    width: 92vw;
-    max-width: 380px;
-    left: 4px;
-    padding: 14px;
-  }
-  .mega-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    max-height: 65vh;
-    overflow-y: auto;
-  }
-  .quick-nav-links {
-    padding-left: 14px;
-    gap: 16px;
-    white-space: nowrap;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    flex: 1;
-  }
-  .quick-link {
-    font-size: 13px;
-  }
+  .cat-inner { overflow-x: auto; padding: 0 12px; }
+  .mega-trigger { min-width: 0; padding: 10px 14px; flex: none; }
+  .mega-flyout { grid-template-columns: minmax(0, 1fr); max-height: 65vh; overflow-y: auto; }
+  .quick-links { gap: 16px; padding-left: 16px; }
 }
 </style>
-

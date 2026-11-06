@@ -1,85 +1,93 @@
 <template>
-  <div class="contract-sign-page">
-    <div v-if="loading" class="card">
-      <p>서버에서 무역 계약서 및 SHA-256 해시 원문을 불러오는 중입니다...</p>
+  <div class="ws-page ws-page-narrow">
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 90px"></div>
+      <div class="ws-skeleton" style="height: 300px"></div>
     </div>
-    <div v-else class="card">
-      <div class="contract-header">
+    <article v-else class="contract-doc">
+      <header class="doc-head">
         <div>
-          <h2>국제 B2B 도매 거래 표준 계약서 (ICC Trade Contract)</h2>
-          <span class="sub-order">연동 발주번호: {{ orderData.order_number }}</span>
+          <p class="ws-eyebrow">ICC Trade Contract</p>
+          <h1>국제 B2B 도매 거래 표준 계약서</h1>
+          <p class="doc-order">연동 발주번호 <b>{{ orderData.order_number }}</b></p>
         </div>
-        <span class="contract-no">계약번호: {{ contract.contract_number }}</span>
-      </div>
+        <span class="ws-badge ws-badge-navy">{{ contract.contract_number }}</span>
+      </header>
 
-      <div class="contract-body">
-        <div class="section">
-          <h4>1. 계약 당사자 (Contracting Parties)</h4>
-          <p><strong>구매사 (Buyer):</strong> {{ orderData.buyer_name }} (Consignee)</p>
-          <p><strong>공급사 (Supplier):</strong> {{ orderData.supplier_name }} (Verified Manufacturer)</p>
-        </div>
+      <section class="doc-sec">
+        <h2>1 · 계약 당사자</h2>
+        <table class="ws-spec-table">
+          <tbody>
+            <tr><th>구매사 (Buyer)</th><td><b>{{ orderData.buyer_name }}</b> (Consignee)</td></tr>
+            <tr><th>공급사 (Supplier)</th><td><b>{{ orderData.supplier_name }}</b> <span class="ws-badge ws-badge-success">Verified</span></td></tr>
+          </tbody>
+        </table>
+      </section>
 
-        <div class="section">
-          <h4>2. 계약 품목 및 무역 인도 조건 (Commodity & Incoterms® 2020)</h4>
-          <p><strong>계약 품목:</strong> {{ orderData.item_title }}</p>
-          <p><strong>발주 수량 및 단가:</strong> {{ orderData.ordered_quantity?.toLocaleString() }} {{ orderData.unit }} × {{ formatMoney(orderData.unit_price) }}</p>
-          <p><strong>인도 조건:</strong> {{ orderData.incoterms || 'FOB Busan Port, South Korea' }} (Incoterms® 2020)</p>
-          <p><strong>도착지 주소:</strong> {{ orderData.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</p>
-        </div>
+      <section class="doc-sec">
+        <h2>2 · 계약 품목·인도 조건</h2>
+        <table class="ws-spec-table">
+          <tbody>
+            <tr><th>계약 품목</th><td><b>{{ orderData.item_title }}</b></td></tr>
+            <tr><th>수량·단가</th><td class="ws-figure">{{ orderData.ordered_quantity?.toLocaleString() }} {{ orderData.unit }} × {{ formatMoney(orderData.unit_price) }}</td></tr>
+            <tr><th>인도 조건</th><td>{{ orderData.incoterms || 'FOB Busan Port, South Korea' }} (Incoterms® 2020)</td></tr>
+            <tr><th>도착지 주소</th><td>{{ orderData.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</td></tr>
+          </tbody>
+        </table>
+      </section>
 
-        <div class="section">
-          <h4>3. 거래 대금 및 에스크로 분할 결제 일정 (Escrow Payment Schedule)</h4>
-          <table class="schedule-table">
-            <thead>
-              <tr><th>구분</th><th>비율</th><th>금액</th><th>지급 조건</th></tr>
-            </thead>
+      <section class="doc-sec">
+        <h2>3 · 에스크로 분할 결제 일정</h2>
+        <div class="ws-table-wrap">
+          <table class="ws-table">
+            <thead><tr><th>구분</th><th>비율</th><th class="ws-num">금액</th><th>지급 조건</th></tr></thead>
             <tbody>
               <tr>
-                <td>계약금 (Down Payment)</td>
+                <td class="ws-cell-main">계약금 (Down Payment)</td>
                 <td>30%</td>
-                <td><strong>{{ formatMoney((orderData.downpayment_minor || 126000) / 100) }}</strong></td>
-                <td>전자계약 서명 직후 에스크로 예치 (생산 착수 조건)</td>
+                <td class="ws-num"><b class="ws-figure">{{ formatMoney((orderData.downpayment_minor || 126000) / 100) }}</b></td>
+                <td class="ws-cell-sub">전자계약 서명 직후 에스크로 예치 (생산 착수 조건)</td>
               </tr>
               <tr>
-                <td>잔금 (Final Balance)</td>
+                <td class="ws-cell-main">잔금 (Final Balance)</td>
                 <td>70%</td>
-                <td><strong>{{ formatMoney((orderData.balance_minor || 294000) / 100) }}</strong></td>
-                <td>SGS/TÜV 검수 합격 및 선하증권(B/L) 발행 후</td>
+                <td class="ws-num"><b class="ws-figure">{{ formatMoney((orderData.balance_minor || 294000) / 100) }}</b></td>
+                <td class="ws-cell-sub">SGS/TÜV 검수 합격·B/L 발행 후</td>
               </tr>
-              <tr class="total-row">
-                <td><strong>총 계약 금액 (Total)</strong></td>
+              <tr>
+                <td class="ws-cell-main">총 계약 금액</td>
                 <td>100%</td>
-                <td><strong>{{ formatMoney((orderData.total_amount_minor || 420000) / 100) }}</strong></td>
-                <td>Trade Assurance 100% 지급 보증 적용</td>
+                <td class="ws-num"><b class="ws-price ws-figure">{{ formatMoney((orderData.total_amount_minor || 420000) / 100) }}</b></td>
+                <td class="ws-cell-sub">Trade Assurance 100% 지급 보증</td>
               </tr>
             </tbody>
           </table>
         </div>
+      </section>
 
-        <div class="section integrity-section">
-          <h4>4. 무역 계약서 데이터 무결성 검증 (Cryptographic SHA-256 Integrity)</h4>
-          <div class="hash-box">
-            <span class="lbl">SHA-256 Document Hash:</span>
-            <code>{{ contract.document_hash }}</code>
-          </div>
-          <p class="hash-note">※ 전자서명 완료 후 계약서 본문 및 조건 변조는 원천 차단되며 감사 로그에 영구 기록됩니다.</p>
+      <section class="doc-sec">
+        <h2>4 · 무결성 검증 (SHA-256)</h2>
+        <div class="hash-card">
+          <span class="ws-small ws-muted">SHA-256 Document Hash</span>
+          <code class="ws-figure">{{ contract.document_hash }}</code>
         </div>
-      </div>
+        <p class="ws-hint">전자서명 완료 후 계약서 본문·조건 변조는 원천 차단되며 감사 로그에 영구 기록됩니다.</p>
+      </section>
 
-      <div class="signatures">
-        <div class="sig-box">
-          <span>구매사(Buyer) 전자서명:</span>
-          <strong v-if="contract.buyer_signed" class="signed-ok">✓ 전자서명 완료 ({{ contract.signed_at || 'UTC 검증됨' }})</strong>
-          <button v-else class="btn-sign" :disabled="signing" @click="handleSignBuyer">
-            <WsIcon v-if="!(signing)" name="pencil" :size="14" /> {{ signing ? 'SHA-256 해시 대조 및 서명 중...' : '구매사 공인 전자서명 실행' }}
+      <footer class="doc-sign">
+        <div class="sign-box">
+          <span class="ws-small ws-muted">구매사(Buyer) 전자서명</span>
+          <p v-if="contract.buyer_signed" class="signed"><WsIcon name="check" :size="15" /> 서명 완료 ({{ contract.signed_at || 'UTC 검증됨' }})</p>
+          <button v-else class="ws-btn ws-btn-primary ws-btn-block" :disabled="signing" @click="handleSignBuyer">
+            <WsIcon v-if="!signing" name="pencil" :size="14" /> {{ signing ? '해시 대조·서명 중...' : '구매사 공인 전자서명 실행' }}
           </button>
         </div>
-        <div class="sig-box">
-          <span>공급사(Supplier) 전자서명:</span>
-          <strong class="signed-ok">✓ 공급사 명판 직인 서명 완료</strong>
+        <div class="sign-box">
+          <span class="ws-small ws-muted">공급사(Supplier) 전자서명</span>
+          <p class="signed"><WsIcon name="check" :size="15" /> 공급사 명판 직인 서명 완료</p>
         </div>
-      </div>
-    </div>
+      </footer>
+    </article>
   </div>
 </template>
 
@@ -183,33 +191,21 @@ async function handleSignBuyer() {
 </script>
 
 <style scoped>
-.contract-sign-page { max-width: 920px; margin: 0 auto; }
-.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 10px; padding: 32px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
-.contract-header { border-bottom: 2px solid var(--ws-text); padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-start; }
-.contract-header h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.sub-order { font-size: 12px; color: var(--ws-brand); font-weight: 700; }
-.contract-no { font-size: 13px; color: var(--ws-text-2); font-weight: 700; background: var(--ws-surface-muted); padding: 6px 12px; border-radius: 6px; }
-.section { margin-bottom: 24px; font-size: 14px; }
-.section h4 { margin: 0 0 8px 0; font-size: 14px; color: var(--ws-text); }
-.section p { margin: 4px 0; color: var(--ws-text-2); }
-.schedule-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; }
-.schedule-table th, .schedule-table td { border: 1px solid var(--ws-border); padding: 10px 12px; text-align: left; }
-.schedule-table th { background: var(--ws-surface-muted); color: var(--ws-text); }
-.total-row { background: var(--ws-brand-light); }
-.integrity-section { background: var(--ws-surface-muted); border: 1px solid var(--ws-border-subtle); border-radius: 6px; padding: 16px; }
-.hash-box { display: flex; flex-direction: column; gap: 4px; }
-.hash-box .lbl { font-size: 12px; font-weight: 700; color: var(--ws-text-2); }
-.hash-box code { font-family: monospace; font-size: 12px; background: var(--ws-surface); padding: 8px; border: 1px solid var(--ws-border); border-radius: 4px; word-break: break-all; color: var(--ws-text); }
-.hash-note { font-size: 11px; color: var(--ws-text-muted); margin-top: 6px; }
-.signatures { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--ws-border-subtle); padding-top: 24px; margin-top: 24px; }
-.sig-box { background: var(--ws-surface-muted); border: 1px solid var(--ws-border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.signed-ok { color: var(--ws-success); font-size: 13px; }
-.btn-sign { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 14px; }
-
+.contract-doc { background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 14px; box-shadow: var(--ws-shadow-pop); padding: 36px 40px; }
+.doc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding-bottom: 20px; margin-bottom: 8px; border-bottom: 3px solid var(--ws-navy-ink); }
+.doc-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); }
+.doc-order { margin: 0; font-size: 13px; color: var(--ws-text-muted); }
+.doc-sec { padding: 18px 0; border-bottom: 1px solid var(--ws-border-subtle); }
+.doc-sec:last-of-type { border-bottom: 0; }
+.doc-sec h2 { margin: 0 0 12px; font-size: 15px; font-weight: 800; }
+.hash-card { background: var(--ws-surface-muted); border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.hash-card code { font-size: 12px; word-break: break-all; color: var(--ws-navy); }
+.doc-sign { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 20px; }
+.sign-box { border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.sign-box .signed { margin: 0; color: var(--ws-success); font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 6px; }
 @media (max-width: 640px) {
-  .card { padding: 16px; }
-  .contract-header { flex-direction: column; gap: 10px; align-items: flex-start; }
-  .signatures { grid-template-columns: 1fr; gap: 14px; }
-  .schedule-table th, .schedule-table td { padding: 6px 8px; font-size: 11px; }
+  .contract-doc { padding: 24px 18px; }
+  .doc-sign { grid-template-columns: minmax(0, 1fr); }
+  .doc-head { flex-direction: column; }
 }
 </style>

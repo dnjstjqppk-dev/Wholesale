@@ -1,340 +1,194 @@
 <template>
-  <div class="buyer-profile-page">
-    <div class="page-header">
-      <div class="header-content">
-        <h2>구매 기업 프로필 및 조직 권한 관리 (Corporate Profile & Sub-Accounts)</h2>
-        <p class="subtitle">
-          기업 기본 식별 정보(EIN/VAT, 사업자등록증), 비과세 인증서, 조직 내 역할 분리(SoD) 계정 및 배송지 주소록을 통합 관리합니다.
-          <router-link to="/onboarding" class="onboarding-link">온보딩 체크리스트 보기</router-link>
-        </p>
-      </div>
-      <div class="role-badge-box">
-        <span class="role-label">현재 접속 역할:</span>
-        <span class="badge" :class="currentRoleBadgeClass">{{ currentUser.role }}</span>
-        <div class="role-switch-btns">
-          <button
-            class="btn-switch"
-            :class="{ active: currentUser.role === 'BUYER_PURCHASER' }"
-            @click="switchRole('BUYER_PURCHASER')"
-          >
-            구매 담당 (Purchaser)
-          </button>
-          <button
-            class="btn-switch"
-            :class="{ active: currentUser.role === 'BUYER_APPROVER' }"
-            @click="switchRole('BUYER_APPROVER')"
-          >
-            구매 승인권자 (Approver)
-          </button>
-          <button
-            class="btn-switch"
-            :class="{ active: currentUser.role === 'BUYER_FINANCE' }"
-            @click="switchRole('BUYER_FINANCE')"
-          >
-            재무 담당 (Finance)
-          </button>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Corporate Profile</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">기업 프로필·조직 권한</h1>
+        <div class="role-switch">
+          <span class="ws-small ws-muted">현재 역할 <b class="role-tag" :class="currentRoleBadgeClass">{{ currentUser.role }}</b></span>
+          <span class="ws-cluster" style="gap: 6px">
+            <button class="ws-tag" :class="{ 'ws-tag-active': currentUser.role === 'BUYER_PURCHASER' }" @click="switchRole('BUYER_PURCHASER')">구매 담당</button>
+            <button class="ws-tag" :class="{ 'ws-tag-active': currentUser.role === 'BUYER_APPROVER' }" @click="switchRole('BUYER_APPROVER')">승인권자</button>
+            <button class="ws-tag" :class="{ 'ws-tag-active': currentUser.role === 'BUYER_FINANCE' }" @click="switchRole('BUYER_FINANCE')">재무 담당</button>
+          </span>
         </div>
       </div>
+      <p class="ws-page-sub">EIN/VAT 식별 정보·면세 증명·SoD 서브 계정·배송지 주소록 통합 관리. <router-link to="/onboarding" class="ws-link">온보딩 체크리스트 보기</router-link></p>
     </div>
 
-    <!-- Alert / Toast -->
-    <div v-if="toastMessage" class="toast-banner" :class="toastType">
-      {{ toastMessage }}
+    <div v-if="toastMessage" class="ws-banner" :class="toastType === 'error' ? 'ws-banner-danger' : 'ws-banner-success'">
+      <WsIcon :name="toastType === 'error' ? 'alert' : 'check'" :size="16" />
+      <span>{{ toastMessage }}</span>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      <p>조직 프로필 데이터를 불러오는 중입니다...</p>
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 200px"></div>
+      <div class="ws-skeleton" style="height: 200px"></div>
     </div>
 
-    <div v-else class="profile-layout">
-      <!-- Section 1: Corporate Profile & Tax Credentials -->
-      <section class="card-section">
-        <div class="section-head">
-          <div class="title-with-icon">
-            <span class="sec-icon"><WsIcon name="building" :size="15" /></span>
-            <h3>기업 식별 정보 및 면세 증빙 (EIN/VAT & Tax Exemption)</h3>
-          </div>
-          <button v-if="!editingProfile" class="btn-secondary" @click="editingProfile = true">
-            프로필 수정
-          </button>
-          <div v-else class="edit-btns">
-            <button class="btn-cancel" @click="cancelEditProfile">취소</button>
-            <button class="btn-primary" :disabled="saving" @click="saveProfile">
-              {{ saving ? '저장 중...' : '저장 완료' }}
-            </button>
-          </div>
+    <div v-else class="ws-stack">
+      <!-- Corporate identity -->
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="building" :size="16" class="h-ico" /> 기업 식별 정보·면세 증빙</h3>
+          <span v-if="!editingProfile"><button class="ws-btn ws-btn-secondary ws-btn-sm" @click="editingProfile = true">프로필 수정</button></span>
+          <span v-else class="ws-cluster" style="gap: 8px">
+            <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="cancelEditProfile">취소</button>
+            <button class="ws-btn ws-btn-primary ws-btn-sm" :disabled="saving" @click="saveProfile">{{ saving ? '저장 중...' : '저장 완료' }}</button>
+          </span>
         </div>
 
-        <div v-if="!editingProfile" class="info-grid">
-          <div class="info-item">
-            <label>법인명 (Legal Name)</label>
-            <div class="val font-semibold">{{ profile.legal_name }}</div>
+        <div v-if="!editingProfile" class="ws-grid-3 info-tiles">
+          <div><span>법인명</span><b>{{ profile.legal_name }}</b></div>
+          <div><span>사업자 등록번호</span><b class="ws-figure">{{ profile.business_number }}</b></div>
+          <div><span>EIN / VAT</span><b class="ws-figure">{{ profile.ein_vat }}</b></div>
+          <div><span>주요 수입 업종</span><b>{{ profile.primary_industry }}</b></div>
+          <div><span>연간 구매 규모</span><b class="ws-price ws-figure">{{ profile.annual_purchasing_volume_usd }}</b></div>
+          <div><span>면세 인증 상태</span><b><span class="ws-badge ws-badge-success">{{ profile.tax_exemption_status }}</span></b></div>
+          <div><span>대표 담당자</span><b>{{ profile.contact_person }}</b></div>
+          <div><span>담당자 이메일</span><b>{{ profile.contact_email }}</b></div>
+          <div><span>대표 연락처</span><b class="ws-figure">{{ profile.contact_phone }}</b></div>
+        </div>
+
+        <form v-else class="ws-stack" @submit.prevent="saveProfile">
+          <div class="ws-grid-2">
+            <div class="ws-field"><label>법인명</label><input v-model="editForm.legal_name" type="text" required /></div>
+            <div class="ws-field"><label>사업자 등록번호</label><input v-model="editForm.business_number" type="text" required /></div>
           </div>
-          <div class="info-item">
-            <label>사업자 등록번호 (Business ID)</label>
-            <div class="val">{{ profile.business_number }}</div>
+          <div class="ws-grid-2">
+            <div class="ws-field"><label>EIN / VAT 번호</label><input v-model="editForm.ein_vat" type="text" required /></div>
+            <div class="ws-field"><label>주요 수입 업종</label><input v-model="editForm.primary_industry" type="text" required /></div>
           </div>
-          <div class="info-item">
-            <label>연방 사업자 번호 / VAT (EIN)</label>
-            <div class="val font-mono">{{ profile.ein_vat }}</div>
+          <div class="ws-grid-3">
+            <div class="ws-field"><label>담당자 이름</label><input v-model="editForm.contact_person" type="text" required /></div>
+            <div class="ws-field"><label>담당자 이메일</label><input v-model="editForm.contact_email" type="email" required /></div>
+            <div class="ws-field"><label>담당자 연락처</label><input v-model="editForm.contact_phone" type="text" required /></div>
           </div>
-          <div class="info-item">
-            <label>주요 수입 업종 (Industry)</label>
-            <div class="val">{{ profile.primary_industry }}</div>
+        </form>
+      </section>
+
+      <!-- Sub-accounts -->
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="users" :size="16" class="h-ico" /> 서브 계정·승인 권한 (SoD)</h3>
+          <button class="ws-btn ws-btn-primary ws-btn-sm" @click="showAddSubModal = true"><WsIcon name="plus" :size="13" /> 서브 계정 초대</button>
+        </div>
+        <p class="ws-card-sub">발주 요청자(Purchaser)와 승인권자(Approver) 권한 분리 · <b>$10,000 이상 거래 자기 승인(Self-Approval) 금지</b></p>
+        <div class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead><tr><th>이름 / 이메일</th><th>역할</th><th>승인 권한</th><th class="ws-num">1회 한도</th><th>상태</th><th>등록일</th></tr></thead>
+              <tbody>
+                <tr v-for="sub in profile.sub_accounts" :key="sub.id">
+                  <td><span class="ws-cell-main">{{ sub.full_name }}</span><br /><span class="ws-cell-sub">{{ sub.email }}</span></td>
+                  <td><span class="ws-badge ws-badge-navy">{{ formatRoleName(sub.role) }}</span></td>
+                  <td><span v-if="sub.can_approve" class="ws-badge ws-badge-success">승인 가능</span><span v-else class="ws-badge ws-badge-outline">발주만</span></td>
+                  <td class="ws-num ws-figure"><b>${{ sub.spending_limit_usd.toLocaleString() }}</b></td>
+                  <td><span class="ws-badge ws-badge-info">{{ sub.status }}</span></td>
+                  <td class="ws-cell-sub">{{ formatDate(sub.created_at) }}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-          <div class="info-item">
-            <label>연간 구매 규모 (Annual Volume)</label>
-            <div class="val text-green-700 font-semibold">{{ profile.annual_purchasing_volume_usd }}</div>
-          </div>
-          <div class="info-item">
-            <label>면세 인증 상태 (Tax Exemption)</label>
-            <div class="val">
-              <span class="tax-badge" :class="profile.tax_exemption_status.toLowerCase()">
-                ✓ {{ profile.tax_exemption_status }} (US Resale Certificate Active)
+        </div>
+      </section>
+
+      <!-- Addresses -->
+      <section class="ws-card">
+        <div class="ws-card-head">
+          <h3><WsIcon name="pin" :size="16" class="h-ico" /> 배송지·청구 주소록</h3>
+          <button class="ws-btn ws-btn-primary ws-btn-sm" @click="showAddAddressModal = true"><WsIcon name="plus" :size="13" /> 주소 추가</button>
+        </div>
+        <div class="ws-grid-3">
+          <div v-for="addr in profile.addresses" :key="addr.id" class="addr-card" :class="{ 'is-default': addr.is_default }">
+            <div class="ws-split">
+              <span class="ws-cluster" style="gap: 6px">
+                <span class="ws-badge" :class="addr.type === 'SHIPPING' ? 'ws-badge-info' : 'ws-badge-brand'">{{ addr.type === 'SHIPPING' ? '배송지' : '청구지' }}</span>
+                <span v-if="addr.is_default" class="ws-badge ws-badge-success">기본</span>
               </span>
+              <button class="ws-icon-btn" title="삭제" aria-label="주소 삭제" @click="deleteAddress(addr.id)"><WsIcon name="x" :size="14" /></button>
             </div>
-          </div>
-          <div class="info-item">
-            <label>대표 담당자</label>
-            <div class="val">{{ profile.contact_person }}</div>
-          </div>
-          <div class="info-item">
-            <label>담당자 이메일</label>
-            <div class="val">{{ profile.contact_email }}</div>
-          </div>
-          <div class="info-item">
-            <label>대표 연락처</label>
-            <div class="val">{{ profile.contact_phone }}</div>
-          </div>
-        </div>
-
-        <!-- Edit Form Mode -->
-        <form v-else class="edit-form" @submit.prevent="saveProfile">
-          <div class="form-row">
-            <div class="form-group">
-              <label>법인명</label>
-              <input v-model="editForm.legal_name" type="text" required />
-            </div>
-            <div class="form-group">
-              <label>사업자 등록번호</label>
-              <input v-model="editForm.business_number" type="text" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>EIN / VAT 번호</label>
-              <input v-model="editForm.ein_vat" type="text" required />
-            </div>
-            <div class="form-group">
-              <label>주요 수입 업종</label>
-              <input v-model="editForm.primary_industry" type="text" required />
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>담당자 이름</label>
-              <input v-model="editForm.contact_person" type="text" required />
-            </div>
-            <div class="form-group">
-              <label>담당자 이메일</label>
-              <input v-model="editForm.contact_email" type="email" required />
-            </div>
-            <div class="form-group">
-              <label>담당자 연락처</label>
-              <input v-model="editForm.contact_phone" type="text" required />
-            </div>
-          </div>
-        </form>
-      </section>
-
-      <!-- Section 2: Sub-Accounts & SoD (Segregation of Duties) -->
-      <section class="card-section">
-        <div class="section-head">
-          <div class="title-with-icon">
-            <span class="sec-icon"><WsIcon name="users" :size="15" /></span>
-            <h3>서브 계정 및 구매 승인 권한 (Sub-Accounts & SoD Matrix)</h3>
-          </div>
-          <button class="btn-primary" @click="showAddSubModal = true">
-            + 서브 계정 초대
-          </button>
-        </div>
-
-        <p class="section-desc">
-          Alibaba.com 엔터프라이즈 거버넌스 규격: 발주 요청자(Purchaser)와 승인권자(Approver)의 권한이 분리되어 <strong>$10,000 이상 거래 시 자기 승인(Self-Approval)이 금지</strong>됩니다.
-        </p>
-
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr>
-                <th>이름 / 이메일</th>
-                <th>조직 내 역할 (Role)</th>
-                <th>승인 권한 (Approval Auth)</th>
-                <th>1회 결제 한도 (Limit)</th>
-                <th>계정 상태</th>
-                <th>등록일</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="sub in profile.sub_accounts" :key="sub.id">
-                <td>
-                  <div class="user-cell">
-                    <span class="user-name">{{ sub.full_name }}</span>
-                    <span class="user-email">{{ sub.email }}</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="role-tag" :class="sub.role">
-                    {{ formatRoleName(sub.role) }}
-                  </span>
-                </td>
-                <td>
-                  <span v-if="sub.can_approve" class="text-green-600 font-semibold">✓ 승인 가능 (Can Approve)</span>
-                  <span v-else class="text-gray-400">✗ 발주만 가능</span>
-                </td>
-                <td>
-                  <strong>${{ sub.spending_limit_usd.toLocaleString() }}</strong>
-                </td>
-                <td>
-                  <span class="status-pill active">{{ sub.status }}</span>
-                </td>
-                <td>{{ formatDate(sub.created_at) }}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Section 3: Address Book (Organization Addresses) -->
-      <section class="card-section">
-        <div class="section-head">
-          <div class="title-with-icon">
-            <span class="sec-icon"><WsIcon name="pin" :size="15" /></span>
-            <h3>화물 배송지 및 청구 주소록 (Organization Addresses)</h3>
-          </div>
-          <button class="btn-primary" @click="showAddAddressModal = true">
-            + 배송지/청구지 추가
-          </button>
-        </div>
-
-        <div class="address-grid">
-          <div
-            v-for="addr in profile.addresses"
-            :key="addr.id"
-            class="address-card"
-            :class="{ 'is-default': addr.is_default }"
-          >
-            <div class="addr-header">
-              <span class="type-badge" :class="addr.type">{{ addr.type === 'SHIPPING' ? '배송지' : '청구지' }}</span>
-              <span v-if="addr.is_default" class="default-badge">기본 {{ addr.type === 'SHIPPING' ? '배송지' : '청구지' }}</span>
-              <button class="btn-del" title="삭제" @click="deleteAddress(addr.id)">×</button>
-            </div>
-            <div class="addr-body">
-              <div class="rec-name font-semibold">{{ addr.recipient_name }}</div>
-              <div class="phone text-sm text-gray-500">{{ addr.phone }}</div>
-              <div class="street">{{ addr.address_line1 }}</div>
-              <div v-if="addr.address_line2" class="suite">{{ addr.address_line2 }}</div>
-              <div class="region">{{ addr.city }}, {{ addr.state_province }} {{ addr.postal_code }} ({{ addr.country }})</div>
-            </div>
+            <b>{{ addr.recipient_name }}</b>
+            <p class="ws-small ws-muted ws-figure">{{ addr.phone }}</p>
+            <p class="ws-small">{{ addr.address_line1 }}</p>
+            <p v-if="addr.address_line2" class="ws-small">{{ addr.address_line2 }}</p>
+            <p class="ws-small">{{ addr.city }}, {{ addr.state_province }} {{ addr.postal_code }} ({{ addr.country }})</p>
           </div>
         </div>
       </section>
     </div>
 
-    <!-- Modal: Add Sub-Account -->
-    <div v-if="showAddSubModal" class="modal-backdrop" @click.self="showAddSubModal = false">
-      <div class="modal-window">
-        <h3>신규 서브 계정 추가 (Invite Member)</h3>
+    <!-- Sub-account modal -->
+    <div v-if="showAddSubModal" class="ws-modal-backdrop" @click.self="showAddSubModal = false">
+      <div class="ws-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>서브 계정 초대</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showAddSubModal = false"><WsIcon name="x" :size="15" /></button>
+        </div>
         <form @submit.prevent="submitNewSubAccount">
-          <div class="form-group">
-            <label>이름</label>
-            <input v-model="newSubForm.full_name" type="text" placeholder="예: 김구매 대리" required />
+          <div class="ws-modal-body">
+            <div class="ws-field"><label>이름</label><input v-model="newSubForm.full_name" type="text" placeholder="예: 김구매 대리" required /></div>
+            <div class="ws-field"><label>이메일</label><input v-model="newSubForm.email" type="email" placeholder="purchaser@company.com" required /></div>
+            <div class="ws-field">
+              <label>부여 역할</label>
+              <select v-model="newSubForm.role">
+                <option value="BUYER_PURCHASER">구매 실무자 (BUYER_PURCHASER)</option>
+                <option value="BUYER_APPROVER">구매 승인권자 (BUYER_APPROVER)</option>
+                <option value="BUYER_FINANCE">재무 관리자 (BUYER_FINANCE)</option>
+              </select>
+            </div>
+            <div class="ws-field" style="margin-bottom: 0"><label>1회 발주 승인 한도 (USD)</label><input v-model.number="newSubForm.spending_limit_usd" type="number" min="1000" step="1000" required /></div>
           </div>
-          <div class="form-group">
-            <label>이메일</label>
-            <input v-model="newSubForm.email" type="email" placeholder="purchaser@company.com" required />
-          </div>
-          <div class="form-group">
-            <label>부여 역할</label>
-            <select v-model="newSubForm.role">
-              <option value="BUYER_PURCHASER">구매 실무자 (BUYER_PURCHASER)</option>
-              <option value="BUYER_APPROVER">구매 승인권자 (BUYER_APPROVER)</option>
-              <option value="BUYER_FINANCE">재무 관리자 (BUYER_FINANCE)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>1회 발주 승인 한도 (USD)</label>
-            <input v-model.number="newSubForm.spending_limit_usd" type="number" min="1000" step="1000" required />
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-cancel" @click="showAddSubModal = false">취소</button>
-            <button type="submit" class="btn-primary" :disabled="saving">추가하기</button>
+          <div class="ws-modal-foot">
+            <button type="button" class="ws-btn ws-btn-secondary" @click="showAddSubModal = false">취소</button>
+            <button type="submit" class="ws-btn ws-btn-primary" :disabled="saving">추가하기</button>
           </div>
         </form>
       </div>
     </div>
 
-    <!-- Modal: Add Address -->
-    <div v-if="showAddAddressModal" class="modal-backdrop" @click.self="showAddAddressModal = false">
-      <div class="modal-window">
-        <h3>신규 배송/청구 주소 등록 (Add Address)</h3>
+    <!-- Address modal -->
+    <div v-if="showAddAddressModal" class="ws-modal-backdrop" @click.self="showAddAddressModal = false">
+      <div class="ws-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>배송/청구 주소 등록</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showAddAddressModal = false"><WsIcon name="x" :size="15" /></button>
+        </div>
         <form @submit.prevent="submitNewAddress">
-          <div class="form-group">
-            <label>주소 용도</label>
-            <select v-model="newAddrForm.type">
-              <option value="SHIPPING">화물 배송지 (Shipping Address)</option>
-              <option value="BILLING">세무 청구지 (Billing Address)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>수령인 / 물류 창고 담당자</label>
-            <input v-model="newAddrForm.recipient_name" type="text" required />
-          </div>
-          <div class="form-group">
-            <label>연락처</label>
-            <input v-model="newAddrForm.phone" type="text" required />
-          </div>
-          <div class="form-group">
-            <label>국가</label>
-            <select v-model="newAddrForm.country">
-              <option value="US">United States (US)</option>
-              <option value="KR">South Korea (KR)</option>
-              <option value="CN">China (CN)</option>
-              <option value="JP">Japan (JP)</option>
-              <option value="DE">Germany (DE)</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>주소 1 (도로명/번지)</label>
-            <input v-model="newAddrForm.address_line1" type="text" required />
-          </div>
-          <div class="form-group">
-            <label>주소 2 (상세/동·호수/부두 게이트)</label>
-            <input v-model="newAddrForm.address_line2" type="text" />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>도시 (City)</label>
-              <input v-model="newAddrForm.city" type="text" required />
+          <div class="ws-modal-body">
+            <div class="ws-field">
+              <label>주소 용도</label>
+              <select v-model="newAddrForm.type">
+                <option value="SHIPPING">화물 배송지 (Shipping Address)</option>
+                <option value="BILLING">세무 청구지 (Billing Address)</option>
+              </select>
             </div>
-            <div class="form-group">
-              <label>주/도 (State/Province)</label>
-              <input v-model="newAddrForm.state_province" type="text" required />
+            <div class="ws-grid-2">
+              <div class="ws-field"><label>수령인 / 담당자</label><input v-model="newAddrForm.recipient_name" type="text" required /></div>
+              <div class="ws-field"><label>연락처</label><input v-model="newAddrForm.phone" type="text" required /></div>
             </div>
-            <div class="form-group">
-              <label>우편번호 (Postal Code)</label>
-              <input v-model="newAddrForm.postal_code" type="text" required />
+            <div class="ws-field">
+              <label>국가</label>
+              <select v-model="newAddrForm.country">
+                <option value="US">United States (US)</option>
+                <option value="KR">South Korea (KR)</option>
+                <option value="CN">China (CN)</option>
+                <option value="JP">Japan (JP)</option>
+                <option value="DE">Germany (DE)</option>
+              </select>
             </div>
+            <div class="ws-field"><label>주소 1 (도로명/번지)</label><input v-model="newAddrForm.address_line1" type="text" required /></div>
+            <div class="ws-field"><label>주소 2 (상세/부두 게이트)</label><input v-model="newAddrForm.address_line2" type="text" /></div>
+            <div class="ws-grid-3">
+              <div class="ws-field"><label>도시</label><input v-model="newAddrForm.city" type="text" required /></div>
+              <div class="ws-field"><label>주/도</label><input v-model="newAddrForm.state_province" type="text" required /></div>
+              <div class="ws-field"><label>우편번호</label><input v-model="newAddrForm.postal_code" type="text" required /></div>
+            </div>
+            <label class="ws-check" style="margin-bottom: 0"><input v-model="newAddrForm.is_default" type="checkbox" /> 기본 주소로 설정</label>
           </div>
-          <div class="form-checkbox">
-            <label>
-              <input v-model="newAddrForm.is_default" type="checkbox" />
-              기본 주소로 설정
-            </label>
-          </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-cancel" @click="showAddAddressModal = false">취소</button>
-            <button type="submit" class="btn-primary" :disabled="saving">주소 등록</button>
+          <div class="ws-modal-foot">
+            <button type="button" class="ws-btn ws-btn-secondary" @click="showAddAddressModal = false">취소</button>
+            <button type="submit" class="ws-btn ws-btn-primary" :disabled="saving">주소 등록</button>
           </div>
         </form>
       </div>
@@ -558,443 +412,21 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.buyer-profile-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 16px 80px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 24px;
-  gap: 20px;
-}
-
-.page-header h2 {
-  font-size: 24px;
-  font-weight: 700;
-  color: var(--ws-text);
-  margin: 0 0 6px 0;
-}
-
-.subtitle {
-  font-size: 14px;
-  color: var(--ws-text-muted);
-  margin: 0;
-}
-.onboarding-link {
-  color: var(--ws-brand);
-  font-weight: 700;
-  text-decoration: none;
-  margin-left: 4px;
-}
-.onboarding-link:hover { text-decoration: underline; }
-
-.role-badge-box {
-  background: var(--ws-surface-muted);
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 12px 16px;
-  text-align: right;
-  flex-shrink: 0;
-}
-
-.role-label {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  margin-right: 6px;
-}
-
-.badge {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 8px;
-  border-radius: 4px;
-}
-
+.role-switch { display: flex; flex-direction: column; gap: 8px; align-items: flex-end; }
+.role-tag { font-size: 11px; font-weight: 800; padding: 3px 10px; border-radius: 9999px; margin-left: 6px; }
 .role-purchaser { background: var(--ws-info-bg); color: var(--ws-info); }
-.role-approver { background: var(--ws-warning-bg); color: #92400e; }
-.role-finance { background: #d1fae5; color: var(--ws-success); }
-
-.role-switch-btns {
-  display: flex;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.btn-switch {
-  font-size: 11px;
-  padding: 4px 8px;
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.btn-switch:hover {
-  background: var(--ws-surface-muted);
-}
-
-.btn-switch.active {
-  background: var(--ws-brand);
-  color: white;
-  border-color: var(--ws-brand);
-  font-weight: 600;
-}
-
-.toast-banner {
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.toast-banner.success {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  border: 1px solid #a7f3d0;
-}
-
-.toast-banner.error {
-  background: #fef2f2;
-  color: var(--ws-danger);
-  border: 1px solid #fecaca;
-}
-
-.profile-layout {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.card-section {
-  background: var(--ws-surface);
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.section-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 12px;
-}
-
-.title-with-icon {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sec-icon {
-  font-size: 20px;
-}
-
-.section-head h3 {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--ws-text);
-  margin: 0;
-}
-
-.section-desc {
-  font-size: 13px;
-  color: var(--ws-text-2);
-  line-height: 1.5;
-  margin-bottom: 16px;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-
-.info-item label {
-  display: block;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  margin-bottom: 4px;
-}
-
-.info-item .val {
-  font-size: 14px;
-  color: var(--ws-text);
-}
-
-.tax-badge {
-  display: inline-block;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 4px;
-  background: #d1fae5;
-  color: var(--ws-success);
-}
-
-.edit-form .form-row {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 14px;
-}
-
-.form-group {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.form-group label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-2);
-}
-
-.form-group input,
-.form-group select {
-  padding: 8px 12px;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  font-size: 14px;
-}
-
-.btn-primary {
-  background: var(--ws-brand);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-primary:hover {
-  background: var(--ws-brand-hover);
-}
-
-.btn-secondary {
-  background: var(--ws-surface);
-  color: var(--ws-text-2);
-  border: 1px solid var(--ws-border-subtle);
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-cancel {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-2);
-  border: 1px solid var(--ws-border-subtle);
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-right: 8px;
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  text-align: left;
-}
-
-.data-table th {
-  background: var(--ws-surface-muted);
-  padding: 10px 12px;
-  font-weight: 600;
-  color: var(--ws-text-2);
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.data-table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.user-cell {
-  display: flex;
-  flex-direction: column;
-}
-
-.user-name {
-  font-weight: 600;
-  color: var(--ws-text);
-}
-
-.user-email {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-}
-
-.role-tag {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.role-tag.BUYER_PURCHASER { background: #e0f2fe; color: var(--ws-info); }
-.role-tag.BUYER_APPROVER { background: var(--ws-warning-bg); color: var(--ws-warning); }
-.role-tag.BUYER_FINANCE { background: var(--ws-success-bg); color: var(--ws-success); }
-
-.status-pill.active {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-  padding: 2px 8px;
-  border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.address-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-}
-
-.address-card {
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 16px;
-  background: var(--ws-surface-muted);
-  position: relative;
-  display: flex;
-  flex-direction: column;
-}
-
-.address-card.is-default {
-  border-color: var(--ws-brand);
-  background: #fffbf7;
-}
-
-.addr-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 10px;
-}
-
-.type-badge {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.type-badge.SHIPPING { background: #e0e7ff; color: var(--ws-info); }
-.type-badge.BILLING { background: #f3e8ff; color: #6b21a8; }
-
-.default-badge {
-  font-size: 11px;
-  font-weight: 700;
-  background: #fed7aa;
-  color: var(--ws-brand-hover);
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.btn-del {
-  margin-left: auto;
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  color: var(--ws-admin-dim);
-  cursor: pointer;
-}
-
-.btn-del:hover {
-  color: var(--ws-danger);
-}
-
-.addr-body {
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--ws-text-2);
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-window {
-  background: white;
-  width: 500px;
-  max-width: 90vw;
-  border-radius: 10px;
-  padding: 24px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-}
-
-.modal-window h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-}
-
-.form-checkbox {
-  margin-top: 10px;
-  font-size: 13px;
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .role-badge-box {
-    text-align: left;
-  }
-  .info-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .address-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .info-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .address-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .role-switch-btns {
-    flex-direction: column;
-  }
-  .edit-form .form-row {
-    flex-direction: column;
-    gap: 10px;
-  }
+.role-approver { background: var(--ws-brand-light); color: var(--ws-brand); }
+.role-finance { background: var(--ws-success-bg); color: var(--ws-success); }
+.role-default { background: var(--ws-surface-muted); color: var(--ws-text-2); }
+.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.info-tiles div { display: flex; flex-direction: column; gap: 3px; padding: 12px 0; border-bottom: 1px solid var(--ws-border-subtle); }
+.info-tiles span { font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
+.info-tiles b { font-size: 14px; }
+.addr-card { border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 2px; }
+.addr-card.is-default { border-color: var(--ws-success); background: #f6fef9; }
+.addr-card b { font-size: 14px; margin-top: 8px; }
+.addr-card p { margin: 0; }
+@media (max-width: 900px) {
+  .role-switch { align-items: flex-start; }
 }
 </style>
-

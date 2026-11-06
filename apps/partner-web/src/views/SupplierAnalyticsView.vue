@@ -1,130 +1,110 @@
 <template>
-  <div class="supplier-analytics-page">
-    <div class="page-head">
-      <div class="head-text">
-        <h2>셀러 비즈니스 애널리틱스 (Seller Business Intelligence)</h2>
-        <p class="subtitle">
-          Alibaba.com 글로벌 바이어 노출 수(Impressions), 클릭률(CTR), 1:1 인콰이어리 유입 전환율, GMV 매출 성과를 종합 분석합니다.
-        </p>
-      </div>
-      <div class="period-switcher">
-        <button
-          v-for="p in ['7d', '30d', '90d']"
-          :key="p"
-          class="btn-period"
-          :class="{ active: currentPeriod === p }"
-          @click="changePeriod(p)"
-        >
-          최근 {{ p.toUpperCase() }}
-        </button>
-      </div>
-    </div>
-
-    <div v-if="loading" class="state-box">
-      <p>비즈니스 통계 데이터를 분석하는 중입니다...</p>
-    </div>
-
-    <div v-else-if="analyticsData" class="analytics-content">
-      <!-- 6 Key Performance Indicator Cards -->
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <span class="kpi-title">총 바이어 노출 수 (Impressions)</span>
-          <span class="kpi-value text-blue-600">{{ analyticsData.summary.total_impressions.toLocaleString() }}</span>
-          <span class="kpi-sub">글로벌 검색 및 카테고리 피드 노출</span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">상품 상세 클릭 수 (Clicks)</span>
-          <span class="kpi-value text-indigo-600">{{ analyticsData.summary.total_clicks.toLocaleString() }}</span>
-          <span class="kpi-sub">클릭률 (CTR): <strong>{{ analyticsData.summary.click_through_rate }}</strong></span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">수신 인콰이어리 (Inquiries)</span>
-          <span class="kpi-value text-orange-600">{{ analyticsData.summary.inquiries_count }}건</span>
-          <span class="kpi-sub">상담 전환율: <strong>{{ analyticsData.summary.inquiry_conversion_rate }}</strong></span>
-        </div>
-        <div class="kpi-card">
-          <span class="kpi-title">성약 발주 건수 (Trade Orders)</span>
-          <span class="kpi-value text-green-600">{{ analyticsData.summary.orders_count }}건</span>
-          <span class="kpi-sub">재구매 바이어 비율: <strong>{{ analyticsData.summary.repeat_buyer_rate }}</strong></span>
-        </div>
-        <div class="kpi-card wide-card">
-          <span class="kpi-title">누적 거래액 (GMV - Gross Merchandise Value)</span>
-          <span class="kpi-value text-emerald-600 font-mono">
-            ${{ analyticsData.summary.gmv_usd.toLocaleString(undefined, { minimumFractionDigits: 2 }) }}
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Business Intelligence</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">셀러 비즈니스 애널리틱스</h1>
+        <div class="ws-page-actions">
+          <span class="seg">
+            <button v-for="p in ['7d', '30d', '90d']" :key="p" :class="{ active: currentPeriod === p }" @click="changePeriod(p)">
+              최근 {{ p.toUpperCase() }}
+            </button>
           </span>
-          <span class="kpi-sub">에스크로 무역 보증 체결 기준</span>
+        </div>
+      </div>
+      <p class="ws-page-sub">노출·클릭률·인콰이어리 전환율·GMV 매출 성과를 종합 분석합니다.</p>
+    </div>
+
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-stats">
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
+      </div>
+      <div class="ws-skeleton" style="height: 200px"></div>
+    </div>
+
+    <div v-else-if="analyticsData" class="ws-stack">
+      <div class="kpi-row">
+        <div class="ws-stat">
+          <p class="ws-stat-label">바이어 노출 수</p>
+          <p class="ws-stat-value">{{ analyticsData.summary.total_impressions.toLocaleString() }}</p>
+          <p class="ws-stat-foot">검색·카테고리 피드 노출</p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">상세 클릭 수</p>
+          <p class="ws-stat-value">{{ analyticsData.summary.total_clicks.toLocaleString() }}</p>
+          <p class="ws-stat-foot">CTR <b>{{ analyticsData.summary.click_through_rate }}</b></p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">수신 인콰이어리</p>
+          <p class="ws-stat-value hot">{{ analyticsData.summary.inquiries_count }}<span class="unit">건</span></p>
+          <p class="ws-stat-foot">상담 전환율 <b>{{ analyticsData.summary.inquiry_conversion_rate }}</b></p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">성약 발주</p>
+          <p class="ws-stat-value ok">{{ analyticsData.summary.orders_count }}<span class="unit">건</span></p>
+          <p class="ws-stat-foot">재구매율 <b>{{ analyticsData.summary.repeat_buyer_rate }}</b></p>
+        </div>
+        <div class="ws-stat gmv">
+          <p class="ws-stat-label">누적 거래액 (GMV)</p>
+          <p class="ws-stat-value">${{ analyticsData.summary.gmv_usd.toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</p>
+          <p class="ws-stat-foot">에스크로 무역 보증 체결 기준</p>
         </div>
       </div>
 
-      <!-- Traffic Source Breakdown -->
-      <div class="card-section">
-        <h3>글로벌 트래픽 유입 채널 분석 (Traffic Sources)</h3>
-        <div class="traffic-bars">
-          <div v-for="source in analyticsData.traffic_sources" :key="source.channel" class="traffic-item">
-            <div class="traffic-info">
-              <span class="channel-name">{{ source.channel }}</span>
-              <span class="channel-metric">{{ source.visitors }}명 ({{ source.percentage }}%)</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-bar" :style="{ width: `${source.percentage}%` }"></div>
-            </div>
+      <section class="ws-card">
+        <div class="ws-card-head"><h3>트래픽 유입 채널 분석</h3></div>
+        <div v-for="source in analyticsData.traffic_sources" :key="source.channel" class="traf-row">
+          <div class="ws-split">
+            <b>{{ source.channel }}</b>
+            <span class="ws-small ws-figure">{{ source.visitors }}명 ({{ source.percentage }}%)</span>
+          </div>
+          <div class="ws-meter ws-meter-navy"><span :style="{ width: `${source.percentage}%` }"></span></div>
+        </div>
+      </section>
+
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head"><h3>상위 성과 도매 품목</h3></div>
+        <div class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead><tr><th>상품명</th><th class="ws-num">노출</th><th class="ws-num">클릭</th><th class="ws-num">문의</th><th class="ws-num">수주</th><th>전환율</th></tr></thead>
+              <tbody>
+                <tr v-for="prod in analyticsData.top_performing_products" :key="prod.id">
+                  <td class="ws-cell-main">{{ prod.title }}</td>
+                  <td class="ws-num ws-figure">{{ prod.impressions.toLocaleString() }}</td>
+                  <td class="ws-num ws-figure">{{ prod.clicks.toLocaleString() }}</td>
+                  <td class="ws-num"><b class="ws-price ws-figure">{{ prod.inquiries }}</b></td>
+                  <td class="ws-num"><b class="ok-num ws-figure">{{ prod.orders }}</b></td>
+                  <td><span class="ws-badge ws-badge-brand">{{ prod.conversion_rate }}</span></td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
-      </div>
+      </section>
 
-      <!-- Top Performing Products -->
-      <div class="card-section">
-        <h3>상위 성과 도매 품목 (Top Performing Listings)</h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>상품명</th>
-              <th>노출 수 (Imp)</th>
-              <th>클릭 수 (Clicks)</th>
-              <th>인콰이어리 (Inq)</th>
-              <th>수주 건수 (Orders)</th>
-              <th>전환율</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="prod in analyticsData.top_performing_products" :key="prod.id">
-              <td class="font-bold text-gray-800">{{ prod.title }}</td>
-              <td>{{ prod.impressions.toLocaleString() }}</td>
-              <td>{{ prod.clicks.toLocaleString() }}</td>
-              <td class="text-orange-600 font-bold">{{ prod.inquiries }}</td>
-              <td class="text-green-600 font-bold">{{ prod.orders }}</td>
-              <td>
-                <span class="tag-rate">{{ prod.conversion_rate }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Daily Trend Timeline -->
-      <div class="card-section">
-        <h3>일별 비즈니스 트렌드 추이 (Daily Trend Logs)</h3>
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>일자 (Date)</th>
-              <th>노출 수 (Impressions)</th>
-              <th>클릭 수 (Clicks)</th>
-              <th>인콰이어리 (Inquiries)</th>
-              <th>발주 성약 (Orders)</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="day in analyticsData.daily_metrics_timeline" :key="day.date">
-              <td class="font-mono">{{ day.date }}</td>
-              <td>{{ day.impressions.toLocaleString() }}</td>
-              <td>{{ day.clicks }}</td>
-              <td class="text-orange-600 font-bold">{{ day.inquiries }}</td>
-              <td class="text-green-600 font-bold">{{ day.orders }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head"><h3>일별 비즈니스 트렌드</h3></div>
+        <div class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead><tr><th>일자</th><th class="ws-num">노출</th><th class="ws-num">클릭</th><th class="ws-num">문의</th><th class="ws-num">성약</th></tr></thead>
+              <tbody>
+                <tr v-for="day in analyticsData.daily_metrics_timeline" :key="day.date">
+                  <td class="ws-cell-main ws-figure">{{ day.date }}</td>
+                  <td class="ws-num ws-figure">{{ day.impressions.toLocaleString() }}</td>
+                  <td class="ws-num ws-figure">{{ day.clicks }}</td>
+                  <td class="ws-num"><b class="ws-price ws-figure">{{ day.inquiries }}</b></td>
+                  <td class="ws-num"><b class="ok-num ws-figure">{{ day.orders }}</b></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -160,218 +140,22 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.supplier-analytics-page {
-  padding: 24px 32px 80px;
-}
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.head-text h2 {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ws-text);
-  margin: 0 0 4px 0;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: var(--ws-text-muted);
-  margin: 0;
-}
-
-.period-switcher {
-  display: flex;
-  gap: 6px;
-  background: white;
-  padding: 4px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-}
-
-.btn-period {
-  padding: 6px 14px;
-  border: none;
-  background: transparent;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.btn-period.active {
-  background: var(--ws-text);
-  color: white;
-}
-
-.analytics-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr) 1.5fr;
-  gap: 16px;
-}
-
-.kpi-card {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-.kpi-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-muted);
-  margin-bottom: 8px;
-}
-
-.kpi-value {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.kpi-sub {
-  font-size: 11px;
-  color: var(--ws-admin-dim);
-  margin-top: auto;
-}
-
-.card-section {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 24px;
-}
-
-.card-section h3 {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ws-text);
-  margin: 0 0 16px 0;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 10px;
-}
-
-.traffic-bars {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.traffic-info {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 4px;
-}
-
-.channel-name {
-  font-weight: 600;
-  color: var(--ws-text-2);
-}
-
-.channel-metric {
-  color: var(--ws-text-muted);
-  font-family: monospace;
-}
-
-.progress-track {
-  height: 8px;
-  background: var(--ws-surface-muted);
-  border-radius: 9999px;
-  overflow: hidden;
-}
-
-.progress-bar {
-  height: 100%;
-  background: var(--ws-info);
-  border-radius: 9999px;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  text-align: left;
-}
-
-.data-table th {
-  background: var(--ws-surface-muted);
-  padding: 10px 14px;
-  color: var(--ws-text-2);
-  border-bottom: 1px solid var(--ws-border-subtle);
-  font-weight: 600;
-}
-
-.data-table td {
-  padding: 12px 14px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.tag-rate {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.state-box {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 60px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .supplier-analytics-page {
-    padding: 16px 12px;
-  }
-  .page-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .wide-card {
-    grid-column: span 2;
-  }
-}
-
-@media (max-width: 640px) {
-  .kpi-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .wide-card {
-    grid-column: span 1;
-  }
-  .period-switcher {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .data-table {
-    display: block;
-    overflow-x: auto;
-  }
+.seg { display: inline-flex; gap: 4px; background: #fff; border: 1px solid var(--ws-border); border-radius: 8px; padding: 4px; }
+.seg button { border: 0; background: transparent; border-radius: 6px; font-size: 12px; font-weight: 700; padding: 6px 14px; cursor: pointer; color: var(--ws-text-2); font-family: var(--ws-font); }
+.seg button.active { background: var(--ws-navy); color: #fff; }
+.kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) 1.6fr; gap: 12px; }
+.ws-stat-value .unit { font-size: 13px; font-weight: 700; color: var(--ws-text-muted); margin-left: 2px; }
+.ws-stat-value.hot { color: var(--ws-brand); }
+.ws-stat-value.ok { color: var(--ws-success); }
+.gmv { background: var(--ws-navy-ink); border-color: var(--ws-navy-ink); color: #fff; }
+.gmv .ws-stat-label, .gmv .ws-stat-foot { color: #93a4bc; }
+.gmv .ws-stat-value { color: #fbbf24; }
+.traf-row { margin-bottom: 14px; }
+.traf-row:last-child { margin-bottom: 0; }
+.traf-row .ws-split { margin-bottom: 6px; font-size: 13px; }
+.ok-num { color: var(--ws-success); }
+@media (max-width: 1100px) {
+  .kpi-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .gmv { grid-column: 1 / -1; }
 }
 </style>
-

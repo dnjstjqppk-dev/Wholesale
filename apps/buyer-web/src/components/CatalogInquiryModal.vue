@@ -1,42 +1,35 @@
 <template>
-  <div v-if="item" class="modal-overlay" @click.self="$emit('close')">
-    <div class="inquiry-modal-card">
-      <div class="inquiry-modal-head">
-        <h3><WsIcon name="chat" :size="15" /> 공급사 1:1 직통 문의 및 견적 요청 (Direct Inquiry)</h3>
-        <button class="close-btn" @click="$emit('close')">✕</button>
+  <div v-if="item" class="ws-modal-backdrop" @click.self="$emit('close')">
+    <div class="ws-modal" role="dialog" aria-modal="true">
+      <div class="ws-modal-head">
+        <h3>공급사 1:1 직통 문의</h3>
+        <button class="ws-icon-btn" aria-label="닫기" @click="$emit('close')"><WsIcon name="x" :size="15" /></button>
       </div>
-      <div class="inquiry-modal-body">
-        <div class="target-item-preview">
-          <span class="preview-title"><strong>문의 품목:</strong> {{ item.title }}</span>
-          <span class="preview-sup"><strong>수신 공급사:</strong> {{ item.supplier_name }} (Verified Manufacturer)</span>
+      <div class="ws-modal-body">
+        <div class="inquiry-target">
+          <p><b>문의 품목</b><br />{{ item.title }}</p>
+          <p><b>수신 공급사</b><br />{{ item.supplier_name }} <span class="ws-badge ws-badge-success">Verified</span></p>
         </div>
-
-        <div class="form-row">
-          <label>희망 발주 수량 (MOQ: {{ item.moq }} {{ item.unit }})</label>
-          <input v-model.number="quantity" type="number" :min="item.moq" class="inquiry-input" />
+        <div class="ws-grid-2">
+          <div class="ws-field">
+            <label>희망 발주 수량 (MOQ {{ item.moq }}{{ item.unit }})</label>
+            <input v-model.number="quantity" type="number" :min="item.moq" />
+          </div>
+          <div class="ws-field">
+            <label>목표 단가 (USD)</label>
+            <input v-model="targetPrice" type="text" placeholder="예: 4.50" />
+          </div>
         </div>
-
-        <div class="form-row">
-          <label>목표 단가 (Target Unit Price, USD)</label>
-          <input v-model="targetPrice" type="text" placeholder="예: 4.50" class="inquiry-input" />
+        <div class="ws-field" style="margin-bottom: 0">
+          <label>상세 기술 요구사항</label>
+          <textarea v-model="message" rows="4" class="ws-textarea" placeholder="예: SUS304 레이저 로고 인쇄 포함, 개별 무지 박스 포장 및 30일 이내 부산항 선적 가능 여부 문의드립니다."></textarea>
         </div>
-
-        <div class="form-row">
-          <label>상세 기술 요구사항 (재질 규격, OEM 로고, 패키징, 납기 희망일)</label>
-          <textarea
-            v-model="message"
-            rows="4"
-            class="inquiry-textarea"
-            placeholder="예: SUS304 레이저 로고 인쇄 포함, 개별 무지 박스 포장 및 30일 이내 부산항 선적 가능 여부 문의드립니다."
-          ></textarea>
-        </div>
-
-        <div class="form-actions">
-          <button class="btn-submit-inquiry" :disabled="sending" @click="onSubmit">
-            <WsIcon v-if="!(sending)" name="send" :size="14" /> {{ sending ? '1:1 대화방 개설 중...' : '1:1 문의 발송 및 메신저 열기' }}
-          </button>
-          <button class="btn-cancel" @click="$emit('close')">취소</button>
-        </div>
+      </div>
+      <div class="ws-modal-foot">
+        <button class="ws-btn ws-btn-secondary" @click="$emit('close')">취소</button>
+        <button class="ws-btn ws-btn-primary" :disabled="sending" @click="onSubmit">
+          <WsIcon v-if="!sending" name="send" :size="14" /> {{ sending ? '대화방 개설 중...' : '문의 발송·메신저 열기' }}
+        </button>
       </div>
     </div>
   </div>
@@ -99,18 +92,9 @@ async function onSubmit() {
 </script>
 
 <style scoped>
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.inquiry-modal-card { background: var(--ws-surface); width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-.inquiry-modal-head { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; border-bottom: 1px solid var(--ws-border-subtle); background: var(--ws-surface-muted); }
-.inquiry-modal-head h3 { margin: 0; font-size: 16px; font-weight: 700; color: var(--ws-text); }
-.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--ws-text-muted); }
-.inquiry-modal-body { padding: 24px; }
-.target-item-preview { background: var(--ws-surface-muted); border-radius: 6px; padding: 12px 16px; margin-bottom: 20px; font-size: 13px; display: flex; flex-direction: column; gap: 4px; }
-.form-row { margin-bottom: 16px; }
-.form-row label { display: block; font-size: 13px; font-weight: 700; color: var(--ws-text-2); margin-bottom: 6px; }
-.inquiry-input, .inquiry-textarea { width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; padding: 10px 12px; font-size: 13px; outline: none; box-sizing: border-box; }
-.inquiry-input:focus, .inquiry-textarea:focus { border-color: var(--ws-brand); }
-.form-actions { display: flex; gap: 12px; margin-top: 24px; }
-.btn-submit-inquiry { flex: 1; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
-.btn-cancel { padding: 12px 20px; background: var(--ws-surface-muted); border: 1px solid #CBD5E1; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; color: var(--ws-text-2); }
+.inquiry-target { background: var(--ws-surface-muted); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.inquiry-target p { margin: 0; font-size: 13px; }
+@media (max-width: 640px) {
+  .inquiry-target { grid-template-columns: minmax(0, 1fr); }
+}
 </style>

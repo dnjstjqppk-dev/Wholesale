@@ -1,94 +1,76 @@
 <template>
-  <div class="settlement-approval-page">
-    <div class="head-row">
+  <div class="ws-admin-page sod">
+    <div class="admin-head">
       <div>
-        <h2>정산 지급 승인 및 이중 통제 (Dual Control Payouts)</h2>
-        <p class="subtitle">금융 사고 방지를 위해 정산 1차 심사관(Approver)과 2차 자금 이체 집행자(Disburser)의 직무 분리(SoD)를 강제합니다.</p>
+        <p class="admin-eyebrow">Dual Control</p>
+        <h1>정산 지급 승인·이중 통제</h1>
+        <p class="admin-sub">1차 심사관(Approver)과 2차 집행자(Disburser)의 직무 분리(SoD)를 강제합니다.</p>
       </div>
-
-      <!-- Quick Admin Role Switcher for Dual Control Testing -->
-      <div class="admin-switcher-box">
-        <span class="curr-user">현재 로그인: <strong>{{ currentUser.full_name }}</strong> ({{ currentUser.role }})</span>
-        <div class="switch-btns">
-          <button
-            class="btn-sw"
-            :class="{ active: currentUser.email === 'admin@wholesale.internal' }"
-            @click="switchAccount('admin@wholesale.internal')"
-          >
-            <WsIcon name="users" :size="15" /> 1차 심사관 (Super Admin)
+      <div class="role-switch-card">
+        <span class="ws-small dim">현재 로그인 <b class="who">{{ currentUser.full_name }}</b> ({{ currentUser.role }})</span>
+        <span class="ws-cluster" style="gap: 6px">
+          <button class="ws-admin-btn" :class="{ on: currentUser.email === 'admin@wholesale.internal' }" @click="switchAccount('admin@wholesale.internal')">
+            <WsIcon name="users" :size="13" /> 1차 심사관
           </button>
-          <button
-            class="btn-sw finance"
-            :class="{ active: currentUser.email === 'finance@wholesale.internal' }"
-            @click="switchAccount('finance@wholesale.internal')"
-          >
-            <WsIcon name="users" :size="15" /> 2차 집행관 (Treasury Director)
+          <button class="ws-admin-btn" :class="{ on: currentUser.email === 'finance@wholesale.internal' }" @click="switchAccount('finance@wholesale.internal')">
+            <WsIcon name="users" :size="13" /> 2차 집행관
           </button>
-        </div>
+        </span>
       </div>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      정산 승인 대기열 데이터를 API 서버에서 조회 중입니다...
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton sk-dark" style="height: 260px"></div>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-else-if="error" class="admin-error">
+      <WsIcon name="alert" :size="16" /> {{ error }}
     </div>
 
-    <div v-else class="payout-list">
-      <div v-for="p in payouts" :key="p.id" class="p-card">
-        <div class="card-head">
+    <div v-else class="ws-stack">
+      <section v-for="p in payouts" :key="p.id" class="ws-admin-card">
+        <div class="ws-split">
           <div>
-            <span class="p-id">정산 번호 #{{ p.id }}</span>
-            <span class="supplier">수취 기업: {{ p.supplier_name }} (Verified Manufacturer)</span>
+            <b class="p-id ws-figure">정산 #{{ p.id }}</b>
+            <span class="ws-small"> · 수취 {{ p.supplier_name }} (Verified)</span>
           </div>
-          <span class="badge" :class="p.status.toLowerCase()">{{ p.status }}</span>
+          <span class="ws-admin-badge" :class="p.status === 'PAYOUT_DISPATCHED' ? 'ws-admin-badge-info' : p.status === 'APPROVED_STAGE_1' ? 'ws-admin-badge-warn' : 'ws-admin-badge-ok'">{{ p.status }}</span>
+        </div>
+        <div class="amt-grid">
+          <div><span>정산 총액</span><b class="ws-figure">${{ (p.gross_minor / 100).toFixed(2) }}</b></div>
+          <div><span>수수료 (5%)</span><b class="ws-figure fee">-${{ (p.fee_minor / 100).toFixed(2) }}</b></div>
+          <div><span>실 수령액</span><b class="ws-figure net">${{ (p.net_minor / 100).toFixed(2) }}</b></div>
+          <div><span>수취 계좌</span><b class="ws-figure">{{ p.bank_account }}</b></div>
+          <div><span>검수 상태</span><b class="pass">✓ 검수 합격·해제 적격</b></div>
         </div>
 
-        <div class="details-grid">
-          <div><span>정산 총액:</span> <strong class="amount">${{ (p.gross_minor / 100).toFixed(2) }}</strong></div>
-          <div><span>수수료 (5%):</span> <strong>-${{ (p.fee_minor / 100).toFixed(2) }}</strong></div>
-          <div><span>실 수령액:</span> <strong class="amount net">${{ (p.net_minor / 100).toFixed(2) }}</strong></div>
-          <div><span>수취 계좌:</span> <strong>{{ p.bank_account }}</strong></div>
-          <div><span>검수 상태:</span> <span class="tag-ok">✓ 바이어 검수 합격 및 에스크로 해제 적격</span></div>
-        </div>
-
-        <!-- SoD Step 1: Approve -->
-        <div class="step-box">
-          <div class="step-head">
-            <span class="step-num">Step 1</span>
-            <h4>1차 재무 심사 승인 (POST /v1/settlements/:id/approve)</h4>
+        <div class="sod-step">
+          <div class="ws-split">
+            <p class="ws-small"><span class="ws-admin-badge ws-admin-badge-idle">Step 1</span> <b>1차 재무 심사 승인</b></p>
           </div>
           <div v-if="p.status === 'APPROVED_STAGE_1' || p.status === 'PAYOUT_DISPATCHED' || p.first_approver_id">
-            <span class="approved-tag">✓ 1차 승인 완료 (승인자: {{ p.first_approver_id || 'user-admin-001' }})</span>
+            <span class="ws-admin-badge ws-admin-badge-ok">✓ 1차 승인 완료 · {{ p.first_approver_id || 'user-admin-001' }}</span>
           </div>
           <div v-else>
-            <button class="btn-step" :disabled="submitting" @click="approveStage1(p)">
-              {{ submitting ? '승인 기록 중...' : '1차 정산 적격 승인 (Stage 1)' }}
+            <button class="ws-admin-btn ws-admin-btn-primary" :disabled="submitting" @click="approveStage1(p)">
+              {{ submitting ? '승인 기록 중...' : '1차 정산 적격 승인' }}
             </button>
           </div>
         </div>
 
-        <!-- SoD Step 2: Execute Disburse -->
-        <div class="step-box" :class="{ disabled: p.status !== 'APPROVED_STAGE_1' && p.status !== 'PAYOUT_DISPATCHED' }">
-          <div class="step-head">
-            <span class="step-num">Step 2</span>
-            <h4>2차 전신환(Wire) 이체 집행 (POST /v1/settlements/:id/payout)</h4>
-          </div>
+        <div class="sod-step" :class="{ disabled: p.status !== 'APPROVED_STAGE_1' && p.status !== 'PAYOUT_DISPATCHED' }">
+          <p class="ws-small"><span class="ws-admin-badge ws-admin-badge-idle">Step 2</span> <b>2차 전신환(Wire) 이체 집행</b></p>
           <div v-if="p.status === 'PAYOUT_DISPATCHED'">
-            <span class="paid-tag">✓ 전신환(Wire) 이체 집행 완료 (참조번호 발급됨)</span>
+            <span class="ws-admin-badge ws-admin-badge-info">✓ 이체 집행 완료 (참조번호 발급됨)</span>
           </div>
           <div v-else>
-            <button class="btn-step execute" :disabled="submitting || p.status !== 'APPROVED_STAGE_1'" @click="executePayout(p)">
-              {{ submitting ? '전신환 집행 중...' : '2차 최종 전신환(Wire) 이체 집행' }}
+            <button class="ws-admin-btn ws-admin-btn-primary" :disabled="submitting || p.status !== 'APPROVED_STAGE_1'" @click="executePayout(p)">
+              {{ submitting ? '전신환 집행 중...' : '2차 최종 이체 집행' }}
             </button>
-            <p class="sod-note">
-              ※ Dual Control 직무 분리 규칙: 1차 승인자 ID와 2차 집행자 ID가 일치할 경우 백엔드가 `409 SOD_VIOLATION`으로 차단합니다.
-            </p>
+            <p class="ws-hint-dark">Dual Control 규칙: 1차 승인자와 2차 집행자가 일치하면 <code>409 SOD_VIOLATION</code>으로 차단됩니다.</p>
           </div>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 </template>
@@ -164,51 +146,30 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.settlement-approval-page { max-width: 1040px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: flex-start; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #F8FAFC; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; max-width: 600px; }
-
-.admin-switcher-box { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
-.curr-user { font-size: 11px; color: var(--ws-admin-dim); }
-.curr-user strong { color: var(--ws-admin-link); }
-.switch-btns { display: flex; gap: 6px; }
-.btn-sw { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.btn-sw.active { border-color: var(--ws-admin-link); color: var(--ws-admin-link); background: rgba(56,189,248,0.1); }
-
-.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-.error-banner { background: #7F1D1D; color: #FECACA; padding: 12px; border-radius: 6px; }
-.payout-list { display: flex; flex-direction: column; gap: 20px; }
-.p-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 22px; }
-.card-head { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #2B3A55; padding-bottom: 12px; margin-bottom: 14px; }
-.p-id { font-weight: 700; color: var(--ws-admin-link); font-size: 15px; margin-right: 12px; }
-.supplier { font-size: 13px; color: var(--ws-admin-text); }
-.badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 9999px; }
-.badge.release_eligible { background: #065F46; color: #A7F3D0; }
-.badge.approved_stage_1 { background: #854D0E; color: #FEF08A; }
-.badge.payout_dispatched { background: #1E3A8A; color: #93C5FD; }
-
-.details-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; font-size: 13px; background: var(--ws-admin-panel-2); padding: 14px; border-radius: 6px; margin-bottom: 16px; border: 1px solid #2B3A55; }
-.details-grid span { color: var(--ws-admin-dim); }
-.details-grid strong { color: #FFF; }
-.amount.net { color: #10B981; }
-.tag-ok { color: #10B981; font-weight: 700; font-size: 12px; }
-
-.step-box { background: #152238; border: 1px solid #2B3A55; border-radius: 6px; padding: 14px; margin-bottom: 12px; }
-.step-box.disabled { opacity: 0.5; }
-.step-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.step-num { background: #3B82F6; color: #FFF; font-size: 11px; font-weight: 800; padding: 2px 6px; border-radius: 4px; }
-.step-head h4 { margin: 0; font-size: 14px; color: #FFF; }
-.approved-tag { color: #10B981; font-weight: 700; font-size: 13px; }
-.paid-tag { color: var(--ws-admin-link); font-weight: 700; font-size: 13px; }
-.btn-step { background: var(--ws-admin-accent); color: #FFF; border: none; padding: 8px 16px; border-radius: 4px; font-weight: 700; cursor: pointer; }
-.btn-step.execute { background: #059669; }
-.sod-note { color: var(--ws-admin-dim); font-size: 11px; margin: 8px 0 0 0; }
-
-@media (max-width: 768px) {
-  .head-row { flex-direction: column; gap: 14px; }
-  .card-head { flex-direction: column; align-items: flex-start; gap: 8px; }
-  .details-grid { grid-template-columns: 1fr; gap: 8px; }
-  .switch-btns { flex-wrap: wrap; }
+.sod { display: flex; flex-direction: column; gap: 18px; }
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); max-width: 60ch; }
+.role-switch-card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.dim { color: var(--ws-admin-dim); }
+.who { color: var(--ws-admin-link); }
+.ws-admin-btn.on { border-color: var(--ws-admin-link); color: var(--ws-admin-link); background: rgb(92 200 245 / 0.08); }
+.admin-error { background: rgb(239 68 68 / 0.12); border: 1px solid rgb(239 68 68 / 0.4); color: #fca5a5; border-radius: 10px; padding: 12px 16px; font-size: 13px; font-weight: 600; display: flex; gap: 8px; align-items: center; }
+.p-id { color: var(--ws-admin-link); font-size: 15px; }
+.amt-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 12px 14px; margin-top: 14px; }
+.amt-grid div { display: flex; flex-direction: column; gap: 2px; }
+.amt-grid span { font-size: 11px; color: var(--ws-admin-dim); font-weight: 700; }
+.amt-grid b { font-size: 14px; }
+.fee { color: #fca5a5; }
+.net { color: #6ee7b7; }
+.pass { color: #6ee7b7; font-size: 12px; }
+.sod-step { margin-top: 14px; border-top: 1px solid var(--ws-admin-line); padding-top: 14px; }
+.sod-step > p { margin: 0 0 10px; }
+.sod-step.disabled { opacity: 0.55; }
+.ws-hint-dark { font-size: 11px; color: var(--ws-admin-dim); margin: 8px 0 0; }
+.sk-dark { background: var(--ws-admin-panel); }
+@media (max-width: 900px) {
+  .amt-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 </style>

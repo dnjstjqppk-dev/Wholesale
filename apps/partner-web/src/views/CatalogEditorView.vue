@@ -1,162 +1,142 @@
 <template>
-  <div class="catalog-editor">
-    <div class="head-row">
-      <div>
-        <h2>도매 상품 카탈로그 CRUD 및 수량 구간별 단가 관리</h2>
-        <p class="subtitle">자사 도매 상품 조회·신규 등록·수정·삭제 및 반개구간([min, max)) 수량별 단가를 관리합니다.</p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Catalog Manager</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">상품·구간단가 관리</h1>
+        <div class="ws-page-actions">
+          <button v-if="editingId" class="ws-btn ws-btn-secondary ws-btn-sm" @click="resetForm"><WsIcon name="plus" :size="13" /> 신규 등록 모드</button>
+        </div>
       </div>
-      <button v-if="editingId" class="btn-new" @click="resetForm">+ 신규 상품 등록 모드로 전환</button>
+      <p class="ws-page-sub">자사 도매 상품 조회·등록·수정·삭제와 반개구간([min, max)) 수량별 단가 관리.</p>
     </div>
 
-    <!-- Registered Products Table -->
-    <div class="list-card">
-      <div class="list-head">
-        <h3><WsIcon name="file" :size="15" /> 등록된 도매 상품 목록 ({{ myListings.length }}건)</h3>
-        <input v-model="searchFilter" type="text" placeholder="상품명 또는 카테고리 검색..." class="filter-input" />
+    <section class="ws-card ws-card-pad-sm">
+      <div class="ws-card-head">
+        <h3>등록된 도매 상품 ({{ myListings.length }}건)</h3>
+        <span class="ws-search" style="width: 280px">
+          <span class="ws-search-icon"><WsIcon name="search" :size="15" /></span>
+          <input v-model="searchFilter" type="text" class="ws-input" placeholder="상품명·카테고리 검색..." />
+        </span>
       </div>
-      <div class="table-scroll">
-        <table class="prod-table">
-          <thead>
-            <tr>
-              <th>썸네일</th>
-              <th>상품명</th>
-              <th>카테고리</th>
-              <th>MOQ / 단위</th>
-              <th>기준 단가(USD)</th>
-              <th>상태</th>
-              <th>관리 작업</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="item in filteredMyListings" :key="item.id">
-              <td><img :src="item.thumbnail || item.images?.[0]" class="mini-thumb" alt="thumb" /></td>
-              <td class="title-cell">{{ item.title }}</td>
-              <td>{{ item.category }}</td>
-              <td>{{ item.moq }} {{ item.unit }}</td>
-              <td class="price-cell">${{ Number(item.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</td>
-              <td><span class="st-pill" :class="(item.status || 'PUBLISHED').toLowerCase()">{{ item.status || 'PUBLISHED' }}</span></td>
-              <td class="actions-cell">
-                <button class="btn-sm edit" @click="loadForEdit(item)">수정</button>
-                <button class="btn-sm del" @click="deleteListing(item)">삭제</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <div class="ws-table-wrap">
+        <div class="ws-table-scroll">
+          <table class="ws-table">
+            <thead><tr><th></th><th>상품명</th><th>카테고리</th><th>MOQ / 단위</th><th class="ws-num">기준 단가</th><th>상태</th><th>관리</th></tr></thead>
+            <tbody>
+              <tr v-for="item in filteredMyListings" :key="item.id">
+                <td><img :src="item.thumbnail || item.images?.[0]" class="row-thumb" alt="thumb" /></td>
+                <td class="ws-cell-main">{{ item.title }}</td>
+                <td class="ws-cell-sub">{{ item.category }}</td>
+                <td class="ws-figure">{{ item.moq }} {{ item.unit }}</td>
+                <td class="ws-num"><b class="ws-price ws-figure">${{ Number(item.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
+                <td><span class="ws-badge ws-badge-info">{{ item.status || 'PUBLISHED' }}</span></td>
+                <td>
+                  <span class="ws-cluster" style="gap: 6px">
+                    <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="loadForEdit(item)">수정</button>
+                    <button class="ws-btn ws-btn-ghost ws-btn-sm danger-link" @click="deleteListing(item)">삭제</button>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
       </div>
-    </div>
+    </section>
 
-    <!-- Create / Edit Form -->
-    <form class="form-card" @submit.prevent="handleSave">
-      <h3><WsIcon v-if="editingId" name="pencil" :size="16" /> <WsIcon v-else name="plus" :size="16" /> {{ editingId ? `기존 상품 수정 (ID: ${editingId})` : '신규 도매 상품 및 구간단가 등록' }}</h3>
+    <form class="ws-card editor" @submit.prevent="handleSave">
+      <div class="ws-card-head">
+        <h3>
+          <WsIcon v-if="editingId" name="pencil" :size="15" class="h-ico" />
+          <WsIcon v-else name="plus" :size="15" class="h-ico" />
+          {{ editingId ? `상품 수정 · ${editingId}` : '신규 도매 상품·구간단가 등록' }}
+        </h3>
+      </div>
 
-      <div class="section">
-        <h4>1. 기본 상품 정보 및 카테고리</h4>
-        <div class="form-grid-3">
-          <div class="field span-2">
-            <label>상품명 (국문/영문 표준 규격 포함)</label>
-            <input v-model="title" type="text" required />
-          </div>
-          <div class="field">
-            <label>대분류 카테고리</label>
-            <select v-model="category">
-              <option value="CAT-IND">CAT-IND (산업기계 & 부품)</option>
-              <option value="CAT-ELE">CAT-ELE (전기·전자 & 반도체)</option>
-              <option value="CAT-PKG">CAT-PKG (친환경 패키징 & 용기)</option>
-              <option value="CAT-HOM">CAT-HOM (생활·주방 & 소비재)</option>
-              <option value="CAT-CHM">CAT-CHM (화학·소재 & 원부자재)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>소분류명</label>
-            <input v-model="subCategory" type="text" placeholder="예: CNC 가공 부품" />
-          </div>
-          <div class="field">
-            <label>인도 조건 (Incoterms® 2020)</label>
-            <select v-model="incoterms">
-              <option value="FOB Busan Port">FOB Busan Port</option>
-              <option value="FOB Incheon">FOB Incheon</option>
-              <option value="CIF Los Angeles">CIF Los Angeles</option>
-              <option value="EXW Factory">EXW Factory</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>대표 상품 이미지 URL</label>
-            <input v-model="imageUrl" type="url" required />
-          </div>
+      <p class="sec-cap">1 · 기본 상품 정보·카테고리</p>
+      <div class="ws-grid-3">
+        <div class="ws-field span-2">
+          <label>상품명 (국문/영문 규격 포함)</label>
+          <input v-model="title" type="text" required />
+        </div>
+        <div class="ws-field">
+          <label>대분류 카테고리</label>
+          <select v-model="category">
+            <option value="CAT-IND">CAT-IND (산업기계 & 부품)</option>
+            <option value="CAT-ELE">CAT-ELE (전기·전자 & 반도체)</option>
+            <option value="CAT-PKG">CAT-PKG (친환경 패키징 & 용기)</option>
+            <option value="CAT-HOM">CAT-HOM (생활·주방 & 소비재)</option>
+            <option value="CAT-CHM">CAT-CHM (화학·소재 & 원부자재)</option>
+          </select>
+        </div>
+        <div class="ws-field">
+          <label>소분류명</label>
+          <input v-model="subCategory" type="text" placeholder="예: CNC 가공 부품" />
+        </div>
+        <div class="ws-field">
+          <label>인도 조건 (Incoterms® 2020)</label>
+          <select v-model="incoterms">
+            <option value="FOB Busan Port">FOB Busan Port</option>
+            <option value="FOB Incheon">FOB Incheon</option>
+            <option value="CIF Los Angeles">CIF Los Angeles</option>
+            <option value="EXW Factory">EXW Factory</option>
+          </select>
+        </div>
+        <div class="ws-field">
+          <label>대표 상품 이미지 URL</label>
+          <input v-model="imageUrl" type="url" required />
         </div>
       </div>
 
-      <div class="section">
-        <h4>2. 발주 수량 제약 (MOQ & Step Enforcement)</h4>
-        <div class="form-grid-4">
-          <div class="field">
-            <label>최소 주문 수량 (MOQ)</label>
-            <input v-model.number="moq" type="number" min="1" required />
-          </div>
-          <div class="field">
-            <label>주문 증가 단위 (Step)</label>
-            <input v-model.number="step" type="number" min="1" required />
-          </div>
-          <div class="field">
-            <label>측정 단위 (Unit)</label>
-            <select v-model="unit">
-              <option value="pcs">pcs (개)</option>
-              <option value="boxes">boxes (박스)</option>
-              <option value="kg">kg (킬로그램)</option>
-              <option value="sets">sets (세트)</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>표준 생산 리드타임 (일)</label>
-            <input v-model.number="leadTime" type="number" min="1" required />
-          </div>
+      <p class="sec-cap">2 · 발주 수량 제약 (MOQ·Step)</p>
+      <div class="ws-grid-4">
+        <div class="ws-field"><label>MOQ</label><input v-model.number="moq" type="number" min="1" required /></div>
+        <div class="ws-field"><label>주문 증가 단위</label><input v-model.number="step" type="number" min="1" required /></div>
+        <div class="ws-field">
+          <label>측정 단위</label>
+          <select v-model="unit">
+            <option value="pcs">pcs (개)</option>
+            <option value="boxes">boxes (박스)</option>
+            <option value="kg">kg (킬로그램)</option>
+            <option value="sets">sets (세트)</option>
+          </select>
         </div>
+        <div class="ws-field"><label>표준 리드타임 (일)</label><input v-model.number="leadTime" type="number" min="1" required /></div>
       </div>
 
-      <div class="section">
-        <h4>3. 기술 사양 (Technical Specifications)</h4>
-        <div class="specs-list">
-          <div v-for="(sp, idx) in specifications" :key="idx" class="spec-row">
-            <input v-model="sp.name" type="text" placeholder="항목명 (예: 재질, 공차, 인증)" />
-            <input v-model="sp.value" type="text" placeholder="사양값 (예: SUS304, ±0.02mm, ISO 9001)" />
-            <button type="button" class="btn-del-row" @click="specifications.splice(idx, 1)">✕</button>
-          </div>
-          <button type="button" class="btn-add-tier" @click="specifications.push({ name: '', value: '' })">
-            + 기술 사양 항목 추가
-          </button>
-        </div>
+      <p class="sec-cap">3 · 기술 사양</p>
+      <div class="spec-row" v-for="(sp, idx) in specifications" :key="idx">
+        <input v-model="sp.name" type="text" class="ws-input" placeholder="항목명 (예: 재질, 공차, 인증)" />
+        <input v-model="sp.value" type="text" class="ws-input" placeholder="사양값 (예: SUS304, ±0.02mm, ISO 9001)" />
+        <button type="button" class="ws-icon-btn" aria-label="행 삭제" @click="specifications.splice(idx, 1)"><WsIcon name="x" :size="14" /></button>
       </div>
+      <button type="button" class="ws-btn ws-btn-ghost ws-btn-sm" @click="specifications.push({ name: '', value: '' })"><WsIcon name="plus" :size="13" /> 사양 항목 추가</button>
 
-      <div class="section">
-        <h4>4. 수량 구간별 차등 단가표 (Tiered Pricing — 반개구간 [min, max))</h4>
-        <table class="tier-editor-table">
-          <thead>
-            <tr>
-              <th>최소 수량 (Min Qty)</th>
-              <th>최대 수량 미만 (Max Qty, 무제한은 비움)</th>
-              <th>구간 단가 (USD)</th>
-              <th>관리</th>
-            </tr>
-          </thead>
+      <p class="sec-cap">4 · 수량 구간별 차등 단가 [min, max)</p>
+      <div class="ws-table-wrap">
+        <table class="ws-table">
+          <thead><tr><th>최소 수량</th><th>최대 수량 미만 (무제한은 비움)</th><th>구간 단가 (USD)</th><th></th></tr></thead>
           <tbody>
             <tr v-for="(t, idx) in tiers" :key="idx">
-              <td><input v-model.number="t.min" type="number" min="1" required /></td>
-              <td><input v-model.number="t.max" type="number" placeholder="무제한 (∞)" /></td>
-              <td><input v-model="t.price" type="text" required /></td>
-              <td><button type="button" class="btn-del-row" @click="tiers.splice(idx, 1)">삭제</button></td>
+              <td><input v-model.number="t.min" type="number" min="1" class="ws-input" required /></td>
+              <td><input v-model.number="t.max" type="number" class="ws-input" placeholder="무제한 (∞)" /></td>
+              <td><input v-model="t.price" type="text" class="ws-input ws-figure" required /></td>
+              <td><button type="button" class="ws-btn ws-btn-ghost ws-btn-sm danger-link" @click="tiers.splice(idx, 1)">삭제</button></td>
             </tr>
           </tbody>
         </table>
-        <button type="button" class="btn-add-tier" @click="addTier">+ 수량 할인 구간 추가</button>
+      </div>
+      <button type="button" class="ws-btn ws-btn-ghost ws-btn-sm" style="margin-top: 8px" @click="addTier"><WsIcon name="plus" :size="13" /> 수량 할인 구간 추가</button>
+
+      <div v-if="errorMsg" class="ws-banner ws-banner-danger">
+        <WsIcon name="alert" :size="16" />
+        <span>{{ errorMsg }}</span>
       </div>
 
-      <p v-if="errorMsg" class="error-banner"><WsIcon name="alert" :size="15" /> {{ errorMsg }}</p>
-
-      <div class="actions">
-        <button type="submit" class="btn-save" :disabled="submitting">
-          {{ submitting ? '서버 저장 중...' : (editingId ? '상품 정보 및 단가 수정 저장' : '신규 도매 상품 게시 및 단가표 적용') }}
-        </button>
-      </div>
+      <button type="submit" class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg editor-save" :disabled="submitting">
+        <span v-if="submitting" class="ws-spinner"></span>
+        {{ submitting ? '서버 저장 중...' : (editingId ? '상품 정보·단가 수정 저장' : '신규 상품 게시·단가표 적용') }}
+      </button>
     </form>
   </div>
 </template>
@@ -328,60 +308,19 @@ async function handleSave() {
 </script>
 
 <style scoped>
-.catalog-editor { max-width: 1080px; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
-.btn-new { background: var(--ws-text); color: var(--ws-surface); border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 12px; }
-
-.list-card, .form-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 22px; }
-.list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-.list-head h3, .form-card h3 { margin: 0; font-size: 16px; color: var(--ws-text); }
-.filter-input { border: 1px solid #CBD5E1; border-radius: 6px; padding: 6px 12px; font-size: 12px; width: 240px; }
-.table-scroll { max-height: 280px; overflow-y: auto; border: 1px solid var(--ws-border-subtle); border-radius: 6px; }
-.prod-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.prod-table th, .prod-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 8px 10px; text-align: left; }
-.prod-table th { background: var(--ws-surface-muted); color: var(--ws-text-2); position: sticky; top: 0; }
-.mini-thumb { width: 36px; height: 36px; border-radius: 4px; object-fit: cover; }
-.title-cell { font-weight: 700; color: var(--ws-text); max-width: 280px; }
-.price-cell { font-weight: 700; color: var(--ws-brand); }
-.st-pill { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; background: var(--ws-success-bg); color: var(--ws-success); }
-.actions-cell { display: flex; gap: 6px; }
-.btn-sm { border: 1px solid #CBD5E1; background: var(--ws-surface); padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; cursor: pointer; }
-.btn-sm.edit { color: var(--ws-info); border-color: #93C5FD; }
-.btn-sm.del { color: var(--ws-danger); border-color: #FCA5A5; }
-
-.section { margin-top: 20px; border-bottom: 1px solid var(--ws-surface-muted); padding-bottom: 18px; }
-.section h4 { margin: 0 0 12px 0; font-size: 14px; color: var(--ws-text); }
-.form-grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.form-grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
-.field.span-2 { grid-column: span 2; }
-.field label { display: block; font-size: 12px; font-weight: 600; color: var(--ws-text-2); margin-bottom: 4px; }
-.field input, .field select { width: 100%; padding: 8px 10px; border: 1px solid var(--ws-border); border-radius: 4px; font-size: 13px; box-sizing: border-box; }
-
-.specs-list { display: flex; flex-direction: column; gap: 8px; }
-.spec-row { display: grid; grid-template-columns: 1fr 2fr auto; gap: 8px; }
-.spec-row input { padding: 7px 10px; border: 1px solid var(--ws-border); border-radius: 4px; font-size: 13px; }
-.btn-del-row { background: var(--ws-danger-bg); color: var(--ws-danger); border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-weight: 700; }
-
-.tier-editor-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 10px; }
-.tier-editor-table th, .tier-editor-table td { border: 1px solid var(--ws-border); padding: 8px; text-align: left; }
-.tier-editor-table th { background: var(--ws-surface-muted); font-size: 12px; }
-.tier-editor-table input { width: 100%; padding: 6px; border: 1px solid #CBD5E1; border-radius: 4px; box-sizing: border-box; }
-.btn-add-tier { background: var(--ws-surface-muted); border: 1px dashed var(--ws-admin-dim); color: var(--ws-text-2); padding: 7px 14px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer; }
-.error-banner { background: #FEF2F2; border: 1px solid #FECACA; color: var(--ws-danger); padding: 10px 14px; border-radius: 6px; font-size: 13px; font-weight: 600; margin-top: 12px; }
-.actions { margin-top: 16px; }
-.btn-save { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 12px 24px; border-radius: 6px; font-weight: 700; font-size: 14px; cursor: pointer; }
-
-@media (max-width: 900px) {
-  .form-grid-4 { grid-template-columns: repeat(2, 1fr); }
-  .form-grid-3 { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 600px) {
-  .form-grid-4 { grid-template-columns: 1fr; }
-  .form-grid-3 { grid-template-columns: 1fr; }
-  .field.span-2 { grid-column: span 1; }
-  .tier-editor-table { display: block; overflow-x: auto; }
+.row-thumb { width: 44px; height: 44px; object-fit: cover; border-radius: 6px; background: var(--ws-surface-muted); }
+.danger-link { color: var(--ws-danger); }
+.danger-link:hover { background: var(--ws-danger-bg); color: var(--ws-danger); }
+.editor { margin-top: 16px; }
+.h-ico { color: var(--ws-brand); vertical-align: -2px; }
+.sec-cap { margin: 20px 0 12px; font-size: 13px; font-weight: 800; color: var(--ws-text); padding-top: 16px; border-top: 1px solid var(--ws-border-subtle); }
+.sec-cap:first-of-type { border-top: 0; padding-top: 0; margin-top: 0; }
+.span-2 { grid-column: span 2; }
+.spec-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 8px; }
+.editor .ws-field { margin-bottom: 12px; }
+.editor-save { margin-top: 16px; }
+@media (max-width: 640px) {
+  .span-2 { grid-column: span 1; }
+  .spec-row { grid-template-columns: minmax(0, 1fr); }
 }
 </style>

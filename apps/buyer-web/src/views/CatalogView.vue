@@ -1,51 +1,36 @@
 <template>
-  <div class="catalog-page">
-    <!-- Hero Banner (Trade Assurance & Sourcing Highlights) -->
-    <section class="hero-banner">
-      <div class="banner-content">
-        <div class="banner-badge"><WsIcon name="shield" :size="15" /> TRADE ASSURANCE 무역보증</div>
-        <h1 class="banner-title">주문 결제부터 납기·통관까지 100% 안전 보호</h1>
-        <p class="banner-desc">
-          에스크로 안전 결제, 생산 지연 보상, 규격 불일치 시 100% 환불, SGS/TÜV 공인 실사 검수 지원
-        </p>
-        <div class="banner-highlights">
-          <span class="hl-item">✓ 선급금 30% / 잔금 70% 분할 결제</span>
-          <span class="hl-item">✓ SHA-256 전자계약서 법적 효력</span>
-          <span class="hl-item">✓ 복식부기 실시간 무결성 원장 분개</span>
-        </div>
+  <div class="ws-page ws-page-wide">
+    <!-- Assurance strip -->
+    <section class="assure-strip">
+      <div class="assure-text">
+        <p class="ws-hero-eyebrow"><WsIcon name="shield" :size="14" /> Trade Assurance 무역보증</p>
+        <h1>주문 결제부터 납기·통관까지 100% 안전 보호</h1>
+        <p>에스크로 안전 결제 · 생산 지연 보상 · 규격 불일치 100% 환불 · SGS/TÜV 공인 실사 검수</p>
       </div>
-      <div class="banner-rfq-card">
-        <div class="rfq-card-head">
-          <span class="rfq-icon"><WsIcon name="bolt" :size="15" /></span>
-          <div>
-            <h3>원클릭 RFQ 빠른 견적</h3>
-            <p>1분 만에 도매 견적을 요청하고 복수 공급사 견적을 비교하세요</p>
-          </div>
+      <div class="assure-card">
+        <b><WsIcon name="bolt" :size="15" class="b-ico" /> 원클릭 RFQ 빠른 견적</b>
+        <p>1분 만에 견적을 요청하고 복수 공급사 견적을 비교하세요</p>
+        <input v-model="quickRfqItem" type="text" placeholder="조달 희망 품목 (예: CNC 알루미늄 가공품)" />
+        <div class="assure-row">
+          <input v-model.number="quickRfqQty" type="number" placeholder="필요 수량" />
+          <select v-model="quickRfqUnit">
+            <option value="pcs">pcs</option>
+            <option value="kg">kg</option>
+            <option value="sets">sets</option>
+          </select>
         </div>
-        <div class="rfq-mini-form">
-          <input v-model="quickRfqItem" type="text" placeholder="조달 희망 품목 (예: CNC 알루미늄 가공품)" />
-          <div class="qty-row">
-            <input v-model.number="quickRfqQty" type="number" placeholder="필요 수량" />
-            <select v-model="quickRfqUnit">
-              <option value="pcs">pcs (개)</option>
-              <option value="kg">kg (킬로그램)</option>
-              <option value="sets">sets (세트)</option>
-            </select>
-          </div>
-          <button class="btn-quick-rfq" @click="submitQuickRfq">견적 요청 제출</button>
-        </div>
+        <button class="ws-btn ws-btn-primary ws-btn-block" @click="submitQuickRfq">견적 요청 제출</button>
       </div>
     </section>
 
-    <!-- Active Search Keyword Pill -->
-    <div v-if="keywordFilter" class="active-query-bar">
-      <span><WsIcon name="search" :size="15" /> 검색 키워드: <strong>"{{ keywordFilter }}"</strong></span>
-      <button class="btn-clear-q" @click="clearKeyword">✕ 검색어 해제</button>
+    <!-- Active keyword -->
+    <div v-if="keywordFilter" class="ws-banner ws-banner-info keyword-bar">
+      <WsIcon name="search" :size="15" />
+      <span>검색 키워드: <b>"{{ keywordFilter }}"</b></span>
+      <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="clearKeyword"><WsIcon name="x" :size="13" /> 검색어 해제</button>
     </div>
 
-    <!-- Main Marketplace Catalog Area -->
-    <div class="catalog-main-layout">
-      <!-- Left Filter Sidebar Component -->
+    <div class="ws-layout-side catalog-layout">
       <CatalogFilterSidebar
         v-model:filterVerified="filterVerified"
         v-model:filterTradeAssurance="filterTradeAssurance"
@@ -60,71 +45,53 @@
         @reset="resetFilters"
       />
 
-      <!-- Right Product Cards Section -->
-      <section class="products-section">
-        <!-- Active Filter Chips Bar (Alibaba Style) -->
-        <div v-if="hasActiveFilters" class="active-chips-bar">
-          <span class="chips-title">적용된 조건:</span>
-          <span v-if="filterVerified" class="filter-chip" @click="filterVerified = false">
-            인증 공장 (Verified) ✕
-          </span>
-          <span v-if="filterTradeAssurance" class="filter-chip" @click="filterTradeAssurance = false">
-            무역보증 (Trade Assurance) ✕
-          </span>
-          <span v-if="filterCustomization" class="filter-chip" @click="filterCustomization = false">
-            맞춤제작 (OEM/ODM) ✕
-          </span>
-          <span v-if="selectedCategory !== 'ALL'" class="filter-chip" @click="selectedCategory = 'ALL'">
-            카테고리: {{ selectedCategory }} ✕
-          </span>
-          <span v-if="selectedMaterial !== 'ALL'" class="filter-chip" @click="selectedMaterial = 'ALL'">
-            재질: {{ selectedMaterial }} ✕
-          </span>
-          <span v-if="selectedCertification !== 'ALL'" class="filter-chip" @click="selectedCertification = 'ALL'">
-            인증: {{ selectedCertification }} ✕
-          </span>
-          <span v-if="selectedLeadTime !== 'ALL'" class="filter-chip" @click="selectedLeadTime = 'ALL'">
-            출고: ≤ {{ selectedLeadTime }}일 ✕
-          </span>
-          <span v-if="selectedMoqPreset !== 'all'" class="filter-chip" @click="selectedMoqPreset = 'all'">
-            MOQ: ≤ {{ selectedMoqPreset }} ✕
-          </span>
-          <span v-if="selectedIncoterm !== 'ALL'" class="filter-chip" @click="selectedIncoterm = 'ALL'">
-            인도조건: {{ selectedIncoterm }} ✕
-          </span>
-          <button class="btn-clear-all-chips" @click="resetFilters">전체 필터 초기화</button>
+      <section class="results">
+        <div v-if="hasActiveFilters" class="chips-bar">
+          <span class="chips-label">적용된 조건</span>
+          <button v-if="filterVerified" class="chip-x" @click="filterVerified = false">인증 공장 <WsIcon name="x" :size="12" /></button>
+          <button v-if="filterTradeAssurance" class="chip-x" @click="filterTradeAssurance = false">무역보증 <WsIcon name="x" :size="12" /></button>
+          <button v-if="filterCustomization" class="chip-x" @click="filterCustomization = false">맞춤제작 <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedCategory !== 'ALL'" class="chip-x" @click="selectedCategory = 'ALL'">카테고리: {{ selectedCategory }} <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedMaterial !== 'ALL'" class="chip-x" @click="selectedMaterial = 'ALL'">재질: {{ selectedMaterial }} <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedCertification !== 'ALL'" class="chip-x" @click="selectedCertification = 'ALL'">인증: {{ selectedCertification }} <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedLeadTime !== 'ALL'" class="chip-x" @click="selectedLeadTime = 'ALL'">출고 ≤ {{ selectedLeadTime }}일 <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedMoqPreset !== 'all'" class="chip-x" @click="selectedMoqPreset = 'all'">MOQ ≤ {{ selectedMoqPreset }} <WsIcon name="x" :size="12" /></button>
+          <button v-if="selectedIncoterm !== 'ALL'" class="chip-x" @click="selectedIncoterm = 'ALL'">인도조건: {{ selectedIncoterm }} <WsIcon name="x" :size="12" /></button>
+          <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="resetFilters">전체 초기화</button>
         </div>
 
-        <div class="section-toolbar">
-          <div class="toolbar-left">
-            <h2>도매 상품 및 생산 라인 목록 <span class="count">({{ filteredListings.length }}건)</span></h2>
-            <span class="sub-hint">※ 발주 수량에 따라 수량 구간별 도매 단가(Tiered Pricing)가 즉시 적용됩니다.</span>
+        <div class="ws-split results-head">
+          <div>
+            <h2 class="ws-section-title">도매 상품 목록 <span class="ws-muted">({{ filteredListings.length }}건)</span></h2>
+            <p class="results-hint">발주 수량에 따라 수량 구간별 도매 단가(Tiered Pricing)가 즉시 적용됩니다.</p>
           </div>
-          <div class="toolbar-right">
-            <label class="sort-label">정렬 기준:</label>
-            <select v-model="sortOrder" class="sort-select">
+          <label class="sort-box">
+            <span>정렬</span>
+            <select v-model="sortOrder" class="ws-input">
               <option value="recommended">추천순 (인증공장 우선)</option>
-              <option value="moq_asc">최소발주수량(MOQ) 낮은순</option>
+              <option value="moq_asc">MOQ 낮은순</option>
               <option value="price_asc">단가 낮은순</option>
               <option value="lead_asc">단납기 출고순</option>
             </select>
-          </div>
+          </label>
         </div>
 
-        <!-- Loading & Error States -->
-        <div v-if="loading" class="catalog-state-box loading-box">
-          <p>도매 상품 및 제조사 카탈로그를 서버에서 불러오는 중입니다...</p>
+        <div v-if="loading" class="ws-stack">
+          <div class="ws-skeleton" style="height: 120px"></div>
+          <div class="ws-skeleton" style="height: 120px"></div>
+          <div class="ws-skeleton" style="height: 120px"></div>
         </div>
-        <div v-else-if="fetchError" class="catalog-state-box error-box">
-          <p class="error-msg"><WsIcon name="alert" :size="15" /> {{ fetchError }}</p>
-          <button class="btn-retry" @click="fetchListings">다시 시도</button>
+        <div v-else-if="fetchError" class="ws-banner ws-banner-danger">
+          <WsIcon name="alert" :size="16" />
+          <div><b>{{ fetchError }}</b><br /><button class="ws-btn ws-btn-secondary ws-btn-sm" style="margin-top: 8px" @click="fetchListings">다시 시도</button></div>
         </div>
-        <div v-else-if="filteredListings.length === 0" class="catalog-state-box empty-box">
-          <p>선택하신 조건에 일치하는 도매 상품이 없습니다.</p>
-          <button class="btn-retry" @click="resetFilters">필터 초기화</button>
+        <div v-else-if="filteredListings.length === 0" class="ws-empty">
+          <span class="ws-empty-icon"><WsIcon name="search" :size="24" /></span>
+          <h3>조건에 맞는 상품이 없습니다</h3>
+          <p>필터 조건을 조정하거나 초기화해 보세요.</p>
+          <button class="ws-btn ws-btn-secondary" @click="resetFilters">필터 초기화</button>
         </div>
-        <!-- High-Density Product Grid -->
-        <div v-else class="product-grid">
+        <div v-else class="results-grid">
           <CatalogProductCard
             v-for="item in filteredListings"
             :key="item.id"
@@ -137,7 +104,6 @@
       </section>
     </div>
 
-    <!-- Inquiry Modal Component -->
     <CatalogInquiryModal
       :item="activeInquiryItem"
       @close="activeInquiryItem = null"
@@ -334,114 +300,33 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.catalog-page { display: flex; flex-direction: column; gap: 24px; }
-.hero-banner { background: linear-gradient(135deg, var(--ws-text) 0%, var(--ws-text) 100%); border-radius: 12px; padding: 32px; color: var(--ws-surface); display: flex; justify-content: space-between; align-items: center; gap: 32px; }
-.banner-content { max-width: 660px; }
-.banner-badge { display: inline-block; background: rgba(255, 102, 0, 0.2); border: 1px solid var(--ws-brand); color: #FF8533; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 4px; margin-bottom: 12px; }
-.banner-title { font-size: 28px; font-weight: 800; margin: 0 0 10px 0; line-height: 1.3; }
-.banner-desc { font-size: 14px; color: #CBD5E1; margin: 0 0 18px 0; }
-.banner-highlights { display: flex; gap: 16px; font-size: 12px; color: var(--ws-info); font-weight: 600; }
-
-.banner-rfq-card { background: var(--ws-surface); color: var(--ws-text); border-radius: 10px; padding: 20px; width: 380px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
-.rfq-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-.rfq-icon { font-size: 24px; }
-.rfq-card-head h3 { margin: 0; font-size: 16px; font-weight: 800; }
-.rfq-card-head p { margin: 2px 0 0 0; font-size: 11px; color: var(--ws-text-muted); }
-.rfq-mini-form { display: flex; flex-direction: column; gap: 8px; }
-.rfq-mini-form input, .rfq-mini-form select { border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
-.qty-row { display: grid; grid-template-columns: 2fr 1fr; gap: 8px; }
-.btn-quick-rfq { background: var(--ws-brand); color: var(--ws-surface); border: none; border-radius: 6px; padding: 10px; font-weight: 700; cursor: pointer; }
-
-.active-query-bar { display: flex; justify-content: space-between; align-items: center; background: var(--ws-brand-light); border: 1px solid #FDBA74; padding: 10px 16px; border-radius: 8px; font-size: 13px; color: var(--ws-brand-hover); }
-.btn-clear-q { background: var(--ws-surface); border: 1px solid #FB923C; color: var(--ws-brand); border-radius: 4px; padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
-
-.active-chips-bar {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 10px 14px;
+.assure-strip { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; align-items: center; background: var(--ws-navy-ink); color: #fff; border-radius: var(--ws-radius-lg); padding: 32px; margin-bottom: 20px; }
+.assure-strip .ws-hero-eyebrow { color: #fbbf24; }
+.assure-text h1 { margin: 0 0 8px; font-size: 26px; font-weight: 900; letter-spacing: var(--ws-tracking-tight); line-height: 1.35; }
+.assure-text p { margin: 0; color: #b9c6da; font-size: 14px; }
+.assure-card { background: #fff; color: var(--ws-text); border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+.assure-card b { font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.assure-card .b-ico { color: var(--ws-brand); }
+.assure-card p { margin: 0; font-size: 12px; color: var(--ws-text-muted); }
+.assure-card input, .assure-card select { border: 1px solid var(--ws-border); border-radius: 8px; padding: 10px 12px; font-size: 13px; font-family: var(--ws-font); }
+.assure-row { display: grid; grid-template-columns: 1fr 110px; gap: 8px; }
+.keyword-bar { align-items: center; }
+.keyword-bar .ws-btn { margin-left: auto; }
+.catalog-layout { margin-top: 4px; }
+.chips-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.chips-label { font-size: 12px; font-weight: 800; color: var(--ws-text-muted); }
+.chip-x { display: inline-flex; align-items: center; gap: 6px; background: var(--ws-navy); color: #fff; border: 0; border-radius: 9999px; padding: 5px 8px 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--ws-font); }
+.chip-x:hover { background: var(--ws-navy-dark); }
+.results-head { align-items: flex-end; margin-bottom: 16px; }
+.results-hint { margin: 4px 0 0; font-size: 12px; color: var(--ws-text-muted); }
+.sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }
+.sort-box .ws-input { width: auto; font-size: 13px; padding: 8px 10px; }
+.results-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+@media (max-width: 1024px) {
+  .assure-strip { grid-template-columns: minmax(0, 1fr); padding: 24px; }
+  .results-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
-.chips-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-}
-.filter-chip {
-  background: #EFF6FF;
-  color: var(--ws-info);
-  border: 1px solid #BFDBFE;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.filter-chip:hover {
-  background: var(--ws-info-bg);
-  color: var(--ws-info);
-}
-.btn-clear-all-chips {
-  margin-left: auto;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  color: var(--ws-danger);
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: underline;
-}
-
-.catalog-main-layout { display: grid; grid-template-columns: 260px 1fr; gap: 24px; align-items: start; }
-.products-section { display: flex; flex-direction: column; gap: 16px; }
-.section-toolbar { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 8px; padding: 14px 18px; display: flex; justify-content: space-between; align-items: center; }
-.toolbar-left h2 { margin: 0; font-size: 16px; font-weight: 800; color: var(--ws-text); }
-.toolbar-left .count { color: var(--ws-brand); }
-.sub-hint { font-size: 12px; color: var(--ws-text-muted); }
-.toolbar-right { display: flex; align-items: center; gap: 8px; }
-.sort-label { font-size: 12px; color: var(--ws-text-muted); font-weight: 600; }
-.sort-select { border: 1px solid #CBD5E1; border-radius: 4px; padding: 6px 10px; font-size: 12px; }
-
-.product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
-.catalog-state-box { background: var(--ws-surface); border: 1px solid var(--ws-border-subtle); border-radius: 8px; padding: 48px 24px; text-align: center; color: var(--ws-text-2); font-size: 14px; }
-.error-box .error-msg { color: var(--ws-danger); font-weight: 700; margin-bottom: 12px; }
-.btn-retry { background: var(--ws-text); color: var(--ws-surface); border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px; font-weight: 600; cursor: pointer; }
-
-/* Responsive Mobile & Tablet Layout */
-@media (max-width: 992px) {
-  .hero-banner {
-    flex-direction: column;
-    padding: 24px 20px;
-    gap: 20px;
-  }
-  .banner-rfq-card {
-    width: 100%;
-    box-sizing: border-box;
-  }
-  .catalog-main-layout {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 640px) {
-  .banner-title {
-    font-size: 20px;
-  }
-  .product-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .section-toolbar {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-  .toolbar-right {
-    width: 100%;
-    justify-content: space-between;
-  }
+  .results-grid { grid-template-columns: minmax(0, 1fr); }
 }
 </style>

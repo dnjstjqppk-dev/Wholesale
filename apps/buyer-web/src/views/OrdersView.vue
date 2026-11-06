@@ -1,142 +1,116 @@
 <template>
-  <div class="orders-page">
-    <div class="page-head">
-      <h2>구매 기업 발주 및 무역 이행 관리 (Trade Orders)</h2>
-      <p class="subtitle">주문·결제·배송·분쟁·정산의 5대 상태가 상호 격리되어 실시간 추적됩니다.</p>
+  <div class="ws-page">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Trade Orders</p>
+      <h1 class="ws-page-title">발주·무역 이행 관리</h1>
+      <p class="ws-page-sub">주문·결제·배송·분쟁·정산 5대 상태가 상호 격리되어 실시간 추적됩니다.</p>
     </div>
 
-    <div v-if="loading" class="state-box loading-box">
-      <p>서버에서 발주 내역을 불러오는 중입니다...</p>
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 220px"></div>
+      <div class="ws-skeleton" style="height: 220px"></div>
     </div>
 
-    <div v-else-if="orders.length === 0" class="state-box empty-box">
-      <p>진행 중인 발주 내역이 없습니다.</p>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="btn-primary">
-        도매 상품 발주하러 가기
-      </router-link>
+    <div v-else-if="orders.length === 0" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="package" :size="24" /></span>
+      <h3>진행 중인 발주 내역이 없습니다</h3>
+      <p>도매 카탈로그에서 첫 발주를 시작해 보세요.</p>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-primary">도매 상품 발주하러 가기</router-link>
     </div>
 
-    <div v-else class="order-list">
-      <div v-for="order in orders" :key="order.id" class="order-card">
-        <div class="card-head">
-          <div class="ord-left">
-            <span class="ord-num">{{ order.order_number }}</span>
-            <span class="ord-date">{{ formatDate(order.created_at) }}</span>
+    <div v-else class="ws-stack">
+      <article v-for="order in orders" :key="order.id" class="ws-card order-card">
+        <div class="ws-split order-top">
+          <div class="order-id">
+            <b class="ws-figure">{{ order.order_number }}</b>
+            <span class="ws-muted ws-small">{{ formatDate(order.created_at) }}</span>
           </div>
-          <span class="total-price">{{ formatMoney(order.total_amount_minor / 100) }}</span>
+          <b class="ws-price ws-price-lg ws-figure">{{ formatMoney(order.total_amount_minor / 100) }}</b>
         </div>
 
-        <!-- 5 Separate State Tags -->
-        <div class="state-badges">
-          <div class="badge-item">
-            <span class="k">주문 상태:</span>
-            <span class="v ord">{{ order.order_status }}</span>
-          </div>
-          <div class="badge-item">
-            <span class="k">결제 상태:</span>
-            <span class="v pay">{{ order.payment_status }}</span>
-          </div>
-          <div class="badge-item">
-            <span class="k">물류 이행:</span>
-            <span class="v ship">{{ order.fulfillment_status }}</span>
-          </div>
-          <div class="badge-item">
-            <span class="k">분쟁 상태:</span>
-            <span class="v disp">{{ order.dispute_status }}</span>
-          </div>
-          <div class="badge-item">
-            <span class="k">에스크로 정산:</span>
-            <span class="v set">{{ order.settlement_status }}</span>
-          </div>
+        <div class="status-lane">
+          <span class="st"><i>주문</i><b :class="statusBadge(order.order_status)">{{ order.order_status }}</b></span>
+          <span class="st"><i>결제</i><b :class="statusBadge(order.payment_status)">{{ order.payment_status }}</b></span>
+          <span class="st"><i>물류</i><b :class="statusBadge(order.fulfillment_status)">{{ order.fulfillment_status }}</b></span>
+          <span class="st"><i>분쟁</i><b :class="statusBadge(order.dispute_status)">{{ order.dispute_status }}</b></span>
+          <span class="st"><i>정산</i><b :class="statusBadge(order.settlement_status)">{{ order.settlement_status }}</b></span>
         </div>
 
-        <div class="card-body">
-          <p><strong>공급사:</strong> {{ order.supplier_name }} (Verified Manufacturer)</p>
-          <p><strong>무역 조건:</strong> {{ order.incoterms || 'FOB Busan Port' }}</p>
-          <p><strong>발주 품목:</strong> {{ order.item_title }} ({{ order.ordered_quantity }} {{ order.unit }})</p>
-          <p><strong>인도 주소:</strong> {{ order.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</p>
+        <dl class="order-facts">
+          <div><dt>공급사</dt><dd>{{ order.supplier_name }} <span class="ws-badge ws-badge-success">Verified</span></dd></div>
+          <div><dt>무역 조건</dt><dd>{{ order.incoterms || 'FOB Busan Port' }}</dd></div>
+          <div><dt>발주 품목</dt><dd>{{ order.item_title }} ({{ order.ordered_quantity }} {{ order.unit }})</dd></div>
+          <div><dt>인도 주소</dt><dd>{{ order.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</dd></div>
+        </dl>
 
-          <div v-if="order.shipped_quantity > 0" class="shipping-info-box">
-            <span><WsIcon name="truck" :size="15" /> 출고 완료 수량: <strong>{{ order.shipped_quantity }} / {{ order.ordered_quantity }} {{ order.unit }}</strong></span>
-            <span>선하증권(B/L): <a href="#" @click.prevent="openDocument('B/L')">BL-BUSAN-88991.pdf (다운로드)</a></span>
+        <div v-if="order.shipped_quantity > 0" class="ws-banner ws-banner-info ship-note">
+          <WsIcon name="truck" :size="16" />
+          <div>
+            출고 <b>{{ order.shipped_quantity }} / {{ order.ordered_quantity }} {{ order.unit }}</b>
+            · 선하증권(B/L): <a href="#" class="ws-link" @click.prevent="openDocument('B/L')">BL-BUSAN-88991.pdf</a>
           </div>
         </div>
 
-        <div class="card-actions">
-          <!-- Corporate Approval -->
+        <div class="order-actions">
           <button
             v-if="order.order_status === 'CONTRACT_PENDING' && !order.approver_user_id"
-            class="btn-action approve"
+            class="ws-btn ws-btn-navy ws-btn-sm"
             @click="approveOrder(order)"
           >
-            <WsIcon name="file" :size="15" /> 기업 내부 결재 승인
+            <WsIcon name="file" :size="14" /> 내부 결재 승인
           </button>
-
-          <!-- Electronic Contract Signing -->
           <router-link
             v-if="!order.is_contract_signed"
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`"
-            class="btn-action contract"
+            class="ws-btn ws-btn-secondary ws-btn-sm"
           >
-            <WsIcon name="pencil" :size="15" /> 전자계약 서명하기 (Sign Contract)
+            <WsIcon name="pencil" :size="14" /> 전자계약 서명
           </router-link>
-
-          <!-- 30% Downpayment -->
           <button
             v-else-if="order.payment_status === 'DOWN_PAYMENT_PENDING'"
-            class="btn-action pay"
+            class="ws-btn ws-btn-primary ws-btn-sm"
             :disabled="paying"
             @click="payDownPayment(order)"
           >
             {{ paying ? '에스크로 결제 승인 중...' : `선급금 30% (${formatMoney((order.downpayment_minor || 126000) / 100)}) 결제` }}
           </button>
-
-          <!-- Third-Party Quality Inspection Approval -->
           <button
             v-if="order.fulfillment_status === 'PARTIALLY_FULFILLED' || order.order_status === 'IN_PRODUCTION'"
-            class="btn-action inspect"
+            class="ws-btn ws-btn-secondary ws-btn-sm"
             @click="passInspection(order)"
           >
-            <WsIcon name="search" :size="15" /> 제3자 품질 검수(SGS/TÜV) 합격 승인
+            <WsIcon name="search" :size="14" /> 검수 합격 승인
           </button>
-
-          <!-- 70% Balance Payment -->
           <button
             v-if="order.payment_status === 'PARTIALLY_PAID_30' && (order.order_status === 'SHIPPED' || order.inspection_status === 'PASSED')"
-            class="btn-action pay-balance"
+            class="ws-btn ws-btn-primary ws-btn-sm"
             :disabled="paying"
             @click="payBalance(order)"
           >
-            <WsIcon name="card" :size="15" /> 잔금 70% (${{ ((order.balance_minor || 294000) / 100).toFixed(2) }}) 결제 승인
+            <WsIcon name="card" :size="14" /> 잔금 70% (${{ ((order.balance_minor || 294000) / 100).toFixed(2) }}) 결제
           </button>
-
-          <!-- Final Delivery Confirmation -->
           <button
             v-if="order.order_status === 'SHIPPED' && order.payment_status === 'FULLY_PAID'"
-            class="btn-action confirm-delivery"
+            class="ws-btn ws-btn-navy ws-btn-sm"
             @click="confirmDelivery(order)"
           >
-            ✓ 화물 최종 인수 확인 및 대금 지급 승인
+            <WsIcon name="check" :size="14" /> 최종 인수 확인·대금 지급 승인
           </button>
-
-          <!-- Order Detail & Timeline Tracking -->
           <router-link
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}`"
-            class="btn-action detail"
+            class="ws-btn ws-btn-ghost ws-btn-sm"
           >
-            <WsIcon name="search" :size="15" /> 발주 상세 & 물류 추적
+            <WsIcon name="search" :size="14" /> 상세·물류 추적
           </router-link>
-
-          <!-- Open Trade Dispute -->
           <router-link
             v-if="order.dispute_status !== 'RESOLVED'"
             :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/dispute`"
-            class="btn-action dispute"
+            class="ws-btn ws-btn-ghost ws-btn-sm danger-link"
           >
-            <WsIcon name="alert" :size="15" /> 클레임 및 분쟁 제기
+            <WsIcon name="alert" :size="14" /> 클레임·분쟁 제기
           </router-link>
         </div>
-      </div>
+      </article>
     </div>
   </div>
 </template>
@@ -176,6 +150,15 @@ function formatDate(dateStr: string) {
     hour: '2-digit',
     minute: '2-digit',
   });
+}
+
+function statusBadge(status: string): string {
+  const s = String(status || '');
+  if (/(COMPLETED|DELIVERED|FULLY_PAID|PASSED|APPROVED|RELEASED|RESOLVED|NONE)/.test(s)) return 'ws-badge ws-badge-success';
+  if (/(PENDING|AWAITING|IN_PRODUCTION|PARTIALLY|CONTRACT_PENDING)/.test(s)) return 'ws-badge ws-badge-warning';
+  if (/(DISPUT|OPEN|FROZEN|REJECT|FAIL|CANCEL)/.test(s)) return 'ws-badge ws-badge-danger';
+  if (/(SHIPPED|SHIPPING|IN_TRANSIT)/.test(s)) return 'ws-badge ws-badge-info';
+  return 'ws-badge';
 }
 
 async function loadOrders() {
@@ -274,163 +257,19 @@ function openDocument(docType: string) {
 </script>
 
 <style scoped>
-.orders-page {
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 24px 16px 60px;
-}
-.page-head h2 {
-  margin: 0 0 6px 0;
-  font-size: 22px;
-  color: var(--ws-text);
-  font-weight: 800;
-}
-.subtitle {
-  color: var(--ws-text-muted);
-  font-size: 13px;
-  margin-bottom: 24px;
-}
-.order-list {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.order-card {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.03);
-}
-.card-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 12px;
-  margin-bottom: 14px;
-}
-.ord-num {
-  font-weight: 800;
-  color: var(--ws-text);
-  font-size: 16px;
-  margin-right: 12px;
-}
-.ord-date {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-}
-.total-price {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--ws-brand);
-}
-
-.state-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
-.badge-item {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 11px;
-}
-.badge-item .k {
-  color: var(--ws-text-muted);
-  margin-right: 4px;
-}
-.badge-item .v {
-  font-weight: 700;
-}
-.v.ord { color: var(--ws-info); }
-.v.pay { color: var(--ws-warning); }
-.v.ship { color: #0E7490; }
-.v.disp { color: var(--ws-success); }
-.v.set { color: #7C3AED; }
-
-.card-body p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: var(--ws-text-2);
-}
-.shipping-info-box {
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  border-radius: 6px;
-  padding: 8px 12px;
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--ws-info);
-}
-.shipping-info-box a {
-  color: var(--ws-info);
-  font-weight: 700;
-  text-decoration: underline;
-}
-
-.card-actions {
-  border-top: 1px solid var(--ws-surface-muted);
-  padding-top: 14px;
-  margin-top: 14px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.btn-action {
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: none;
-  border: none;
-}
-.btn-action.approve { background: var(--ws-info); color: var(--ws-surface); }
-.btn-action.contract { background: var(--ws-text); color: var(--ws-surface); }
-.btn-action.pay { background: var(--ws-brand); color: var(--ws-surface); }
-.btn-action.pay-balance { background: var(--ws-success); color: var(--ws-surface); }
-.btn-action.inspect { background: #0284C7; color: var(--ws-surface); }
-.btn-action.confirm-delivery { background: #059669; color: var(--ws-surface); }
-.btn-action.dispute { background: var(--ws-surface); border: 1px solid #F87171; color: var(--ws-danger); }
-
-.state-box {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 60px 20px;
-  text-align: center;
-}
-
-@media (max-width: 768px) {
-  .orders-page {
-    padding: 16px 12px 40px;
-  }
-  .card-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .state-badges {
-    flex-direction: column;
-    gap: 6px;
-  }
-  .shipping-info-box {
-    flex-direction: column;
-    gap: 6px;
-  }
-  .card-actions {
-    flex-direction: column;
-  }
-  .btn-action {
-    width: 100%;
-    text-align: center;
-    padding: 10px 14px;
-  }
-}
+.order-top { margin-bottom: 14px; }
+.order-id { display: flex; align-items: baseline; gap: 10px; }
+.order-id b { font-size: 17px; }
+.status-lane { display: flex; gap: 18px; flex-wrap: wrap; padding: 12px 14px; background: var(--ws-surface-muted); border-radius: 8px; margin-bottom: 14px; }
+.st { display: inline-flex; align-items: center; gap: 7px; }
+.st i { font-style: normal; font-size: 11px; font-weight: 800; color: var(--ws-text-muted); }
+.order-facts { margin: 0 0 6px; }
+.order-facts div { display: flex; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--ws-border-subtle); font-size: 13px; }
+.order-facts div:last-child { border-bottom: 0; }
+.order-facts dt { flex: none; width: 76px; color: var(--ws-text-muted); font-weight: 600; }
+.order-facts dd { margin: 0; font-weight: 600; }
+.ship-note { margin: 12px 0 0; }
+.order-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--ws-border-subtle); }
+.danger-link { color: var(--ws-danger); }
+.danger-link:hover { background: var(--ws-danger-bg); color: var(--ws-danger); }
 </style>

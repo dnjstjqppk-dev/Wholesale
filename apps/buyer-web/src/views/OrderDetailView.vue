@@ -1,585 +1,366 @@
 <template>
-  <div class="order-detail-page">
-    <div class="breadcrumb">
-      <router-link :to="`/${currentLocale}/${currentCurrency}/orders`">← 발주 목록으로 돌아가기 (Orders)</router-link>
+  <div class="ws-page ws-page-wide">
+    <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="ws-btn ws-btn-ghost ws-btn-sm back-link">← 발주 목록으로 돌아가기</router-link>
+
+    <div v-if="toastMessage" class="ws-banner" :class="toastType === 'error' ? 'ws-banner-danger' : 'ws-banner-success'">
+      <WsIcon :name="toastType === 'error' ? 'alert' : 'check'" :size="16" />
+      <span>{{ toastMessage }}</span>
     </div>
 
-    <!-- Alert / Toast -->
-    <div v-if="toastMessage" class="toast-banner" :class="toastType">
-      {{ toastMessage }}
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 120px"></div>
+      <div class="ws-skeleton" style="height: 200px"></div>
     </div>
 
-    <div v-if="loading" class="state-box">
-      <p>발주 상세 내역 및 물류 상태를 불러오는 중입니다...</p>
+    <div v-else-if="!order" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="package" :size="24" /></span>
+      <h3>주문 정보를 찾을 수 없습니다</h3>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/orders`" class="ws-btn ws-btn-secondary">발주 목록으로 이동</router-link>
     </div>
 
-    <div v-else-if="!order" class="state-box">
-      <p>주문 정보를 찾을 수 없습니다.</p>
-    </div>
-
-    <div v-else class="order-content">
-      <!-- Top Overview Header -->
-      <div class="order-header-card">
-        <div class="header-left">
-          <div class="order-num-row">
-            <h2>발주 상세: {{ order.order_number }}</h2>
-            <span class="ord-date">체결일: {{ formatDate(order.created_at) }}</span>
-          </div>
-          <p class="supplier-text">
-            공급사: <strong>{{ order.supplier_name }}</strong>
-            <span class="badge-verified">✓ Verified Supplier</span>
-            <span class="badge-ta"><WsIcon name="shield" :size="15" /> Trade Assurance</span>
-          </p>
+    <div v-else class="od">
+      <div class="ws-page-head">
+        <p class="ws-eyebrow">Order {{ order.order_number }}</p>
+        <div class="ws-page-head-row">
+          <h1 class="ws-page-title ws-figure">{{ order.order_number }}</h1>
+          <b class="ws-price ws-price-lg ws-figure">${{ (order.total_amount_minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</b>
         </div>
-        <div class="header-right">
-          <span class="total-label">총 발주 금액 (Total):</span>
-          <span class="total-amount">${{ (order.total_amount_minor / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }}</span>
-        </div>
+        <p class="ws-page-sub">
+          체결일 {{ formatDate(order.created_at) }} · {{ order.supplier_name }}
+          <span class="ws-badge ws-badge-success">Verified</span>
+          <span class="ws-badge ws-badge-brand"><WsIcon name="shield" :size="12" /> Trade Assurance</span>
+        </p>
       </div>
 
-      <!-- 5-Stage Milestone Timeline Tracker -->
-      <div class="timeline-card">
-        <h3>5대 무역 이행 마일스톤 추적 (Milestone Timeline)</h3>
-        <div class="timeline-steps">
-          <div class="timeline-step" :class="getStepClass(1)">
-            <div class="step-num">1</div>
-            <div class="step-info">
-              <span class="step-title">계약 체결</span>
-              <span class="step-status">{{ order.contract_hash ? '완료' : '서명 대기' }}</span>
-            </div>
+      <!-- Milestone tracker -->
+      <div class="ws-card">
+        <div class="ws-card-head"><h3>무역 이행 마일스톤</h3></div>
+        <div class="ws-steps od-steps">
+          <div class="ws-step" :class="{ 'ws-step-done': getStepClass(1) === 'completed', 'ws-step-active': getStepClass(1) === 'current' }">
+            <span class="ws-step-num">1</span>
+            <span class="ws-step-label">계약 체결<br /><span class="ws-step-sub">{{ order.contract_hash ? '완료' : '서명 대기' }}</span></span>
           </div>
-          <div class="timeline-step" :class="getStepClass(2)">
-            <div class="step-num">2</div>
-            <div class="step-info">
-              <span class="step-title">선급금 30%</span>
-              <span class="step-status">{{ order.payment_status === 'DOWN_PAYMENT_PENDING' ? '결제 대기' : '에스크로 예치됨' }}</span>
-            </div>
+          <div class="ws-step" :class="{ 'ws-step-done': getStepClass(2) === 'completed', 'ws-step-active': getStepClass(2) === 'current' }">
+            <span class="ws-step-num">2</span>
+            <span class="ws-step-label">선급금 30%<br /><span class="ws-step-sub">{{ order.payment_status === 'DOWN_PAYMENT_PENDING' ? '결제 대기' : '에스크로 예치됨' }}</span></span>
           </div>
-          <div class="timeline-step" :class="getStepClass(3)">
-            <div class="step-num">3</div>
-            <div class="step-info">
-              <span class="step-title">공장 생산 및 품질 검수</span>
-              <span class="step-status">{{ order.inspection_status || '진행 중' }}</span>
-            </div>
+          <div class="ws-step" :class="{ 'ws-step-done': getStepClass(3) === 'completed', 'ws-step-active': getStepClass(3) === 'current' }">
+            <span class="ws-step-num">3</span>
+            <span class="ws-step-label">생산·품질 검수<br /><span class="ws-step-sub">{{ order.inspection_status || '진행 중' }}</span></span>
           </div>
-          <div class="timeline-step" :class="getStepClass(4)">
-            <div class="step-num">4</div>
-            <div class="step-info">
-              <span class="step-title">잔금 70%</span>
-              <span class="step-status">{{ order.payment_status === 'FULLY_PAID' ? '예치 완료' : '결제 대기' }}</span>
-            </div>
+          <div class="ws-step" :class="{ 'ws-step-done': getStepClass(4) === 'completed', 'ws-step-active': getStepClass(4) === 'current' }">
+            <span class="ws-step-num">4</span>
+            <span class="ws-step-label">잔금 70%<br /><span class="ws-step-sub">{{ order.payment_status === 'FULLY_PAID' ? '예치 완료' : '결제 대기' }}</span></span>
           </div>
-          <div class="timeline-step" :class="getStepClass(5)">
-            <div class="step-num">5</div>
-            <div class="step-info">
-              <span class="step-title">해상/항공 운송 및 인수</span>
-              <span class="step-status">{{ order.order_status === 'COMPLETED' ? '인수 완료' : order.order_status }}</span>
-            </div>
+          <div class="ws-step" :class="{ 'ws-step-done': getStepClass(5) === 'completed', 'ws-step-active': getStepClass(5) === 'current' }">
+            <span class="ws-step-num">5</span>
+            <span class="ws-step-label">운송·인수<br /><span class="ws-step-sub">{{ order.order_status === 'COMPLETED' ? '인수 완료' : order.order_status }}</span></span>
           </div>
         </div>
       </div>
 
-      <!-- Main Columns: Details + Actions -->
-      <div class="detail-grid">
-        <!-- Left: Item & Contract Details -->
-        <div class="detail-left">
-          <!-- Item Card -->
-          <div class="card-box">
-            <h4>발주 품목 명세 (Item Specification)</h4>
-            <div class="item-detail-row">
-              <div class="item-info">
-                <h5>{{ order.item_title }}</h5>
-                <p><strong>발주 수량:</strong> {{ order.ordered_quantity }} {{ order.unit }}</p>
-                <p><strong>인도 조건:</strong> {{ order.incoterms || 'FOB Busan Port' }}</p>
-                <p><strong>납기 기한:</strong> {{ order.lead_time_days }}일 이내</p>
-                <p><strong>화물 배송 주소:</strong> {{ order.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</p>
-              </div>
-            </div>
-          </div>
+      <div class="od-grid">
+        <div class="ws-stack">
+          <!-- Item spec -->
+          <section class="ws-card">
+            <div class="ws-card-head"><h3>발주 품목 명세</h3></div>
+            <table class="ws-spec-table">
+              <tbody>
+                <tr><th>품목</th><td><b>{{ order.item_title }}</b></td></tr>
+                <tr><th>발주 수량</th><td class="ws-figure">{{ order.ordered_quantity }} {{ order.unit }}</td></tr>
+                <tr><th>인도 조건</th><td>{{ order.incoterms || 'FOB Busan Port' }}</td></tr>
+                <tr><th>납기 기한</th><td>{{ order.lead_time_days }}일 이내</td></tr>
+                <tr><th>배송 주소</th><td>{{ order.shipping_address || '450 Lexington Ave, New York, NY 10017, USA' }}</td></tr>
+              </tbody>
+            </table>
+          </section>
 
-          <!-- Escrow Financial Breakdown -->
-          <div class="card-box">
-            <h4>무역 에스크로 정산 분할 (Financial Breakdown)</h4>
-            <table class="financial-table">
+          <!-- Escrow breakdown -->
+          <section class="ws-card">
+            <div class="ws-card-head"><h3>에스크로 정산 분할</h3></div>
+            <table class="ws-tier-table">
               <tbody>
                 <tr>
-                  <td>1차 선급금 (30% Downpayment):</td>
-                  <td class="font-bold text-right">
-                    ${{ ((order.downpayment_minor || 126000) / 100).toLocaleString() }}
-                    <span v-if="order.payment_status !== 'DOWN_PAYMENT_PENDING'" class="text-green-600 font-bold ml-2">✓ 예치됨</span>
-                    <span v-else class="text-orange-600 font-bold ml-2">미결제</span>
-                  </td>
+                  <td>1차 선급금 (30%)</td>
+                  <td style="text-align: right" class="ws-figure"><b>${{ ((order.downpayment_minor || 126000) / 100).toLocaleString() }}</b></td>
+                  <td style="text-align: right"><span v-if="order.payment_status !== 'DOWN_PAYMENT_PENDING'" class="ws-badge ws-badge-success">예치됨</span><span v-else class="ws-badge ws-badge-warning">미결제</span></td>
                 </tr>
                 <tr>
-                  <td>2차 잔금 (70% Balance):</td>
-                  <td class="font-bold text-right">
-                    ${{ ((order.balance_minor || 294000) / 100).toLocaleString() }}
-                    <span v-if="order.payment_status === 'FULLY_PAID'" class="text-green-600 font-bold ml-2">✓ 예치됨</span>
-                    <span v-else class="text-gray-400 ml-2">검수 후 예치</span>
-                  </td>
+                  <td>2차 잔금 (70%)</td>
+                  <td style="text-align: right" class="ws-figure"><b>${{ ((order.balance_minor || 294000) / 100).toLocaleString() }}</b></td>
+                  <td style="text-align: right"><span v-if="order.payment_status === 'FULLY_PAID'" class="ws-badge ws-badge-success">예치됨</span><span v-else class="ws-badge ws-badge-outline">검수 후 예치</span></td>
                 </tr>
-                <tr class="total-row">
-                  <td>합계 (Total Escrow Vault):</td>
-                  <td class="font-bold text-right text-lg text-orange-600">
-                    ${{ (order.total_amount_minor / 100).toLocaleString() }}
-                  </td>
+                <tr>
+                  <td><b>합계 (Escrow Vault)</b></td>
+                  <td style="text-align: right"><b class="ws-price ws-figure">${{ (order.total_amount_minor / 100).toLocaleString() }}</b></td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
-          </div>
+          </section>
 
-          <!-- Document Center -->
-          <div class="card-box">
-            <div class="box-head-row">
-              <h4>무역 공식 증빙 서류 (Document Center)</h4>
-              <button class="btn-upload-doc" @click="showUploadModal = true">
-                <WsIcon name="upload" :size="15" /> 클라우드 R2/S3 서류 업로드
-              </button>
+          <!-- Documents -->
+          <section class="ws-card">
+            <div class="ws-card-head">
+              <h3>무역 증빙 서류</h3>
+              <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="showUploadModal = true"><WsIcon name="upload" :size="14" /> 서류 업로드</button>
             </div>
-            <div class="doc-list">
-              <div class="doc-item">
-                <span class="doc-icon"><WsIcon name="file" :size="15" /></span>
-                <div class="doc-info">
-                  <span class="doc-title">상업 송장 (Commercial Invoice)</span>
-                  <span class="doc-sub">CI-{{ order.order_number }}.pdf</span>
-                </div>
-                <button class="btn-download" @click="downloadDoc('Commercial Invoice')">다운로드</button>
+            <div class="ws-list-row" v-for="doc in staticDocs" :key="doc.name">
+              <span class="doc-ico"><WsIcon :name="doc.icon" :size="17" /></span>
+              <div class="ws-list-main">
+                <p class="ws-list-title">{{ doc.name }}</p>
+                <p class="ws-list-sub">{{ doc.file }}</p>
               </div>
-              <div class="doc-item">
-                <span class="doc-icon"><WsIcon name="package" :size="15" /></span>
-                <div class="doc-info">
-                  <span class="doc-title">포장 명세서 (Packing List)</span>
-                  <span class="doc-sub">PL-{{ order.order_number }}.pdf</span>
-                </div>
-                <button class="btn-download" @click="downloadDoc('Packing List')">다운로드</button>
+              <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="downloadDoc(doc.short)">다운로드</button>
+            </div>
+            <div class="ws-list-row" v-for="d in uploadedDocumentsList" :key="d.id">
+              <span class="doc-ico"><WsIcon name="file" :size="17" /></span>
+              <div class="ws-list-main">
+                <p class="ws-list-title">{{ d.file_name }}</p>
+                <p class="ws-list-sub">R2 Vault: {{ d.sha256_hash?.slice(0, 16) }}... ({{ (d.file_size_bytes / 1024).toFixed(1) }} KB)</p>
               </div>
-              <div class="doc-item">
-                <span class="doc-icon"><WsIcon name="truck" :size="15" /></span>
-                <div class="doc-info">
-                  <span class="doc-title">선하증권 (Ocean Bill of Lading)</span>
-                  <span class="doc-sub">BL-MAERSK-998821.pdf</span>
-                </div>
-                <button class="btn-download" @click="downloadDoc('Bill of Lading')">다운로드</button>
-              </div>
-              <div class="doc-item">
-                <span class="doc-icon"><WsIcon name="search" :size="15" /></span>
-                <div class="doc-info">
-                  <span class="doc-title">SGS 국제 품질 검수 성적서 (Inspection Report)</span>
-                  <span class="doc-sub">SGS-AQL-2.5-PASS.pdf</span>
-                </div>
-                <button class="btn-download" @click="downloadDoc('Inspection Report')">다운로드</button>
-              </div>
+              <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="downloadDoc(d.file_name)">다운로드</button>
+            </div>
+          </section>
 
-              <!-- Dynamically Uploaded Documents from Cloud Storage -->
-              <div v-for="d in uploadedDocumentsList" :key="d.id" class="doc-item dynamic">
-                <span class="doc-icon"><WsIcon name="file" :size="15" /></span>
-                <div class="doc-info">
-                  <span class="doc-title">{{ d.file_name }}</span>
-                  <span class="doc-sub">R2 Vault: {{ d.sha256_hash?.slice(0, 16) }}... ({{ (d.file_size_bytes / 1024).toFixed(1) }} KB)</span>
-                </div>
-                <button class="btn-download" @click="downloadDoc(d.file_name)">다운로드</button>
-              </div>
+          <!-- Customs -->
+          <section class="ws-card">
+            <div class="ws-card-head">
+              <h3><WsIcon name="building" :size="16" class="h-ico" /> 세관 통관 필증 원장</h3>
+              <span class="ws-badge ws-badge-success">{{ customsManifest?.customs_status || 'CLEARED' }}</span>
             </div>
-          </div>
-
-          <!-- Real-Time Customs Declaration Manifest -->
-          <div class="card-box customs-box">
-            <div class="box-head-row">
-              <h4><WsIcon name="building" :size="15" /> 수출입 세관 통관 필증 원장 (Customs Manifest)</h4>
-              <span class="customs-badge" :class="customsManifest?.customs_status?.toLowerCase() || 'cleared'">
-                {{ customsManifest?.customs_status || 'CLEARED' }}
-              </span>
+            <div class="ws-grid-2 customs-grid">
+              <div><span>수출신고번호</span><b class="ws-figure">{{ customsManifest?.declaration_number || `EXP-KR-2026-${order.order_number?.replace(/\D/g, '') || '88391'}` }}</b></div>
+              <div><span>HS 코드</span><b class="ws-figure">{{ customsManifest?.hs_code || '7323.93.0000' }}</b></div>
+              <div><span>적재항 (POL)</span><b>{{ customsManifest?.port_of_loading || 'Busan Port (KRPUS)' }}</b></div>
+              <div><span>양하항 (POD)</span><b>{{ customsManifest?.port_of_discharge || 'Los Angeles (USLAX)' }}</b></div>
+              <div><span>통관 관세사</span><b>{{ customsManifest?.customs_broker_name || 'Pantos Logistics Global' }}</b></div>
+              <div><span>납부 관부가세</span><b class="ws-figure">${{ ((customsManifest?.duty_tax_amount_minor || 27300) / 100).toFixed(2) }} (납부완료)</b></div>
             </div>
-            <div class="customs-grid">
-              <div class="cg-item">
-                <span class="cg-lbl">수출신고번호:</span>
-                <span class="cg-val font-mono">{{ customsManifest?.declaration_number || `EXP-KR-2026-${order.order_number?.replace(/\D/g, '') || '88391'}` }}</span>
-              </div>
-              <div class="cg-item">
-                <span class="cg-lbl">HS 코드 (세번부호):</span>
-                <span class="cg-val font-mono">{{ customsManifest?.hs_code || '7323.93.0000' }}</span>
-              </div>
-              <div class="cg-item">
-                <span class="cg-lbl">적재항 (POL):</span>
-                <span class="cg-val">{{ customsManifest?.port_of_loading || 'Busan Port (KRPUS)' }}</span>
-              </div>
-              <div class="cg-item">
-                <span class="cg-lbl">양하항 (POD):</span>
-                <span class="cg-val">{{ customsManifest?.port_of_discharge || 'Los Angeles (USLAX)' }}</span>
-              </div>
-              <div class="cg-item">
-                <span class="cg-lbl">통관 관세사:</span>
-                <span class="cg-val">{{ customsManifest?.customs_broker_name || 'Pantos Logistics Global' }}</span>
-              </div>
-              <div class="cg-item">
-                <span class="cg-lbl">납부 관부가세:</span>
-                <span class="cg-val text-green-700 font-bold">${{ ((customsManifest?.duty_tax_amount_minor || 27300) / 100).toFixed(2) }} (납부완료)</span>
-              </div>
+            <div class="ws-split customs-foot">
+              <span class="ws-small ws-muted">수출 승인 면허: <code>{{ customsManifest?.export_license_number || 'EL-2026-KR-7711' }}</code></span>
+              <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="openCustomsCert"><WsIcon name="file" :size="14" /> 필증 원본 열람</button>
             </div>
-            <div class="customs-foot">
-              <span>수출 승인 면허: <code>{{ customsManifest?.export_license_number || 'EL-2026-KR-7711' }}</code></span>
-              <button class="btn-sm-view" @click="openCustomsCert"><WsIcon name="file" :size="15" /> 세관 필증 원본 열람</button>
-            </div>
-          </div>
+          </section>
         </div>
 
-        <!-- Right: Actions & Timeline Events -->
-        <div class="detail-right">
-          <!-- Active Trade Assurance Claim Notice -->
-          <div v-if="activeClaim" class="claim-status-card">
-            <div class="claim-badge-row">
-              <span class="claim-icon"><WsIcon name="shield" :size="15" /></span>
-              <span class="claim-title">Trade Assurance 무역 안심 보증 심사 진행 중</span>
-              <span class="claim-stat-tag">{{ activeClaim.arbitration_status }}</span>
+        <div class="ws-stack od-side">
+          <div v-if="activeClaim" class="ws-banner ws-banner-warning claim-card">
+            <WsIcon name="shield" :size="18" />
+            <div>
+              <b>Trade Assurance 심사 진행 중 · {{ activeClaim.arbitration_status }}</b>
+              <p>청구 유형 <b>{{ activeClaim.claim_category }}</b> · 청구액 <b>${{ (activeClaim.claim_amount_minor / 100).toFixed(2) }}</b></p>
+              <p>중재관이 B/L·SGS 성적서를 대조 중이며, 보증금 자동 환불 또는 정산 조정이 집행됩니다.</p>
             </div>
-            <p class="claim-meta">청구 유형: <strong>{{ activeClaim.claim_category }}</strong> | 청구액: <strong>${{ (activeClaim.claim_amount_minor / 100).toFixed(2) }}</strong></p>
-            <p class="claim-desc">※ 플랫폼 중재관이 공급사의 선적 B/L 및 SGS 성적서를 대조 조사 중이며, 보증금 자동 환불 또는 정산 조정이 집행됩니다.</p>
           </div>
 
-          <!-- Action Console -->
-          <div class="card-box actions-console">
-            <h4>발주 진행 조치 (Actions)</h4>
-
-            <!-- 1. Sign Contract -->
-            <div v-if="order.order_status === 'CONTRACT_PENDING'" class="action-block">
-              <p class="action-desc">전자 무역 계약서 서명이 필요합니다.</p>
-              <router-link
-                :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`"
-                class="btn-full primary"
-              >
-                <WsIcon name="pencil" :size="15" /> 전자계약서 확인 및 서명하기
-              </router-link>
-            </div>
-
-            <!-- 2. Pay 30% Downpayment -->
-            <div v-if="order.payment_status === 'DOWN_PAYMENT_PENDING'" class="action-block">
-              <p class="action-desc">생산 착수를 위해 선급금 30%를 에스크로에 예치하세요.</p>
-              <button
-                class="btn-full primary"
-                :disabled="processingPayment"
-                @click="openPaymentModal('DOWNPAYMENT_30')"
-              >
-                {{ processingPayment ? '결제 처리 중...' : `선급금 30% ($${((order.downpayment_minor || 126000) / 100).toLocaleString()}) 결제 / 가상계좌 발급` }}
-              </button>
-            </div>
-
-            <!-- 3. Quality Inspection Approval -->
-            <div v-if="order.order_status === 'IN_PRODUCTION' && order.inspection_status !== 'PASSED'" class="action-block">
-              <p class="action-desc">SGS/TÜV 제3자 공장 사전 출고 검수 결과 승인이 가능합니다.</p>
-              <button
-                class="btn-full success"
-                :disabled="approvingInspection"
-                @click="approveInspection"
-              >
-                <WsIcon v-if="!(approvingInspection)" name="search" :size="14" /> {{ approvingInspection ? '승인 중...' : '제3자 품질 검수(SGS) 합격 승인' }}
-              </button>
-            </div>
-
-            <!-- 4. Pay 70% Balance -->
-            <div v-if="order.payment_status === 'PARTIALLY_PAID_30' && (order.order_status === 'SHIPPED' || order.inspection_status === 'PASSED')" class="action-block">
-              <p class="action-desc">검수 완료 후 화물 선적을 위해 잔금 70%를 에스크로에 예치하세요.</p>
-              <button
-                class="btn-full primary"
-                :disabled="processingPayment"
-                @click="openPaymentModal('BALANCE_70')"
-              >
-                {{ processingPayment ? '결제 처리 중...' : `잔금 70% ($${((order.balance_minor || 294000) / 100).toLocaleString()}) 결제 / 가상계좌 입금` }}
-              </button>
-            </div>
-
-            <!-- 5. Confirm Delivery -->
-            <div v-if="order.order_status === 'SHIPPED' && order.payment_status === 'FULLY_PAID'" class="action-block">
-              <p class="action-desc">화물 인수를 최종 확인하고 에스크로 대금을 공급사로 지급합니다.</p>
-              <button
-                class="btn-full success"
-                :disabled="confirmingDelivery"
-                @click="confirmDelivery"
-              >
-                {{ confirmingDelivery ? '확인 중...' : '✓ 화물 최종 인수 확인 및 대금 지급 승인' }}
-              </button>
-            </div>
-
-            <!-- 6. Dispute Claim Button -->
-            <div class="dispute-block">
-              <p class="dispute-desc">품질 불량, 수량 부족 또는 납기 지연이 발생했습니까?</p>
-              <div class="dispute-btn-group">
-                <button
-                  class="btn-full danger"
-                  @click="showClaimModal = true"
-                >
-                  <WsIcon name="shield" :size="15" /> 100% Trade Assurance 보증 클레임 신청
+          <!-- Actions -->
+          <section class="ws-card">
+            <div class="ws-card-head"><h3>발주 진행 조치</h3></div>
+            <div class="ws-stack-sm">
+              <div v-if="order.order_status === 'CONTRACT_PENDING'" class="act">
+                <p>전자 무역 계약서 서명이 필요합니다.</p>
+                <router-link :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/contract`" class="ws-btn ws-btn-primary ws-btn-block"><WsIcon name="pencil" :size="14" /> 전자계약서 확인·서명</router-link>
+              </div>
+              <div v-if="order.payment_status === 'DOWN_PAYMENT_PENDING'" class="act">
+                <p>생산 착수를 위해 선급금 30%를 에스크로에 예치하세요.</p>
+                <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('DOWNPAYMENT_30')">
+                  {{ processingPayment ? '결제 처리 중...' : `선급금 30% ($${((order.downpayment_minor || 126000) / 100).toLocaleString()}) 결제` }}
                 </button>
-                <router-link
-                  :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/dispute`"
-                  class="btn-link-dispute"
-                >
-                  상세 분쟁 조정 및 소명 서류 제출 센터로 이동 ›
-                </router-link>
+              </div>
+              <div v-if="order.order_status === 'IN_PRODUCTION' && order.inspection_status !== 'PASSED'" class="act">
+                <p>SGS/TÜV 제3자 출고 검수 결과 승인이 가능합니다.</p>
+                <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="approvingInspection" @click="approveInspection">
+                  <WsIcon v-if="!approvingInspection" name="search" :size="14" /> {{ approvingInspection ? '승인 중...' : '품질 검수 합격 승인' }}
+                </button>
+              </div>
+              <div v-if="order.payment_status === 'PARTIALLY_PAID_30' && (order.order_status === 'SHIPPED' || order.inspection_status === 'PASSED')" class="act">
+                <p>검수 완료 후 선적을 위해 잔금 70%를 예치하세요.</p>
+                <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="processingPayment" @click="openPaymentModal('BALANCE_70')">
+                  {{ processingPayment ? '결제 처리 중...' : `잔금 70% ($${((order.balance_minor || 294000) / 100).toLocaleString()}) 결제` }}
+                </button>
+              </div>
+              <div v-if="order.order_status === 'SHIPPED' && order.payment_status === 'FULLY_PAID'" class="act">
+                <p>화물 인수를 확인하고 에스크로 대금을 지급합니다.</p>
+                <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="confirmingDelivery" @click="confirmDelivery">
+                  <WsIcon name="check" :size="14" /> {{ confirmingDelivery ? '확인 중...' : '최종 인수 확인·대금 지급' }}
+                </button>
+              </div>
+              <div class="act dispute-act">
+                <p>품질 불량·수량 부족·납기 지연이 발생했습니까?</p>
+                <button class="ws-btn ws-btn-danger ws-btn-block" @click="showClaimModal = true"><WsIcon name="shield" :size="14" /> Trade Assurance 클레임 신청</button>
+                <router-link :to="`/${currentLocale}/${currentCurrency}/orders/${order.id}/dispute`" class="ws-section-more">분쟁 조정·소명 센터로 이동 ›</router-link>
               </div>
             </div>
-          </div>
+          </section>
 
-          <!-- Logistics Tracking Events Timeline -->
-          <div class="card-box">
-            <h4>실시간 화물 운송 추적 (Shipment Tracking)</h4>
-            <div class="tracking-events">
-              <div class="tracking-event active">
-                <span class="event-dot"></span>
-                <div class="event-body">
-                  <span class="event-time">2026-10-24 14:00 (KST)</span>
-                  <span class="event-desc font-bold">부산항 CY 통관 완료 및 본선 선적 (Vessel Departed)</span>
-                  <span class="event-loc">Busan Port Container Terminal (KR)</span>
-                </div>
-              </div>
-              <div class="tracking-event">
-                <span class="event-dot"></span>
-                <div class="event-body">
-                  <span class="event-time">2026-10-23 09:30 (KST)</span>
-                  <span class="event-desc">SGS 공장 출하 전 사전 검수 (MIL-STD-105E AQL 2.5 Pass)</span>
-                  <span class="event-loc">Precision Korea Facility #2</span>
-                </div>
-              </div>
-              <div class="tracking-event">
-                <span class="event-dot"></span>
-                <div class="event-body">
-                  <span class="event-time">2026-10-18 10:15 (KST)</span>
-                  <span class="event-desc">정식 무역 발주 및 30% 선급금 에스크로 입금 확인</span>
-                  <span class="event-loc">Wholesale Escrow Vault</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Tracking -->
+          <section class="ws-card">
+            <div class="ws-card-head"><h3>화물 운송 추적</h3></div>
+            <ul class="ws-timeline">
+              <li class="ws-timeline-now">
+                <p class="ws-timeline-title">부산항 CY 통관 완료·본선 선적</p>
+                <p class="ws-timeline-sub">2026-10-24 14:00 KST · Busan Port Container Terminal</p>
+              </li>
+              <li class="ws-timeline-done">
+                <p class="ws-timeline-title">SGS 출하 전 사전 검수 (AQL 2.5 Pass)</p>
+                <p class="ws-timeline-sub">2026-10-23 09:30 KST · Precision Korea Facility #2</p>
+              </li>
+              <li class="ws-timeline-done">
+                <p class="ws-timeline-title">정식 발주·선급금 30% 에스크로 입금 확인</p>
+                <p class="ws-timeline-sub">2026-10-18 10:15 KST · Wholesale Escrow Vault</p>
+              </li>
+            </ul>
+          </section>
         </div>
       </div>
     </div>
 
-    <!-- Trade Assurance Guarantee Claim Filing Modal -->
-    <div v-if="showClaimModal" class="claim-modal-backdrop" @click.self="showClaimModal = false">
-      <div class="claim-modal">
-        <div class="modal-head">
-          <div class="head-left">
-            <span class="cert-icon"><WsIcon name="shield" :size="15" /></span>
-            <div>
-              <h3>100% 무역 안심 보증 (Trade Assurance) 클레임 접수</h3>
-              <p>주문번호: {{ order?.order_number }} | 보증 한도: ${{ ((order?.total_amount_minor || 420000) / 100).toLocaleString() }}</p>
-            </div>
-          </div>
-          <button class="btn-close" @click="showClaimModal = false">✕</button>
+    <!-- Claim modal -->
+    <div v-if="showClaimModal" class="ws-modal-backdrop" @click.self="showClaimModal = false">
+      <div class="ws-modal ws-modal-wide" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>Trade Assurance 클레임 접수</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showClaimModal = false"><WsIcon name="x" :size="15" /></button>
         </div>
-
-        <div class="modal-body">
-          <div class="form-group">
-            <label>클레임 청구 유형 (Claim Category):</label>
-            <select v-model="claimCategory" class="form-select">
-              <option value="QUALITY_DISPUTE">품질 불량 및 허용 오차 초과 (QUALITY_DISPUTE)</option>
-              <option value="DELIVERY_DEFAULT">납기 지연 및 계약 미이행 (DELIVERY_DEFAULT)</option>
-              <option value="SPEC_MISMATCH">계약 규격 및 재질 불일치 (SPEC_MISMATCH)</option>
-              <option value="DAMAGE_IN_TRANSIT">해상/항공 운송 중 파손 및 침수 (DAMAGE_IN_TRANSIT)</option>
+        <div class="ws-modal-body">
+          <p class="ws-small ws-muted" style="margin-top: 0">주문 {{ order?.order_number }} · 보증 한도 ${{ ((order?.total_amount_minor || 420000) / 100).toLocaleString() }}</p>
+          <div class="ws-field">
+            <label>클레임 청구 유형</label>
+            <select v-model="claimCategory">
+              <option value="QUALITY_DISPUTE">품질 불량·허용 오차 초과 (QUALITY_DISPUTE)</option>
+              <option value="DELIVERY_DEFAULT">납기 지연·계약 미이행 (DELIVERY_DEFAULT)</option>
+              <option value="SPEC_MISMATCH">계약 규격·재질 불일치 (SPEC_MISMATCH)</option>
+              <option value="DAMAGE_IN_TRANSIT">운송 중 파손·침수 (DAMAGE_IN_TRANSIT)</option>
             </select>
           </div>
-
-          <div class="form-group">
-            <label>청구 배상 금액 (USD):</label>
-            <input v-model.number="claimAmount" type="number" :max="(order?.total_amount_minor || 420000) / 100" class="form-input" />
-            <span class="input-hint">※ 최대 계약 총액(${{ ((order?.total_amount_minor || 420000) / 100).toFixed(2) }}) 범위 내에서 청구 가능합니다.</span>
+          <div class="ws-field">
+            <label>청구 배상 금액 (USD)</label>
+            <input v-model.number="claimAmount" type="number" :max="(order?.total_amount_minor || 420000) / 100" />
+            <p class="ws-hint">최대 계약 총액(${{ ((order?.total_amount_minor || 420000) / 100).toFixed(2) }}) 범위 내 청구 가능</p>
           </div>
-
-          <div class="form-group">
-            <label>피해 내역 및 입증 사유:</label>
-            <textarea v-model="claimReason" rows="3" class="form-textarea" placeholder="검수 사진, 불량률 측정치 또는 납기 위반 일자를 기재하세요."></textarea>
+          <div class="ws-field">
+            <label>피해 내역·입증 사유</label>
+            <textarea v-model="claimReason" rows="3" class="ws-textarea" placeholder="검수 사진, 불량률 측정치 또는 납기 위반 일자를 기재하세요."></textarea>
           </div>
-
-          <div class="claim-info-box">
-            <p><strong>에스크로 즉시 자동 동결(HELD) 안내:</strong></p>
-            <p>클레임이 접수되면 공급사 정산 지급(Escrow Payout)은 실시간 자동 동결(HELD)되며, 플랫폼 감사관의 판정 완료 시까지 안전하게 보관됩니다.</p>
+          <div class="ws-banner ws-banner-warning" style="margin-bottom: 0">
+            <WsIcon name="alert" :size="16" />
+            <span><b>에스크로 즉시 자동 동결(HELD):</b> 접수 시 공급사 정산 지급이 동결되고 판정 완료 시까지 보관됩니다.</span>
           </div>
         </div>
-
-        <div class="modal-foot">
-          <button class="btn-secondary" @click="showClaimModal = false">취소</button>
-          <button
-            class="btn-submit-claim"
-            :disabled="submittingClaim || claimAmount <= 0"
-            @click="fileTradeAssuranceClaim"
-          >
-            <WsIcon v-if="!(submittingClaim)" name="shield" :size="14" /> {{ submittingClaim ? '클레임 심사 접수 중...' : 'Trade Assurance 보증 심사 정식 제출' }}
+        <div class="ws-modal-foot">
+          <button class="ws-btn ws-btn-secondary" @click="showClaimModal = false">취소</button>
+          <button class="ws-btn ws-btn-danger" :disabled="submittingClaim || claimAmount <= 0" @click="fileTradeAssuranceClaim">
+            <WsIcon v-if="!submittingClaim" name="shield" :size="14" /> {{ submittingClaim ? '심사 접수 중...' : '보증 심사 정식 제출' }}
           </button>
         </div>
       </div>
     </div>
 
-    <!-- Live B2B Escrow Payment Modal (Virtual Account / Corporate Card / SWIFT Wire) -->
-    <div v-if="showPaymentModal" class="claim-modal-backdrop" @click.self="showPaymentModal = false">
-      <div class="claim-modal payment-modal">
-        <div class="modal-head">
-          <div class="head-left">
-            <span class="cert-icon"><WsIcon name="card" :size="15" /></span>
-            <div>
-              <h3>무역 에스크로 안전 결제 (B2B Escrow Checkout)</h3>
-              <p>주문: {{ order?.order_number }} | 결제 단계: <strong>{{ paymentStage === 'DOWNPAYMENT_30' ? '1차 선급금 (30%)' : '2차 잔금 (70%)' }}</strong></p>
-            </div>
-          </div>
-          <button class="btn-close" @click="showPaymentModal = false">✕</button>
+    <!-- Payment modal -->
+    <div v-if="showPaymentModal" class="ws-modal-backdrop" @click.self="showPaymentModal = false">
+      <div class="ws-modal ws-modal-wide" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>무역 에스크로 안전 결제</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showPaymentModal = false"><WsIcon name="x" :size="15" /></button>
         </div>
-
-        <div class="modal-body">
-          <!-- Payment Amount Highlight -->
-          <div class="pay-amount-banner">
-            <span class="p-lbl">에스크로 예치 청구 금액:</span>
-            <span class="p-val">${{ ((paymentStage === 'DOWNPAYMENT_30' ? (order?.downpayment_minor || 126000) : (order?.balance_minor || 294000)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }} {{ order?.currency || 'USD' }}</span>
+        <div class="ws-modal-body">
+          <p class="ws-small ws-muted" style="margin-top: 0">주문 {{ order?.order_number }} · <b>{{ paymentStage === 'DOWNPAYMENT_30' ? '1차 선급금 (30%)' : '2차 잔금 (70%)' }}</b></p>
+          <div class="pay-amount">
+            <span>에스크로 예치 청구 금액</span>
+            <b class="ws-figure">${{ ((paymentStage === 'DOWNPAYMENT_30' ? (order?.downpayment_minor || 126000) : (order?.balance_minor || 294000)) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 }) }} {{ order?.currency || 'USD' }}</b>
           </div>
-
-          <!-- Payment Method Tabs -->
-          <div class="pay-tabs">
-            <button
-              class="pay-tab"
-              :class="{ active: selectedPaymentTab === 'VIRTUAL_ACCOUNT' }"
-              @click="selectedPaymentTab = 'VIRTUAL_ACCOUNT'"
-            >
-              <WsIcon name="building" :size="15" /> 신탁 가상계좌 (B2B Wire)
-            </button>
-            <button
-              class="pay-tab"
-              :class="{ active: selectedPaymentTab === 'CARD' }"
-              @click="selectedPaymentTab = 'CARD'"
-            >
-              <WsIcon name="card" :size="15" /> 기업 법인카드 (Toss / Stripe)
-            </button>
-            <button
-              class="pay-tab"
-              :class="{ active: selectedPaymentTab === 'SWIFT' }"
-              @click="selectedPaymentTab = 'SWIFT'"
-            >
-              <WsIcon name="globe" :size="15" /> 해외 전신환 (SWIFT)
+          <div class="ws-tabs">
+            <button class="ws-tab" :class="{ 'ws-tab-active': selectedPaymentTab === 'VIRTUAL_ACCOUNT' }" @click="selectedPaymentTab = 'VIRTUAL_ACCOUNT'"><WsIcon name="building" :size="14" /> 가상계좌</button>
+            <button class="ws-tab" :class="{ 'ws-tab-active': selectedPaymentTab === 'CARD' }" @click="selectedPaymentTab = 'CARD'"><WsIcon name="card" :size="14" /> 법인카드</button>
+            <button class="ws-tab" :class="{ 'ws-tab-active': selectedPaymentTab === 'SWIFT' }" @click="selectedPaymentTab = 'SWIFT'"><WsIcon name="globe" :size="14" /> SWIFT</button>
+          </div>
+          <div v-if="selectedPaymentTab === 'VIRTUAL_ACCOUNT'">
+            <table class="ws-spec-table">
+              <tbody>
+                <tr><th>입금 은행</th><td><b>{{ virtualAccount?.bank_name || '신한은행 (Shinhan Bank B2B Escrow)' }}</b></td></tr>
+                <tr><th>가상 계좌번호</th><td><b class="ws-price ws-figure">{{ virtualAccount?.account_number || '562-910023-88192' }}</b></td></tr>
+                <tr><th>예금주</th><td><b>{{ virtualAccount?.account_holder || '주식회사 홀세일무역 (무역에스크로신탁)' }}</b></td></tr>
+                <tr><th>입금 마감</th><td>{{ formatDate(virtualAccount?.expires_at) }} 23:59 (7일 유효)</td></tr>
+              </tbody>
+            </table>
+            <p class="ws-hint">실제 은행 펌뱅킹망 입금 통보(Webhook) 수신 시 상태가 실시간 전환됩니다.</p>
+            <button class="ws-btn ws-btn-navy ws-btn-block" :disabled="simulatingDeposit" @click="simulateBankDeposit">
+              <WsIcon v-if="!simulatingDeposit" name="bolt" :size="14" /> {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '은행 입금 통보 시뮬레이터' }}
             </button>
           </div>
-
-          <!-- TAB 1: B2B Escrow Virtual Account -->
-          <div v-if="selectedPaymentTab === 'VIRTUAL_ACCOUNT'" class="pay-tab-content">
-            <div class="va-details-box">
-              <div class="va-row">
-                <span class="va-lbl">입금 은행:</span>
-                <span class="va-val font-bold text-sky-700">{{ virtualAccount?.bank_name || '신한은행 (Shinhan Bank B2B Escrow)' }}</span>
-              </div>
-              <div class="va-row">
-                <span class="va-lbl">가상 계좌번호:</span>
-                <span class="va-val font-mono font-bold text-lg text-orange-600">{{ virtualAccount?.account_number || '562-910023-88192' }}</span>
-              </div>
-              <div class="va-row">
-                <span class="va-lbl">예금주 (신탁사):</span>
-                <span class="va-val font-bold">{{ virtualAccount?.account_holder || '주식회사 홀세일무역 (무역에스크로신탁)' }}</span>
-              </div>
-              <div class="va-row">
-                <span class="va-lbl">입금 마감기한:</span>
-                <span class="va-val">{{ formatDate(virtualAccount?.expires_at) }} 23:59 (7일간 유효)</span>
-              </div>
-            </div>
-            <div class="bank-sim-box">
-              <p class="sim-note">※ 실제 은행 펌뱅킹망으로부터 입금 통보(Webhook)를 수신하면 상태가 즉시 실시간 전환됩니다.</p>
-              <button
-                class="btn-simulate-wire"
-                :disabled="simulatingDeposit"
-                @click="simulateBankDeposit"
-              >
-                <WsIcon v-if="!(simulatingDeposit)" name="bolt" :size="14" /> {{ simulatingDeposit ? '은행 전산망 통보 처리 중...' : '은행 입금 통보 시뮬레이터 (Bank Webhook Test)' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- TAB 2: Corporate Card (Toss Payments / Stripe) -->
-          <div v-if="selectedPaymentTab === 'CARD'" class="pay-tab-content">
-            <div class="form-group">
+          <div v-if="selectedPaymentTab === 'CARD'">
+            <div class="ws-field">
               <label>기업 법인카드 번호</label>
-              <input v-model="cardForm.cardNumber" type="text" class="form-input font-mono" placeholder="5409-XXXX-XXXX-XXXX" />
+              <input v-model="cardForm.cardNumber" type="text" class="ws-figure" placeholder="5409-XXXX-XXXX-XXXX" />
             </div>
-            <div class="form-row-2">
-              <div class="form-group">
-                <label>유효기간 (MM/YY)</label>
-                <input v-model="cardForm.expiry" type="text" class="form-input font-mono" placeholder="12/28" />
-              </div>
-              <div class="form-group">
-                <label>CVC (3자리)</label>
-                <input v-model="cardForm.cvc" type="password" maxlength="3" class="form-input font-mono" placeholder="•••" />
-              </div>
+            <div class="ws-grid-2">
+              <div class="ws-field"><label>유효기간 (MM/YY)</label><input v-model="cardForm.expiry" type="text" class="ws-figure" placeholder="12/28" /></div>
+              <div class="ws-field"><label>CVC</label><input v-model="cardForm.cvc" type="password" maxlength="3" class="ws-figure" placeholder="•••" /></div>
             </div>
-            <div class="form-group">
-              <label>법인 사업자등록번호 앞 5자리 (본인인증)</label>
-              <input v-model="cardForm.bizAuthNumber" type="text" maxlength="5" class="form-input font-mono" placeholder="12345" />
+            <div class="ws-field">
+              <label>법인 사업자등록번호 앞 5자리</label>
+              <input v-model="cardForm.bizAuthNumber" type="text" maxlength="5" class="ws-figure" placeholder="12345" />
             </div>
-            <button
-              class="btn-submit-pay"
-              :disabled="confirmingCard"
-              @click="confirmCardPayment"
-            >
-              <WsIcon v-if="!(confirmingCard)" name="card" :size="14" /> {{ confirmingCard ? 'PG사 결제 승인 중...' : '기업 법인카드 에스크로 결제 승인' }}
+            <button class="ws-btn ws-btn-primary ws-btn-block" :disabled="confirmingCard" @click="confirmCardPayment">
+              <WsIcon v-if="!confirmingCard" name="card" :size="14" /> {{ confirmingCard ? 'PG사 결제 승인 중...' : '법인카드 에스크로 결제 승인' }}
             </button>
           </div>
-
-          <!-- TAB 3: SWIFT International Wire -->
-          <div v-if="selectedPaymentTab === 'SWIFT'" class="pay-tab-content">
-            <div class="swift-box">
-              <p><strong>Beneficiary Bank:</strong> Shinhan Bank Seoul HQ</p>
-              <p><strong>SWIFT / BIC Code:</strong> <code>SHBKKRSEXXX</code></p>
-              <p><strong>Beneficiary Account:</strong> <code>USD-ESCROW-88192-KR</code></p>
-              <p><strong>Payment Reference (Mandatory):</strong> <code>{{ order?.order_number }}</code></p>
-              <p class="swift-alert"><WsIcon name="alert" :size="15" /> 국제 송금 시 필히 무역 발주번호(<code>{{ order?.order_number }}</code>)를 전문에 기재해야 자동 매칭됩니다.</p>
+          <div v-if="selectedPaymentTab === 'SWIFT'">
+            <table class="ws-spec-table">
+              <tbody>
+                <tr><th>Beneficiary Bank</th><td>Shinhan Bank Seoul HQ</td></tr>
+                <tr><th>SWIFT / BIC</th><td><code>SHBKKRSEXXX</code></td></tr>
+                <tr><th>Account</th><td><code>USD-ESCROW-88192-KR</code></td></tr>
+                <tr><th>Reference</th><td><code>{{ order?.order_number }}</code></td></tr>
+              </tbody>
+            </table>
+            <div class="ws-banner ws-banner-warning" style="margin-bottom: 0">
+              <WsIcon name="alert" :size="16" />
+              <span>송금 시 발주번호(<code>{{ order?.order_number }}</code>)를 전문에 기재해야 자동 매칭됩니다.</span>
             </div>
           </div>
         </div>
-
-        <div class="modal-foot">
-          <button class="btn-secondary" @click="showPaymentModal = false">닫기</button>
+        <div class="ws-modal-foot">
+          <button class="ws-btn ws-btn-secondary" @click="showPaymentModal = false">닫기</button>
         </div>
       </div>
     </div>
 
-    <!-- Cloud R2/S3 Trade Document Uploader Modal -->
-    <div v-if="showUploadModal" class="claim-modal-backdrop" @click.self="showUploadModal = false">
-      <div class="claim-modal">
-        <div class="modal-head">
-          <div class="head-left">
-            <span class="cert-icon"><WsIcon name="upload" :size="15" /></span>
-            <div>
-              <h3>클라우드 R2/S3 무역 공식 서류 업로드</h3>
-              <p>주문번호: {{ order?.order_number }} | 영구 클라우드 스토리지 보관 및 SHA-256 검증</p>
-            </div>
-          </div>
-          <button class="btn-close" @click="showUploadModal = false">✕</button>
+    <!-- Upload modal -->
+    <div v-if="showUploadModal" class="ws-modal-backdrop" @click.self="showUploadModal = false">
+      <div class="ws-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>무역 서류 업로드</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showUploadModal = false"><WsIcon name="x" :size="15" /></button>
         </div>
-
-        <div class="modal-body">
-          <div class="form-group">
-            <label>서류 구분 (Document Category):</label>
-            <select v-model="uploadCategory" class="form-select">
+        <div class="ws-modal-body">
+          <p class="ws-small ws-muted" style="margin-top: 0">주문 {{ order?.order_number }} · R2/S3 영구 보관·SHA-256 검증</p>
+          <div class="ws-field">
+            <label>서류 구분</label>
+            <select v-model="uploadCategory">
               <option value="COMMERCIAL_INVOICE">상업 송장 (Commercial Invoice)</option>
               <option value="PACKING_LIST">포장 명세서 (Packing List)</option>
               <option value="BILL_OF_LADING">선하증권 (Ocean / Air B/L)</option>
-              <option value="INSPECTION_REPORT">SGS/TÜV 품질 검수 성적서 (QC Report)</option>
-              <option value="CUSTOMS_DECLARATION">수출입 통관신고필증 (Customs Manifest)</option>
-              <option value="CAD_SPECIFICATION">제품 공학 도면 (CAD / 3D Spec)</option>
+              <option value="INSPECTION_REPORT">SGS/TÜV 품질 검수 성적서</option>
+              <option value="CUSTOMS_DECLARATION">수출입 통관신고필증</option>
+              <option value="CAD_SPECIFICATION">제품 공학 도면 (CAD / 3D)</option>
             </select>
           </div>
-
-          <div class="form-group">
-            <label>파일명 (File Name):</label>
-            <input v-model="uploadFileName" type="text" class="form-input" />
+          <div class="ws-field">
+            <label>파일명</label>
+            <input v-model="uploadFileName" type="text" />
           </div>
-
-          <div class="upload-dropzone">
-            <span class="dz-icon"><WsIcon name="file" :size="15" /></span>
-            <p class="dz-title">파일을 드래그하거나 선택하세요</p>
-            <span class="dz-sub">PDF, PNG, JPG, CAD 도면 (최대 50MB, 암호화 저장)</span>
+          <div class="dropzone">
+            <WsIcon name="file" :size="22" />
+            <p><b>파일을 드래그하거나 선택하세요</b></p>
+            <span>PDF · PNG · JPG · CAD (최대 50MB, 암호화 저장)</span>
           </div>
         </div>
-
-        <div class="modal-foot">
-          <button class="btn-secondary" @click="showUploadModal = false">취소</button>
-          <button
-            class="btn-submit-claim"
-            :disabled="uploadingDoc || !uploadFileName"
-            @click="handleFileUpload"
-          >
-            <WsIcon v-if="!(uploadingDoc)" name="upload" :size="14" /> {{ uploadingDoc ? '클라우드 업로드 중...' : '클라우드 스토리지 전송 및 원장 등록' }}
+        <div class="ws-modal-foot">
+          <button class="ws-btn ws-btn-secondary" @click="showUploadModal = false">취소</button>
+          <button class="ws-btn ws-btn-primary" :disabled="uploadingDoc || !uploadFileName" @click="handleFileUpload">
+            <WsIcon v-if="!uploadingDoc" name="upload" :size="14" /> {{ uploadingDoc ? '업로드 중...' : '클라우드 전송·원장 등록' }}
           </button>
         </div>
       </div>
@@ -588,7 +369,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRoute } from 'vue-router';
 import { apiRequest } from '../api';
 import WsIcon from '@packages/ui/WsIcon.vue';
@@ -635,6 +416,13 @@ const uploadedDocumentsList = ref<any[]>([]);
 
 const toastMessage = ref('');
 const toastType = ref<'success' | 'error'>('success');
+
+const staticDocs = computed(() => [
+  { name: '상업 송장 (Commercial Invoice)', file: `CI-${order.value?.order_number}.pdf`, short: 'Commercial Invoice', icon: 'file' as any },
+  { name: '포장 명세서 (Packing List)', file: `PL-${order.value?.order_number}.pdf`, short: 'Packing List', icon: 'package' as any },
+  { name: '선하증권 (Ocean Bill of Lading)', file: 'BL-MAERSK-998821.pdf', short: 'Bill of Lading', icon: 'truck' as any },
+  { name: 'SGS 품질 검수 성적서 (Inspection Report)', file: 'SGS-AQL-2.5-PASS.pdf', short: 'Inspection Report', icon: 'search' as any },
+]);
 
 function showToast(msg: string, type: 'success' | 'error' = 'success') {
   toastMessage.value = msg;
@@ -919,793 +707,28 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.order-detail-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px 16px 80px;
-}
-
-.breadcrumb {
-  margin-bottom: 16px;
-}
-
-.breadcrumb a {
-  color: var(--ws-brand);
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.toast-banner {
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.toast-banner.success {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  border: 1px solid #a7f3d0;
-}
-
-.toast-banner.error {
-  background: #fef2f2;
-  color: var(--ws-danger);
-  border: 1px solid #fecaca;
-}
-
-.order-header-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-.order-num-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  margin-bottom: 6px;
-}
-
-.order-num-row h2 {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 800;
-}
-
-.ord-date {
-  font-size: 13px;
-  color: var(--ws-text-muted);
-}
-
-.supplier-text {
-  font-size: 14px;
-  color: var(--ws-text-2);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.badge-verified {
-  background: #0284c7;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.badge-ta {
-  background: var(--ws-brand);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.header-right {
-  text-align: right;
-}
-
-.total-label {
-  display: block;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-}
-
-.total-amount {
-  font-size: 26px;
-  font-weight: 800;
-  color: var(--ws-brand);
-}
-
-.timeline-card {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 24px;
-  margin-bottom: 24px;
-}
-
-.timeline-card h3 {
-  margin: 0 0 20px 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-
-.timeline-steps {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-}
-
-.timeline-step {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--ws-surface-muted);
-  border: 1px solid #e5e7eb;
-}
-
-.timeline-step.completed {
-  background: #ecfdf5;
-  border-color: #10b981;
-}
-
-.timeline-step.current {
-  background: var(--ws-brand-light);
-  border-color: var(--ws-brand);
-}
-
-.step-num {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  background: var(--ws-border-subtle);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13px;
-  flex-shrink: 0;
-}
-
-.timeline-step.completed .step-num {
-  background: #10b981;
-}
-
-.timeline-step.current .step-num {
-  background: var(--ws-brand);
-}
-
-.step-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.step-title {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text);
-}
-
-.step-status {
-  font-size: 11px;
-  color: var(--ws-text-muted);
-}
-
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 24px;
-}
-
-.card-box {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 20px;
-}
-
-.card-box h4 {
-  margin: 0 0 14px 0;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ws-text);
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 10px;
-}
-
-.item-info h5 {
-  font-size: 16px;
-  margin: 0 0 8px 0;
-  color: var(--ws-text);
-}
-
-.item-info p {
-  margin: 4px 0;
-  font-size: 13px;
-  color: var(--ws-text-2);
-}
-
-.financial-table {
-  width: 100%;
-  font-size: 13px;
-  border-collapse: collapse;
-}
-
-.financial-table td {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.financial-table .total-row td {
-  border-top: 1px solid #e5e7eb;
-  padding-top: 12px;
-}
-
-.doc-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.doc-item {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  background: var(--ws-surface-muted);
-  border: 1px solid #e5e7eb;
-  border-radius: 6px;
-  gap: 12px;
-}
-
-.doc-icon {
-  font-size: 20px;
-}
-
-.doc-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.doc-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ws-text);
-}
-
-.doc-sub {
-  font-size: 11px;
-  color: var(--ws-admin-dim);
-}
-
-.btn-download {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.actions-console {
-  border-top: 4px solid var(--ws-brand);
-}
-
-.action-block {
-  margin-bottom: 16px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.action-desc {
-  font-size: 13px;
-  color: var(--ws-text-2);
-  margin: 0 0 10px 0;
-}
-
-.btn-full {
-  width: 100%;
-  padding: 10px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  border: none;
-  text-align: center;
-  display: block;
-  text-decoration: none;
-  box-sizing: border-box;
-}
-
-.btn-full.primary {
-  background: var(--ws-brand);
-  color: white;
-}
-
-.btn-full.success {
-  background: var(--ws-success);
-  color: white;
-}
-
-.btn-full.danger {
-  background: var(--ws-danger-bg);
-  color: var(--ws-danger);
-  border: 1px solid #f87171;
-}
-
-.dispute-block {
-  margin-top: 20px;
-  padding-top: 14px;
-  border-top: 1px dashed #e5e7eb;
-}
-
-.dispute-desc {
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  margin: 0 0 8px 0;
-}
-
-.tracking-events {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  position: relative;
-  padding-left: 10px;
-}
-
-.tracking-event {
-  display: flex;
-  gap: 12px;
-  position: relative;
-}
-
-.event-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: #cbd5e1;
-  margin-top: 4px;
-  flex-shrink: 0;
-}
-
-.tracking-event.active .event-dot {
-  background: var(--ws-brand);
-  box-shadow: 0 0 0 3px rgba(255, 102, 0, 0.2);
-}
-
-.event-body {
-  display: flex;
-  flex-direction: column;
-  font-size: 12px;
-}
-
-.event-time {
-  color: var(--ws-admin-dim);
-  font-size: 11px;
-}
-
-.event-desc {
-  color: var(--ws-text);
-  margin: 2px 0;
-}
-
-.event-loc {
-  color: var(--ws-text-muted);
-}
-
-.state-box {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 60px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-
-.dispute-btn-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.btn-link-dispute {
-  display: block;
-  text-align: center;
-  font-size: 12px;
-  color: var(--ws-danger);
-  text-decoration: none;
-  font-weight: 600;
-  margin-top: 4px;
-}
-.btn-link-dispute:hover {
-  text-decoration: underline;
-}
-
-/* Customs Manifest Box */
-.customs-box {
-  border-left: 4px solid #0284C7;
-}
-.box-head-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-.customs-badge {
-  font-size: 11px;
-  font-weight: 800;
-  padding: 3px 8px;
-  border-radius: 4px;
-}
-.customs-badge.cleared {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-}
-.customs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  background: var(--ws-surface-muted);
-  padding: 12px;
-  border-radius: 6px;
-  border: 1px solid var(--ws-border-subtle);
-  margin-bottom: 12px;
-}
-.cg-item {
-  font-size: 12px;
-}
-.cg-lbl {
-  color: var(--ws-text-muted);
-  display: block;
-  font-size: 11px;
-}
-.cg-val {
-  font-weight: 600;
-  color: var(--ws-text);
-}
-.customs-foot {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 12px;
-  color: var(--ws-text-2);
-}
-.btn-sm-view {
-  background: #E0F2FE;
-  color: var(--ws-info);
-  border: none;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-/* Claim Status Card */
-.claim-status-card {
-  background: #FEF2F2;
-  border: 1px solid #FECACA;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 16px;
-}
-.claim-badge-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 6px;
-}
-.claim-title {
-  font-weight: 700;
-  color: var(--ws-danger);
-  font-size: 13px;
-}
-.claim-stat-tag {
-  margin-left: auto;
-  background: var(--ws-danger-bg);
-  color: var(--ws-danger);
-  font-weight: 800;
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-.claim-meta {
-  font-size: 12px;
-  color: #7F1D1D;
-  margin: 4px 0;
-}
-.claim-desc {
-  font-size: 11px;
-  color: var(--ws-danger);
-  margin: 4px 0 0;
-  line-height: 1.4;
-}
-
-/* Claim Modal */
-.claim-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  padding: 16px;
-}
-.claim-modal {
-  background: var(--ws-surface);
-  border-radius: 12px;
-  max-width: 580px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
-}
-.form-group {
-  margin-bottom: 14px;
-}
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text);
-  margin-bottom: 4px;
-}
-.form-select, .form-input, .form-textarea {
-  width: 100%;
-  padding: 8px 10px;
-  border: 1px solid #CBD5E1;
-  border-radius: 6px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-.input-hint {
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  margin-top: 4px;
-  display: block;
-}
-.claim-info-box {
-  background: #FFFBEB;
-  border: 1px solid #FDE68A;
-  border-radius: 6px;
-  padding: 10px 12px;
-  font-size: 11px;
-  color: #78350F;
-}
-.claim-info-box p {
-  margin: 2px 0;
-}
-.btn-submit-claim {
-  padding: 8px 16px;
-  background: var(--ws-danger);
-  color: var(--ws-surface);
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-submit-claim:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Commercial Escrow Payment Modal & Tabs */
-.btn-upload-doc {
-  background: #F0FDF4;
-  color: var(--ws-success);
-  border: 1px solid #BBF7D0;
-  border-radius: 4px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 700;
-  cursor: pointer;
-}
-.doc-item.dynamic {
-  background: var(--ws-surface-muted);
-  border-left: 3px solid #0284C7;
-}
-.pay-amount-banner {
-  background: var(--ws-brand-light);
-  border: 1px solid #FED7AA;
-  border-radius: 8px;
-  padding: 14px 16px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-.p-lbl {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--ws-brand-hover);
-}
-.p-val {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--ws-brand);
-}
-.pay-tabs {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--ws-border-subtle);
-  padding-bottom: 8px;
-}
-.pay-tab {
-  background: var(--ws-surface-muted);
-  border: 1px solid #CBD5E1;
-  border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.pay-tab.active {
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border-color: var(--ws-brand);
-}
-.va-details-box {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.va-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 13px;
-}
-.va-lbl {
-  color: var(--ws-text-muted);
-}
-.va-val {
-  color: var(--ws-text);
-}
-.bank-sim-box {
-  background: #F0FDF4;
-  border: 1px solid #BBF7D0;
-  border-radius: 8px;
-  padding: 14px;
-  margin-bottom: 12px;
-}
-.sim-note {
-  font-size: 11px;
-  color: var(--ws-success);
-  margin: 0 0 10px 0;
-}
-.btn-simulate-wire {
-  width: 100%;
-  background: var(--ws-success);
-  color: var(--ws-surface);
-  border: none;
-  border-radius: 6px;
-  padding: 10px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-}
-.btn-simulate-wire:disabled {
-  opacity: 0.6;
-}
-.form-row-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-.btn-submit-pay {
-  width: 100%;
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border: none;
-  border-radius: 6px;
-  padding: 12px;
-  font-weight: 700;
-  font-size: 14px;
-  cursor: pointer;
-  margin-top: 8px;
-}
-.btn-submit-pay:disabled {
-  opacity: 0.6;
-}
-.swift-box {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 16px;
-  font-size: 13px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.swift-box code {
-  background: var(--ws-border-subtle);
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: var(--ws-text);
-}
-.swift-alert {
-  color: var(--ws-brand);
-  font-size: 11px;
-  margin-top: 6px;
-}
-.upload-dropzone {
-  border: 2px dashed #CBD5E1;
-  border-radius: 8px;
-  padding: 30px;
-  text-align: center;
-  background: var(--ws-surface-muted);
-  margin-top: 10px;
-}
-.dz-icon {
-  font-size: 32px;
-  display: block;
-  margin-bottom: 6px;
-}
-.dz-title {
-  margin: 0 0 4px;
-  font-weight: 700;
-  color: var(--ws-text);
-  font-size: 13px;
-}
-.dz-sub {
-  color: var(--ws-text-muted);
-  font-size: 11px;
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .order-header-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .header-right {
-    text-align: left;
-  }
-  .timeline-steps {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .detail-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .timeline-steps {
-    grid-template-columns: 1fr !important;
-  }
-  .order-num-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
+.back-link { margin-bottom: 12px; }
+.od-steps { margin-bottom: 0; }
+.od-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 16px; align-items: start; margin-top: 16px; }
+.od-side { position: sticky; top: 84px; }
+.claim-card { margin: 0; }
+.claim-card p { margin: 4px 0 0; font-size: 12px; }
+.act p { margin: 0 0 8px; font-size: 12px; color: var(--ws-text-2); }
+.dispute-act { border-top: 1px solid var(--ws-border-subtle); padding-top: 14px; margin-top: 4px; }
+.dispute-act .ws-section-more { display: inline-block; margin-top: 8px; }
+.doc-ico { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px; border-radius: 8px; background: var(--ws-surface-muted); color: var(--ws-text-2); }
+.h-ico { color: var(--ws-navy); vertical-align: -3px; }
+.customs-grid div { display: flex; flex-direction: column; gap: 3px; padding: 10px 0; border-bottom: 1px solid var(--ws-border-subtle); }
+.customs-grid span { font-size: 11px; font-weight: 700; color: var(--ws-text-muted); }
+.customs-grid b { font-size: 13px; }
+.customs-foot { margin-top: 12px; }
+.pay-amount { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; background: var(--ws-brand-faint); border: 1px solid var(--ws-brand-light); border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 13px; }
+.pay-amount b { font-size: 20px; color: var(--ws-brand); }
+.dropzone { border: 1.5px dashed var(--ws-border-strong); border-radius: 10px; padding: 26px 16px; text-align: center; color: var(--ws-text-muted); }
+.dropzone p { margin: 8px 0 2px; font-size: 13px; color: var(--ws-text-2); }
+.dropzone span { font-size: 12px; }
+@media (max-width: 1024px) {
+  .od-grid { grid-template-columns: minmax(0, 1fr); }
+  .od-side { position: static; }
 }
 </style>
-

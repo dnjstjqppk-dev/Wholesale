@@ -1,133 +1,116 @@
 <template>
-  <div class="marketing-kwa-page">
-    <div class="page-head">
-      <div class="head-text">
-        <h2>키워드 광고(KWA) 및 스폰서드 검색 입찰 관리 (Keyword Advertising)</h2>
-        <p class="subtitle">
-          Alibaba.com 글로벌 검색 결과 상단 우선 노출을 위한 키워드 CPC 입찰, 일일 예산 한도 설정 및 실시간 성과를 관리합니다.
-        </p>
-      </div>
-      <button class="btn-create-campaign" @click="showCreateModal = true">
-        + 신규 KWA 키워드 입찰 등록
-      </button>
-    </div>
-
-    <!-- Alert / Toast -->
-    <div v-if="toastMessage" class="toast-banner" :class="toastType">
-      {{ toastMessage }}
-    </div>
-
-    <div v-if="loading" class="state-box">
-      <p>광고 캠페인 데이터를 불러오는 중입니다...</p>
-    </div>
-
-    <div v-else class="kwa-content">
-      <!-- 4 Summary KPI Cards -->
-      <div class="summary-grid">
-        <div class="summary-card">
-          <span class="card-title">활성 키워드 캠페인</span>
-          <span class="card-value text-blue-600">{{ summary.active_campaigns }} / {{ summary.total_campaigns }}개</span>
-          <span class="card-sub">일일 총 예산 한도: ${{ summary.daily_budget_total_usd }}</span>
-        </div>
-        <div class="summary-card">
-          <span class="card-title">누적 광고 지출 (Total Spend)</span>
-          <span class="card-value text-orange-600">${{ summary.total_spend_usd.toLocaleString() }}</span>
-          <span class="card-sub">예치금 잔액에서 실시간 차감</span>
-        </div>
-        <div class="summary-card">
-          <span class="card-title">광고 노출 수 (Impressions)</span>
-          <span class="card-value text-indigo-600">{{ summary.total_impressions.toLocaleString() }}</span>
-          <span class="card-sub">글로벌 바이어 검색 상단 슬롯</span>
-        </div>
-        <div class="summary-card">
-          <span class="card-title">총 유입 클릭 (Clicks)</span>
-          <span class="card-value text-green-600">{{ summary.total_clicks.toLocaleString() }}</span>
-          <span class="card-sub">평균 클릭당 단가 (CPC): <strong>${{ summary.average_cpc_usd }}</strong></span>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Keyword Advertising</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">키워드 광고·입찰 관리</h1>
+        <div class="ws-page-actions">
+          <button class="ws-btn ws-btn-primary" @click="showCreateModal = true"><WsIcon name="plus" :size="14" /> 신규 입찰 등록</button>
         </div>
       </div>
+      <p class="ws-page-sub">검색 결과 상단 우선 노출을 위한 키워드 CPC 입찰·일일 예산·실시간 성과 관리.</p>
+    </div>
 
-      <!-- Active Campaigns Table -->
-      <div class="card-section">
-        <div class="sec-head">
-          <h3>진행 중인 키워드 입찰 목록 (Bidding Campaigns)</h3>
-          <button class="btn-refresh" @click="fetchMarketingData"><WsIcon name="refresh" :size="15" /> 새로고침</button>
-        </div>
+    <div v-if="toastMessage" class="ws-banner" :class="toastType === 'error' ? 'ws-banner-danger' : 'ws-banner-success'">
+      <WsIcon :name="toastType === 'error' ? 'alert' : 'check'" :size="16" />
+      <span>{{ toastMessage }}</span>
+    </div>
 
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>키워드 (Target Keyword)</th>
-              <th>매칭 방식 (Match Type)</th>
-              <th>최대 클릭당 입찰가 (Max CPC)</th>
-              <th>일일 예산 한도 (Daily Budget)</th>
-              <th>노출 수 (Imp)</th>
-              <th>클릭 수 (Clicks)</th>
-              <th>소진 광고비 (Spend)</th>
-              <th>상태 (Status)</th>
-              <th>관리 조치</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="c in campaigns" :key="c.id">
-              <td>
-                <span class="font-bold text-gray-900">{{ c.keyword }}</span>
-              </td>
-              <td>
-                <span class="badge-match" :class="c.match_type.toLowerCase()">{{ c.match_type }}</span>
-              </td>
-              <td class="font-mono">${{ c.max_cpc_usd.toFixed(2) }}</td>
-              <td class="font-mono">${{ c.daily_budget_usd.toFixed(2) }} / 일</td>
-              <td>{{ c.impressions.toLocaleString() }}</td>
-              <td>{{ c.clicks.toLocaleString() }}</td>
-              <td class="font-mono font-bold text-orange-600">${{ c.total_spend_usd.toFixed(2) }}</td>
-              <td>
-                <button
-                  class="btn-status"
-                  :class="c.status.toLowerCase()"
-                  @click="toggleStatus(c)"
-                >
-                  <WsIcon v-if="c.status !== 'ACTIVE'" name="pause" :size="13" />{{ c.status === 'ACTIVE' ? '✓ 활성 중' : '일시 정지' }}
-                </button>
-              </td>
-              <td>
-                <button class="btn-del-camp" title="캠페인 삭제" @click="deleteCampaign(c.id)">삭제</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-stats">
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
+        <div class="ws-skeleton" style="height: 96px"></div>
       </div>
     </div>
 
-    <!-- Modal: Create KWA Campaign -->
-    <div v-if="showCreateModal" class="modal-backdrop" @click.self="showCreateModal = false">
-      <div class="modal-window">
-        <h3>신규 키워드 광고(KWA) 캠페인 등록</h3>
+    <div v-else class="ws-stack">
+      <div class="ws-stats">
+        <div class="ws-stat">
+          <p class="ws-stat-label">활성 캠페인</p>
+          <p class="ws-stat-value">{{ summary.active_campaigns }} <span class="unit">/ {{ summary.total_campaigns }}개</span></p>
+          <p class="ws-stat-foot">일일 총 예산 ${{ summary.daily_budget_total_usd }}</p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">누적 광고 지출</p>
+          <p class="ws-stat-value spend">${{ summary.total_spend_usd.toLocaleString() }}</p>
+          <p class="ws-stat-foot">예치금 잔액에서 실시간 차감</p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">노출 수</p>
+          <p class="ws-stat-value">{{ summary.total_impressions.toLocaleString() }}</p>
+          <p class="ws-stat-foot">바이어 검색 상단 슬롯</p>
+        </div>
+        <div class="ws-stat">
+          <p class="ws-stat-label">유입 클릭</p>
+          <p class="ws-stat-value clicks">{{ summary.total_clicks.toLocaleString() }}</p>
+          <p class="ws-stat-foot">평균 CPC <b>${{ summary.average_cpc_usd }}</b></p>
+        </div>
+      </div>
+
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head">
+          <h3>진행 중 키워드 입찰</h3>
+          <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="fetchMarketingData"><WsIcon name="refresh" :size="13" /> 새로고침</button>
+        </div>
+        <div class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead>
+                <tr><th>타겟 키워드</th><th>매칭</th><th class="ws-num">Max CPC</th><th class="ws-num">일일 예산</th><th class="ws-num">노출</th><th class="ws-num">클릭</th><th class="ws-num">지출</th><th>상태</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr v-for="c in campaigns" :key="c.id">
+                  <td class="ws-cell-main">{{ c.keyword }}</td>
+                  <td><span class="ws-badge ws-badge-outline">{{ c.match_type }}</span></td>
+                  <td class="ws-num ws-figure">${{ c.max_cpc_usd.toFixed(2) }}</td>
+                  <td class="ws-num ws-figure">${{ c.daily_budget_usd.toFixed(2) }}</td>
+                  <td class="ws-num ws-figure">{{ c.impressions.toLocaleString() }}</td>
+                  <td class="ws-num ws-figure">{{ c.clicks.toLocaleString() }}</td>
+                  <td class="ws-num"><b class="ws-price ws-figure">${{ c.total_spend_usd.toFixed(2) }}</b></td>
+                  <td>
+                    <button class="ws-badge" :class="c.status === 'ACTIVE' ? 'ws-badge-success' : 'ws-badge-outline'" style="cursor: pointer; border: 1px solid var(--ws-border)" @click="toggleStatus(c)">
+                      <WsIcon v-if="c.status !== 'ACTIVE'" name="pause" :size="12" />{{ c.status === 'ACTIVE' ? '✓ 활성 중' : '일시 정지' }}
+                    </button>
+                  </td>
+                  <td><button class="ws-btn ws-btn-ghost ws-btn-sm danger-link" @click="deleteCampaign(c.id)">삭제</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div v-if="showCreateModal" class="ws-modal-backdrop" @click.self="showCreateModal = false">
+      <div class="ws-modal" role="dialog" aria-modal="true">
+        <div class="ws-modal-head">
+          <h3>신규 키워드 광고 캠페인</h3>
+          <button class="ws-icon-btn" aria-label="닫기" @click="showCreateModal = false"><WsIcon name="x" :size="15" /></button>
+        </div>
         <form @submit.prevent="submitCampaign">
-          <div class="form-group">
-            <label>타겟 검색 키워드 (Keyword)</label>
-            <input v-model="newForm.keyword" type="text" placeholder="예: stainless steel tumbler wholesale" required />
-          </div>
-          <div class="form-group">
-            <label>매칭 방식 (Match Type)</label>
-            <select v-model="newForm.match_type">
-              <option value="BROAD">확장 매칭 (Broad Match - 유사 연관 검색어 포함)</option>
-              <option value="EXACT">일치 매칭 (Exact Match - 정확한 단어 매칭 시만 노출)</option>
-            </select>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>최대 클릭당 입찰가 (Max CPC in USD)</label>
-              <input v-model.number="newForm.max_cpc_usd" type="number" step="0.05" min="0.50" required />
+          <div class="ws-modal-body">
+            <div class="ws-field">
+              <label>타겟 검색 키워드</label>
+              <input v-model="newForm.keyword" type="text" placeholder="예: stainless steel tumbler wholesale" required />
             </div>
-            <div class="form-group">
-              <label>일일 예산 한도 (Daily Budget in USD)</label>
-              <input v-model.number="newForm.daily_budget_usd" type="number" step="10" min="20" required />
+            <div class="ws-field">
+              <label>매칭 방식</label>
+              <select v-model="newForm.match_type">
+                <option value="BROAD">확장 매칭 (연관 검색어 포함)</option>
+                <option value="EXACT">일치 매칭 (정확한 단어만 노출)</option>
+              </select>
+            </div>
+            <div class="ws-grid-2">
+              <div class="ws-field"><label>Max CPC (USD)</label><input v-model.number="newForm.max_cpc_usd" type="number" step="0.05" min="0.50" required /></div>
+              <div class="ws-field"><label>일일 예산 (USD)</label><input v-model.number="newForm.daily_budget_usd" type="number" step="10" min="20" required /></div>
             </div>
           </div>
-          <div class="modal-actions">
-            <button type="button" class="btn-cancel" @click="showCreateModal = false">취소</button>
-            <button type="submit" class="btn-submit" :disabled="submitting">
-              {{ submitting ? '입찰 등록 중...' : '광고 등록 및 입찰 개시' }}
+          <div class="ws-modal-foot">
+            <button type="button" class="ws-btn ws-btn-secondary" @click="showCreateModal = false">취소</button>
+            <button type="submit" class="ws-btn ws-btn-primary" :disabled="submitting">
+              <span v-if="submitting" class="ws-spinner"></span> {{ submitting ? '입찰 등록 중...' : '광고 등록·입찰 개시' }}
             </button>
           </div>
         </form>
@@ -247,311 +230,10 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.marketing-kwa-page {
-  padding: 24px 32px 80px;
-}
-
-.page-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 24px;
-}
-
-.head-text h2 {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ws-text);
-  margin: 0 0 4px 0;
-}
-
-.subtitle {
-  font-size: 13px;
-  color: var(--ws-text-muted);
-  margin: 0;
-}
-
-.btn-create-campaign {
-  background: var(--ws-brand);
-  color: white;
-  padding: 10px 20px;
-  border-radius: 6px;
-  border: none;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-create-campaign:hover {
-  background: var(--ws-brand-hover);
-}
-
-.toast-banner {
-  padding: 12px 16px;
-  border-radius: 6px;
-  margin-bottom: 20px;
-  font-size: 14px;
-  font-weight: 600;
-}
-
-.toast-banner.success {
-  background: #ecfdf5;
-  color: var(--ws-success);
-  border: 1px solid #a7f3d0;
-}
-
-.toast-banner.error {
-  background: #fef2f2;
-  color: var(--ws-danger);
-  border: 1px solid #fecaca;
-}
-
-.kwa-content {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-
-.summary-card {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
-.card-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-muted);
-  margin-bottom: 8px;
-}
-
-.card-value {
-  font-size: 24px;
-  font-weight: 800;
-  margin-bottom: 6px;
-}
-
-.card-sub {
-  font-size: 11px;
-  color: var(--ws-admin-dim);
-  margin-top: auto;
-}
-
-.card-section {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 24px;
-}
-
-.sec-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 10px;
-}
-
-.sec-head h3 {
-  margin: 0;
-  font-size: 16px;
-  color: var(--ws-text);
-}
-
-.btn-refresh {
-  background: var(--ws-surface-muted);
-  border: 1px solid #cbd5e1;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 13px;
-  text-align: left;
-}
-
-.data-table th {
-  background: var(--ws-surface-muted);
-  padding: 10px 12px;
-  color: var(--ws-text-2);
-  border-bottom: 1px solid var(--ws-border-subtle);
-  font-weight: 600;
-}
-
-.data-table td {
-  padding: 12px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-}
-
-.badge-match {
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.badge-match.exact { background: #e0f2fe; color: #0284c7; }
-.badge-match.broad { background: var(--ws-warning-bg); color: var(--ws-warning); }
-
-.btn-status {
-  padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 11px;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-}
-
-.btn-status.active { background: var(--ws-success-bg); color: var(--ws-success); }
-.btn-status.paused { background: var(--ws-surface-muted); color: var(--ws-text-muted); }
-
-.btn-del-camp {
-  background: transparent;
-  border: 1px solid #fecaca;
-  color: var(--ws-danger);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  cursor: pointer;
-}
-
-.btn-del-camp:hover {
-  background: var(--ws-danger-bg);
-}
-
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-window {
-  background: white;
-  width: 500px;
-  max-width: 90vw;
-  border-radius: 10px;
-  padding: 24px;
-}
-
-.modal-window h3 {
-  margin: 0 0 16px 0;
-  font-size: 18px;
-}
-
-.form-group {
-  margin-bottom: 14px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-2);
-  margin-bottom: 4px;
-}
-
-.form-group input,
-.form-group select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 13px;
-  box-sizing: border-box;
-}
-
-.form-row {
-  display: flex;
-  gap: 12px;
-}
-
-.form-row .form-group {
-  flex: 1;
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
-}
-
-.btn-cancel {
-  background: var(--ws-surface-muted);
-  border: 1px solid #cbd5e1;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-submit {
-  background: var(--ws-brand);
-  color: white;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.state-box {
-  background: white;
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 60px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .marketing-kwa-page {
-    padding: 16px 12px;
-  }
-  .page-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-}
-
-@media (max-width: 640px) {
-  .summary-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .btn-create-campaign {
-    width: 100%;
-  }
-  .data-table {
-    display: block;
-    overflow-x: auto;
-  }
-  .form-row {
-    flex-direction: column;
-  }
-}
+.ws-stat-value .unit { font-size: 13px; font-weight: 700; color: var(--ws-text-muted); margin-left: 2px; }
+.ws-stat-value.spend { color: var(--ws-brand); }
+.ws-stat-value.clicks { color: var(--ws-success); }
+.danger-link { color: var(--ws-danger); }
+.danger-link:hover { background: var(--ws-danger-bg); color: var(--ws-danger); }
+.ws-badge { font-family: var(--ws-font); }
 </style>
-

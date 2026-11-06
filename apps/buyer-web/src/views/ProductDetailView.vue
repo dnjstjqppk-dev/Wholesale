@@ -1,97 +1,96 @@
 <template>
-  <div v-if="loading" class="pdp-state-box loading-box">
-    <p>도매 상품 상세 사양 및 제조사 공급가 정보를 서버에서 실시간 조회 중입니다...</p>
-  </div>
-  <div v-else-if="fetchError || !product" class="pdp-state-box error-box">
-    <p class="error-msg"><WsIcon name="alert" :size="15" /> {{ fetchError || '요청하신 도매 상품을 찾을 수 없습니다.' }}</p>
-    <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="btn-back">카탈로그 목록으로 이동</router-link>
-  </div>
-  <div v-else class="pdp-container">
-    <!-- Breadcrumb -->
-    <nav class="breadcrumb">
-      <router-link :to="`/${currentLocale}/${currentCurrency}/`">홈</router-link>
-      <span class="sep">></span>
-      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`">도매 카탈로그</router-link>
-      <span class="sep">></span>
-      <span>{{ product.category_name }}</span>
-      <span class="sep">></span>
-      <span class="current">{{ product.title }}</span>
-    </nav>
+  <div class="ws-page ws-page-wide">
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 22px; width: 40%"></div>
+      <div class="pdp-loading-grid">
+        <div class="ws-skeleton" style="height: 420px"></div>
+        <div class="ws-skeleton" style="height: 420px"></div>
+      </div>
+    </div>
+    <div v-else-if="fetchError || !product" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="alert" :size="24" /></span>
+      <h3>{{ fetchError || '요청하신 도매 상품을 찾을 수 없습니다.' }}</h3>
+      <p>상품 번호를 확인하시거나 카탈로그에서 다시 검색해 보세요.</p>
+      <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`" class="ws-btn ws-btn-secondary">카탈로그 목록으로 이동</router-link>
+    </div>
+    <div v-else class="pdp">
+      <nav class="crumbs" aria-label="breadcrumb">
+        <router-link :to="`/${currentLocale}/${currentCurrency}/`">홈</router-link>
+        <span aria-hidden="true">›</span>
+        <router-link :to="`/${currentLocale}/${currentCurrency}/catalog`">도매 카탈로그</router-link>
+        <span aria-hidden="true">›</span>
+        <span>{{ product.category_name }}</span>
+        <span aria-hidden="true">›</span>
+        <b>{{ product.title }}</b>
+      </nav>
 
-    <!-- Top Main Grid (Gallery & Order Control) -->
-    <div class="pdp-main-grid">
-      <!-- Left Column: Real Image Gallery & Factory Audit -->
-      <PdpGalleryAudit
-        :product="product"
-        :locale="currentLocale"
-        :currency="currentCurrency"
-      />
-
-      <!-- Right Column: Product Title, Tiered Pricing, Interactive Calculator -->
-      <div class="info-col">
-        <!-- Supplier Header -->
-        <div class="supplier-header-banner">
-          <div class="sup-meta-left">
-            <span class="sup-flag">🇰🇷</span>
-            <router-link
-              :to="`/${currentLocale}/${currentCurrency}/suppliers/${product.organization_id || '11111111-1111-1111-1111-111111111111'}`"
-              class="sup-name"
-            >
-              {{ product.supplier_name }}
-            </router-link>
-            <span class="sup-years">{{ product.years_in_business || 12 }} yrs</span>
-            <span v-if="product.verified_supplier" class="v-badge">✓ Verified</span>
-          </div>
-          <div class="trade-guard-badge">
-            <span><WsIcon name="shield" :size="15" /> Trade Assurance 100% 보호</span>
-          </div>
-        </div>
-
-        <h1 class="pdp-title">{{ product.title }}</h1>
-
-        <!-- Tiered Pricing Table (Exact FOB brackets) -->
-        <div class="tier-bracket-box">
-          <div class="bracket-head">
-            <h3>수량 구간별 도매 공급 단가 (Tiered Pricing)</h3>
-            <span class="incoterm-tag">{{ product.incoterms || 'FOB Busan Port' }}</span>
-          </div>
-          <div class="bracket-grid">
-            <div
-              v-for="(tier, idx) in product.price_tiers"
-              :key="idx"
-              class="bracket-col"
-              :class="{ highlighted: currentTierIndex === idx }"
-            >
-              <div class="bracket-qty">{{ tier.min_quantity }} ~ {{ tier.max_quantity || '+' }} {{ product.unit }}</div>
-              <div class="bracket-price">{{ formatMoney(tier.unit_price) }}</div>
-              <div v-if="currentTierIndex === idx" class="active-badge">적용 중</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Interactive Order Calculator & MOQ Rules -->
-        <PdpOrderCalculator
+      <div class="pdp-grid">
+        <PdpGalleryAudit
           :product="product"
           :locale="currentLocale"
           :currency="currentCurrency"
-          @tier-changed="onTierChanged"
-          @open-inquiry="showInquiryModal = true"
         />
+
+        <div class="pdp-info">
+          <div class="sup-strip">
+            <router-link
+              :to="`/${currentLocale}/${currentCurrency}/suppliers/${product.organization_id || '11111111-1111-1111-1111-111111111111'}`"
+              class="sup-link"
+            >
+              <span class="ws-avatar ws-avatar-sm ws-avatar-brand">{{ (product.supplier_name || 'V').slice(0, 1) }}</span>
+              <b>{{ product.supplier_name }}</b>
+            </router-link>
+            <span class="ws-muted ws-small">{{ product.years_in_business || 12 }} yrs</span>
+            <span v-if="product.verified_supplier" class="ws-badge ws-badge-success">Verified</span>
+            <span class="ws-badge ws-badge-navy ta-strip"><WsIcon name="shield" :size="12" /> Trade Assurance</span>
+          </div>
+
+          <h1 class="pdp-title">{{ product.title }}</h1>
+
+          <div class="ws-card ws-card-pad-sm tier-card">
+            <div class="ws-split tier-head">
+              <b>수량 구간별 도매 공급 단가</b>
+              <span class="ws-badge ws-badge-outline">{{ product.incoterms || 'FOB Busan Port' }}</span>
+            </div>
+            <table class="ws-tier-table">
+              <thead>
+                <tr><th>수량 구간</th><th style="text-align: right">단가 / {{ product.unit }}</th><th></th></tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(tier, idx) in product.price_tiers"
+                  :key="idx"
+                  :class="{ 'ws-tier-best': currentTierIndex === idx }"
+                >
+                  <td>{{ tier.min_quantity }} ~ {{ tier.max_quantity || '+' }} {{ product.unit }}</td>
+                  <td style="text-align: right">{{ formatMoney(tier.unit_price) }}</td>
+                  <td style="text-align: right"><span v-if="currentTierIndex === idx" class="ws-badge ws-badge-brand">적용 중</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <PdpOrderCalculator
+            :product="product"
+            :locale="currentLocale"
+            :currency="currentCurrency"
+            @tier-changed="onTierChanged"
+            @open-inquiry="showInquiryModal = true"
+          />
+        </div>
       </div>
+
+      <PdpSpecsTable
+        :sku-id="product.sku_id"
+        :specifications="product.specifications"
+      />
+
+      <CatalogInquiryModal
+        v-if="showInquiryModal"
+        :item="product"
+        @close="showInquiryModal = false"
+      />
     </div>
-
-    <!-- Technical Specifications Matrix -->
-    <PdpSpecsTable
-      :sku-id="product.sku_id"
-      :specifications="product.specifications"
-    />
-
-    <!-- Inquiry Modal -->
-    <CatalogInquiryModal
-      v-if="showInquiryModal"
-      :item="product"
-      @close="showInquiryModal = false"
-    />
   </div>
 </template>
 
@@ -160,217 +159,21 @@ function onTierChanged(idx: number) {
 </script>
 
 <style scoped>
-.pdp-container {
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 16px 40px;
-}
-.breadcrumb {
-  font-size: 13px;
-  color: var(--ws-text-muted);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 10px;
-}
-.breadcrumb a {
-  color: var(--ws-text-2);
-  text-decoration: none;
-}
-.breadcrumb a:hover {
-  color: var(--ws-brand);
-}
-.breadcrumb .sep {
-  color: #CBD5E1;
-}
-.breadcrumb .current {
-  color: var(--ws-text);
-  font-weight: 600;
-}
-
-.pdp-main-grid {
-  display: grid;
-  grid-template-columns: 500px 1fr;
-  gap: 36px;
-  align-items: flex-start;
-}
-.info-col {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.supplier-header-banner {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  padding: 8px 14px;
-}
-.sup-meta-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.sup-name {
-  font-weight: 700;
-  color: var(--ws-text);
-  text-decoration: none;
-}
-.sup-name:hover {
-  color: var(--ws-brand);
-}
-.sup-years {
-  color: var(--ws-text-muted);
-  font-size: 11px;
-}
-.v-badge {
-  background: var(--ws-success-bg);
-  color: var(--ws-success);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-.trade-guard-badge {
-  background: var(--ws-brand-light);
-  border: 1px solid #FDBA74;
-  color: var(--ws-brand);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-
-.pdp-title {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--ws-text);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.tier-bracket-box {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 10px;
-  padding: 18px;
-}
-.bracket-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-.bracket-head h3 {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-}
-.incoterm-tag {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-2);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.bracket-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.bracket-col {
-  background: var(--ws-surface-muted);
-  border: 2px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 12px;
-  text-align: center;
-  position: relative;
-}
-.bracket-col.highlighted {
-  border-color: var(--ws-brand);
-  background: var(--ws-brand-light);
-}
-.bracket-qty {
-  font-size: 12px;
-  color: var(--ws-text-2);
-  margin-bottom: 6px;
-}
-.bracket-price {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--ws-text);
-  font-variant-numeric: tabular-nums;
-}
-.bracket-col.highlighted .bracket-price {
-  color: var(--ws-brand);
-}
-.active-badge {
-  position: absolute;
-  top: -10px;
-  right: 12px;
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  font-size: 10px;
-  font-weight: 800;
-  padding: 1px 6px;
-  border-radius: 4px;
-}
-.pdp-state-box {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 48px 24px;
-  text-align: center;
-  font-size: 14px;
-}
-.pdp-state-box.loading-box {
-  color: #0284C7;
-  font-weight: 600;
-}
-.pdp-state-box.error-box {
-  background: #FEF2F2;
-  border-color: #FCA5A5;
-  color: var(--ws-danger);
-  font-weight: 600;
-}
-.btn-back {
-  display: inline-block;
-  margin-top: 14px;
-  background: var(--ws-text);
-  color: var(--ws-surface);
-  text-decoration: none;
-  padding: 8px 16px;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 13px;
-}
-.btn-back:hover {
-  background: var(--ws-brand);
-}
-
-/* Mobile & Tablet Responsive Layout */
-@media (max-width: 992px) {
-  .pdp-main-grid {
-    grid-template-columns: 1fr !important;
-    gap: 24px;
-  }
-}
-
-@media (max-width: 640px) {
-  .bracket-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 8px;
-  }
-  .pdp-title {
-    font-size: 18px !important;
-  }
+.pdp-loading-grid { display: grid; grid-template-columns: 480px minmax(0, 1fr); gap: 28px; }
+.crumbs { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; color: var(--ws-text-muted); margin-bottom: 18px; }
+.crumbs a { color: var(--ws-text-2); text-decoration: none; font-weight: 600; }
+.crumbs a:hover { color: var(--ws-brand); }
+.crumbs b { color: var(--ws-text); font-weight: 700; }
+.pdp-grid { display: grid; grid-template-columns: 480px minmax(0, 1fr); gap: 28px; align-items: start; margin-bottom: 28px; }
+.pdp-info { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.sup-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 10px; padding: 10px 14px; }
+.sup-link { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; color: var(--ws-text); font-size: 14px; }
+.sup-link:hover b { color: var(--ws-brand); }
+.ta-strip { margin-left: auto; }
+.pdp-title { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: var(--ws-tracking-tight); line-height: 1.4; }
+.tier-head { margin-bottom: 10px; font-size: 14px; }
+@media (max-width: 1024px) {
+  .pdp-grid, .pdp-loading-grid { grid-template-columns: minmax(0, 1fr); }
+  .ta-strip { margin-left: 0; }
 }
 </style>

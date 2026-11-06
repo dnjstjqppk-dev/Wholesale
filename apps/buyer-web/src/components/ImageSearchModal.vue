@@ -1,63 +1,46 @@
 <template>
-  <div v-if="modelValue" class="modal-overlay" @click.self="closeModal">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h3><WsIcon name="camera" :size="15" /> AI 비전 이미지로 도매 품목/공급사 찾기</h3>
-        <button class="close-btn" @click="closeModal">✕</button>
+  <div v-if="modelValue" class="ws-modal-backdrop" @click.self="closeModal">
+    <div class="ws-modal" role="dialog" aria-modal="true">
+      <div class="ws-modal-head">
+        <h3>AI 비전 이미지 검색</h3>
+        <button class="ws-icon-btn" aria-label="닫기" @click="closeModal"><WsIcon name="x" :size="15" /></button>
       </div>
-      <div class="modal-body">
-        <label class="drop-zone">
-          <input
-            type="file"
-            accept="image/*"
-            class="hidden-file-input"
-            @change="onFileSelected"
-          />
+      <div class="ws-modal-body">
+        <label class="vision-drop">
+          <input type="file" accept="image/*" class="ws-sr-only" @change="onFileSelected" />
           <template v-if="previewUrl">
-            <img :src="previewUrl" alt="Uploaded preview" class="preview-img" />
-            <p class="drop-text">{{ selectedFileName }} ({{ selectedFileSize }})</p>
+            <img :src="previewUrl" alt="Uploaded preview" class="vision-preview" />
+            <p class="ws-small"><b>{{ selectedFileName }}</b> ({{ selectedFileSize }})</p>
           </template>
           <template v-else>
-            <span class="upload-icon"><WsIcon name="file" :size="15" /></span>
-            <p class="drop-text">제품 샘플 사진이나 도면(JPG/PNG/WEBP)을 클릭하여 업로드하세요</p>
-            <span class="sub-text">AI 비전 엔진이 형상, 재질, 치수와 유사한 인증 도매 상품을 실시간 매칭합니다</span>
+            <WsIcon name="camera" :size="28" class="vision-ico" />
+            <p><b>제품 사진·도면(JPG/PNG/WEBP)을 클릭하여 업로드</b></p>
+            <span class="ws-small ws-muted">AI 비전 엔진이 형상·재질·치수 유사 상품을 실시간 매칭합니다</span>
           </template>
         </label>
 
-        <div class="keyword-override">
-          <label>형상/재질 힌트 키워드 (선택):</label>
-          <input
-            v-model="visualHint"
-            type="text"
-            placeholder="예: 스테인리스, CNC, PCB, 실리콘, 밸브..."
-            @keyup.enter="runVisionSearch"
-          />
-          <button class="btn-analyze" :disabled="searching" @click="runVisionSearch">
-            <WsIcon v-if="!(searching)" name="search" :size="14" /> {{ searching ? '분석 중...' : 'AI 비전 매칭 실행' }}
-          </button>
+        <div class="ws-field">
+          <label>형상/재질 힌트 키워드 (선택)</label>
+          <div class="hint-row">
+            <input v-model="visualHint" type="text" placeholder="예: 스테인리스, CNC, PCB, 실리콘, 밸브..." @keyup.enter="runVisionSearch" />
+            <button class="ws-btn ws-btn-navy" :disabled="searching" @click="runVisionSearch">
+              <WsIcon v-if="!searching" name="search" :size="14" /> {{ searching ? '분석 중...' : 'AI 매칭 실행' }}
+            </button>
+          </div>
         </div>
 
-        <div v-if="matchedResults.length > 0" class="sim-result">
-          <p class="success-msg">
-            ✓ AI 비전 분석 완료: <strong>{{ detectedCategory }}</strong> 형상 매칭 ({{ matchedResults.length }}건 발견)
-          </p>
-          <div class="matched-list">
-            <div
-              v-for="prod in matchedResults.slice(0, 4)"
-              :key="prod.id"
-              class="matched-item"
-              @click="goToProduct(prod.id)"
-            >
-              <img :src="prod.thumbnail || prod.images?.[0]" :alt="prod.title" class="matched-thumb" />
-              <div class="matched-info">
-                <div class="m-title">{{ prod.title }}</div>
-                <div class="m-meta">일치율: <strong>{{ prod.visual_confidence }}</strong> | MOQ: {{ prod.moq }} {{ prod.unit }}</div>
+        <div v-if="matchedResults.length > 0" class="vision-res">
+          <p class="ws-small"><b class="ws-price">{{ detectedCategory }}</b> 형상 매칭 · {{ matchedResults.length }}건 발견</p>
+          <div class="vision-grid">
+            <div v-for="prod in matchedResults.slice(0, 4)" :key="prod.id" class="vision-item" @click="goToProduct(prod.id)">
+              <img :src="prod.thumbnail || prod.images?.[0]" :alt="prod.title" />
+              <div class="ws-list-main">
+                <p class="ws-list-title">{{ prod.title }}</p>
+                <p class="ws-list-sub">일치율 <b>{{ prod.visual_confidence }}</b> · MOQ {{ prod.moq }}{{ prod.unit }}</p>
               </div>
             </div>
           </div>
-          <button class="btn-search-sim" @click="onApply">
-            전체 매칭 카탈로그 결과 보기 →
-          </button>
+          <button class="ws-btn ws-btn-primary ws-btn-block" @click="onApply">전체 매칭 카탈로그 결과 보기 →</button>
         </div>
       </div>
     </div>
@@ -144,31 +127,20 @@ function onApply() {
 </script>
 
 <style scoped>
-.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 200; }
-.modal-card { background: var(--ws-surface); width: 620px; border-radius: 12px; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); }
-.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--ws-border-subtle); }
-.modal-head h3 { margin: 0; font-size: 16px; color: var(--ws-text); }
-.close-btn { background: transparent; border: none; font-size: 18px; cursor: pointer; color: var(--ws-text-muted); }
-.modal-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
-.drop-zone { display: block; border: 2px dashed #CBD5E1; border-radius: 8px; padding: 24px 20px; text-align: center; cursor: pointer; background: var(--ws-surface-muted); transition: border-color 0.2s; }
-.drop-zone:hover { border-color: var(--ws-brand); background: var(--ws-brand-light); }
-.hidden-file-input { display: none; }
-.preview-img { max-height: 140px; border-radius: 6px; margin-bottom: 8px; object-fit: contain; }
-.upload-icon { font-size: 32px; display: block; margin-bottom: 8px; }
-.drop-text { font-size: 14px; font-weight: 700; color: var(--ws-text); margin: 0 0 4px 0; }
-.sub-text { font-size: 12px; color: var(--ws-text-muted); }
-
-.keyword-override { display: flex; align-items: center; gap: 8px; font-size: 12px; }
-.keyword-override input { flex: 1; border: 1px solid #CBD5E1; border-radius: 6px; padding: 8px 10px; font-size: 13px; }
-.btn-analyze { background: var(--ws-text); color: var(--ws-surface); border: none; padding: 8px 14px; border-radius: 6px; font-weight: 700; cursor: pointer; }
-
-.sim-result { background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 14px; }
-.success-msg { color: var(--ws-success); font-size: 13px; margin: 0 0 10px 0; }
-.matched-list { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.matched-item { display: flex; align-items: center; gap: 8px; background: var(--ws-surface); padding: 8px; border-radius: 6px; border: 1px solid var(--ws-success-bg); cursor: pointer; }
-.matched-item:hover { border-color: var(--ws-brand); }
-.matched-thumb { width: 44px; height: 44px; border-radius: 4px; object-fit: cover; }
-.m-title { font-size: 12px; font-weight: 700; color: var(--ws-text); display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; }
-.m-meta { font-size: 11px; color: var(--ws-text-2); }
-.btn-search-sim { width: 100%; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 10px; border-radius: 6px; font-weight: 700; cursor: pointer; }
+.vision-drop { display: block; border: 1.5px dashed var(--ws-border-strong); border-radius: 10px; padding: 26px 18px; text-align: center; cursor: pointer; background: var(--ws-surface-muted); margin-bottom: 16px; }
+.vision-drop:hover { border-color: var(--ws-brand); background: var(--ws-brand-faint); }
+.vision-drop p { margin: 8px 0 2px; font-size: 13px; }
+.vision-ico { color: var(--ws-text-faint); }
+.vision-preview { max-height: 140px; border-radius: 8px; object-fit: contain; }
+.hint-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
+.vision-res { background: #f6fef9; border: 1px solid #bbf7d0; border-radius: 10px; padding: 14px; margin-top: 4px; }
+.vision-res > p { margin: 0 0 10px; }
+.vision-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.vision-item { display: flex; gap: 10px; align-items: center; background: #fff; border: 1px solid var(--ws-border-subtle); border-radius: 8px; padding: 8px; cursor: pointer; }
+.vision-item:hover { border-color: var(--ws-brand); }
+.vision-item img { width: 46px; height: 46px; border-radius: 6px; object-fit: cover; flex: none; background: var(--ws-surface-muted); }
+@media (max-width: 640px) {
+  .vision-grid { grid-template-columns: minmax(0, 1fr); }
+  .hint-row { grid-template-columns: minmax(0, 1fr); }
+}
 </style>

@@ -1,48 +1,47 @@
 <template>
-  <div class="checkout-page">
-    <div class="checkout-header">
-      <h2>B2B 도매 수주 계약서 작성 및 체크아웃 (Trade Checkout)</h2>
-      <p class="subtitle">국제 무역 표준 규정에 따라 전자 계약서가 생성되고 에스크로 결제 계좌가 발급됩니다.</p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Trade Checkout</p>
+      <h1 class="ws-page-title">수주 계약서 작성·체크아웃</h1>
+      <p class="ws-page-sub">국제 무역 표준에 따라 전자 계약서가 생성되고 에스크로 결제 계좌가 발급됩니다.</p>
     </div>
 
-    <div v-if="loading" class="loading-state">
-      도매 계약 및 에스크로 정산 조건을 API 서버에서 확인 중입니다...
+    <div class="ws-steps">
+      <div class="ws-step ws-step-done"><span class="ws-step-num">✓</span><span class="ws-step-label">장바구니</span></div>
+      <div class="ws-step ws-step-active"><span class="ws-step-num">2</span><span class="ws-step-label">계약·체크아웃</span></div>
+      <div class="ws-step"><span class="ws-step-num">3</span><span class="ws-step-label">에스크로 결제</span></div>
     </div>
 
-    <div v-else class="checkout-layout">
-      <!-- Left: Form Sections -->
-      <div class="checkout-forms">
-        <!-- 1. Buyer & Consignee -->
-        <div class="form-card">
-          <div class="card-head">
-            <span class="step-num">1</span>
-            <h3>수하인 및 구매 기업 정보 (Consignee)</h3>
-          </div>
-          <div class="form-grid">
-            <div>
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 180px"></div>
+      <div class="ws-skeleton" style="height: 180px"></div>
+    </div>
+
+    <div v-else class="co-grid">
+      <div class="ws-stack">
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>1 · 수하인·구매 기업 정보</h3><span class="ws-badge ws-badge-outline">Consignee</span></div>
+          <div class="ws-grid-2">
+            <div class="ws-field">
               <label>수하인 기업명</label>
               <input v-model="consignee.companyName" type="text" />
             </div>
-            <div>
+            <div class="ws-field">
               <label>사업자/수입자 등록번호 (EIN/VAT)</label>
               <input v-model="consignee.taxId" type="text" />
             </div>
-            <div class="span-2">
-              <label>도착지 항구 및 인도 주소 (Destination Port)</label>
-              <input v-model="consignee.destinationAddress" type="text" />
-            </div>
           </div>
-        </div>
+          <div class="ws-field" style="margin-bottom: 0">
+            <label>도착지 항구·인도 주소</label>
+            <input v-model="consignee.destinationAddress" type="text" />
+          </div>
+        </section>
 
-        <!-- 2. Incoterms & Trade Terms -->
-        <div class="form-card">
-          <div class="card-head">
-            <span class="step-num">2</span>
-            <h3>무역 조건 및 운송 협약 (Incoterms® 2020)</h3>
-          </div>
-          <div class="form-grid">
-            <div>
-              <label>인도 조건 (Incoterms)</label>
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>2 · 무역 조건·운송 협약</h3><span class="ws-badge ws-badge-outline">Incoterms® 2020</span></div>
+          <div class="ws-grid-2">
+            <div class="ws-field">
+              <label>인도 조건</label>
               <select v-model="tradeTerms.incoterms">
                 <option value="FOB Busan Port">FOB Busan Port (본선인도가산)</option>
                 <option value="CIF Incheon">CIF (운임보험료포함인도)</option>
@@ -50,109 +49,67 @@
                 <option value="DDP Destination">DDP (관세지급인도)</option>
               </select>
             </div>
-            <div>
+            <div class="ws-field">
               <label>예상 생산 완료 납기</label>
               <input :value="`${checkoutItems[0]?.lead_time_days || 14} 영업일 이내 선적항 출고`" type="text" disabled />
             </div>
-            <div class="span-2">
-              <label>품질 검수 조건</label>
-              <div class="spec-note">
-                ✓ 선적 전 제3자 공인 검수(SGS/TÜV AQL 2.5) 통과 필수 · 불합격 시 재생산 또는 에스크로 전액 환불
-              </div>
+          </div>
+          <div class="ws-banner ws-banner-success" style="margin-bottom: 0">
+            <WsIcon name="check" :size="16" />
+            <span>선적 전 제3자 공인 검수(SGS/TÜV AQL 2.5) 통과 필수 · 불합격 시 재생산 또는 에스크로 전액 환불</span>
+          </div>
+        </section>
+
+        <section class="ws-card">
+          <div class="ws-card-head"><h3>3 · 에스크로 분할 결제 일정</h3></div>
+          <div class="ws-table-wrap">
+            <div class="ws-table-scroll">
+              <table class="ws-table">
+                <thead><tr><th>회차</th><th>결제 항목</th><th>비율</th><th class="ws-num">금액</th><th>정산 지급 조건</th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td>1차</td>
+                    <td class="ws-cell-main">선급금 (Down Payment)</td>
+                    <td>30%</td>
+                    <td class="ws-num"><b class="ws-price">{{ formatMoney(downPaymentAmount) }}</b></td>
+                    <td class="ws-cell-sub">계약 체결 후 에스크로 가상계좌 입금 즉시 생산 착수</td>
+                  </tr>
+                  <tr>
+                    <td>2차</td>
+                    <td class="ws-cell-main">잔금 (Final Balance)</td>
+                    <td>70%</td>
+                    <td class="ws-num"><b class="ws-figure">{{ formatMoney(balanceAmount) }}</b></td>
+                    <td class="ws-cell-sub">선적 B/L 발행·제3자 검수 합격 후 공급사에 최종 정산 지급</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
-        </div>
-
-        <!-- 3. Escrow Payment Schedule -->
-        <div class="form-card">
-          <div class="card-head">
-            <span class="step-num">3</span>
-            <h3>에스크로 분할 결제 일정 (Payment Schedule)</h3>
-          </div>
-          <div class="schedule-table-wrap">
-            <table class="schedule-table">
-              <thead>
-                <tr>
-                  <th>회차</th>
-                  <th>결제 항목</th>
-                  <th>비율</th>
-                  <th>금액</th>
-                  <th>정산 지급 조건</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>1차</td>
-                  <td><strong>선급금 (Down Payment)</strong></td>
-                  <td>30%</td>
-                  <td class="amount orange">{{ formatMoney(downPaymentAmount) }}</td>
-                  <td>계약 체결 후 에스크로 가상계좌 입금 즉시 생산 착수</td>
-                </tr>
-                <tr>
-                  <td>2차</td>
-                  <td><strong>잔금 (Final Balance)</strong></td>
-                  <td>70%</td>
-                  <td class="amount">{{ formatMoney(balanceAmount) }}</td>
-                  <td>선적 B/L 발행 및 제3자 검수 합격 후 공급사에 최종 정산 지급</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        </section>
       </div>
 
-      <!-- Right: Order Confirmation Sticky Card -->
-      <div class="checkout-sidebar">
-        <div class="confirm-card">
-          <h3>도매 발주 품목 및 금액 확인</h3>
-
-          <div v-for="item in checkoutItems" :key="item.id" class="item-summary-box">
-            <span class="badge-sup"><WsIcon name="building" :size="15" /> {{ item.supplier_name }}</span>
-            <h4>{{ item.title }}</h4>
-            <div class="meta-line">
-              <span>수량: {{ item.quantity }} {{ item.unit }}</span>
-              <span>단가: {{ formatMoney(item.unit_price) }}</span>
-            </div>
-            <div class="meta-line subtotal-line">
-              <span>품목 소계:</span>
-              <strong>{{ formatMoney(item.total_price || (item.quantity * parseFloat(item.unit_price))) }}</strong>
-            </div>
-          </div>
-
-          <div class="price-breakdown">
-            <div class="row">
-              <span>물품 총 공급가액 (FOB)</span>
-              <span>{{ formatMoney(totalAmount) }}</span>
-            </div>
-            <div class="row">
-              <span>무역보증(Trade Assurance) 수수료</span>
-              <span class="free">무료 (플랫폼 부담)</span>
-            </div>
-            <div class="row total">
-              <span>최종 계약 총액</span>
-              <span>{{ formatMoney(totalAmount) }}</span>
-            </div>
-            <div class="row downpayment-row">
-              <span>1차 선급금 (30%)</span>
-              <span class="val-dp">{{ formatMoney(downPaymentAmount) }}</span>
-            </div>
-          </div>
-
-          <div class="legal-notice">
-            ※ [계약서 발급] 클릭 시 ICC 표준 국제매매계약서가 생성되며 SHA-256 해시가 부여됩니다. 전자서명 후 생산이 개시됩니다.
-          </div>
-
-          <p v-if="error" class="error-msg">{{ error }}</p>
-
-          <button
-            class="btn-generate-contract"
-            :disabled="submitting || checkoutItems.length === 0"
-            @click="generateContract"
-          >
-            <WsIcon v-if="!(submitting)" name="pencil" :size="14" /> {{ submitting ? '계약서 생성 및 주문 접수 중...' : '최종 도매 계약서 발급 및 주문 체결 →' }}
-          </button>
+      <aside class="ws-card confirm">
+        <h3 class="ws-card-title">발주 품목·금액 확인</h3>
+        <div v-for="item in checkoutItems" :key="item.id" class="co-item">
+          <p class="ws-list-sub"><WsIcon name="building" :size="13" /> {{ item.supplier_name }}</p>
+          <p class="ws-list-title">{{ item.title }}</p>
+          <p class="co-meta">수량 {{ item.quantity }}{{ item.unit }} · 단가 {{ formatMoney(item.unit_price) }}</p>
+          <p class="co-sub">품목 소계 <b class="ws-figure">{{ formatMoney(item.total_price || (item.quantity * parseFloat(item.unit_price))) }}</b></p>
         </div>
-      </div>
+        <dl class="sum-rows">
+          <div><dt>물품 총 공급가액 (FOB)</dt><dd class="ws-figure">{{ formatMoney(totalAmount) }}</dd></div>
+          <div><dt>Trade Assurance 수수료</dt><dd class="free">무료</dd></div>
+          <div class="total"><dt>최종 계약 총액</dt><dd class="ws-figure">{{ formatMoney(totalAmount) }}</dd></div>
+          <div class="em"><dt>1차 선급금 (30%)</dt><dd class="ws-price ws-figure">{{ formatMoney(downPaymentAmount) }}</dd></div>
+        </dl>
+        <p class="legal-note">계약서 발급 시 ICC 표준 국제매매계약서가 생성되고 SHA-256 해시가 부여됩니다. 전자서명 후 생산이 개시됩니다.</p>
+        <p v-if="error" class="ws-error-text">{{ error }}</p>
+        <button class="ws-btn ws-btn-primary ws-btn-block ws-btn-lg" :disabled="submitting || checkoutItems.length === 0" @click="generateContract">
+          <span v-if="submitting" class="ws-spinner"></span>
+          <WsIcon v-else name="pencil" :size="14" />
+          {{ submitting ? '계약서 생성·주문 접수 중...' : '최종 계약서 발급·주문 체결' }}
+        </button>
+      </aside>
     </div>
   </div>
 </template>
@@ -283,280 +240,23 @@ async function generateContract() {
 </script>
 
 <style scoped>
-.checkout-page {
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 24px 16px 60px;
-}
-.checkout-header h2 {
-  font-size: 22px;
-  color: var(--ws-text);
-  margin: 0 0 6px;
-  font-weight: 800;
-}
-.subtitle {
-  color: var(--ws-text-muted);
-  font-size: 13px;
-  margin-bottom: 24px;
-}
-.loading-state {
-  padding: 40px;
-  text-align: center;
-  color: var(--ws-text-muted);
-}
-
-.checkout-layout {
-  display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 28px;
-  align-items: start;
-}
-.checkout-forms {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-.form-card {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 22px;
-}
-.card-head {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 12px;
-}
-.step-num {
-  width: 24px;
-  height: 24px;
-  background: var(--ws-brand);
-  color: var(--ws-surface);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 800;
-}
-.card-head h3 {
-  margin: 0;
-  font-size: 16px;
-  color: var(--ws-text);
-  font-weight: 700;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.form-grid .span-2 {
-  grid-column: span 2;
-}
-.form-grid label {
-  display: block;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--ws-text-2);
-  margin-bottom: 4px;
-}
-.form-grid input, .form-grid select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #CBD5E1;
-  border-radius: 4px;
-  box-sizing: border-box;
-  font-size: 13px;
-}
-.form-grid input:disabled {
-  background: var(--ws-surface-muted);
-  color: var(--ws-text-muted);
-}
-.spec-note {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  padding: 10px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  color: var(--ws-text-2);
-}
-
-.schedule-table-wrap {
-  overflow-x: auto;
-}
-.schedule-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 12px;
-}
-.schedule-table th, .schedule-table td {
-  border: 1px solid var(--ws-border-subtle);
-  padding: 8px 10px;
-  text-align: left;
-}
-.schedule-table th {
-  background: var(--ws-surface-muted);
-  font-weight: 700;
-  color: var(--ws-text-2);
-}
-.schedule-table .amount {
-  font-weight: 700;
-  color: var(--ws-text);
-}
-.schedule-table .amount.orange {
-  color: var(--ws-brand);
-}
-
-/* Sidebar Confirmation Card */
-.confirm-card {
-  background: var(--ws-surface);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 8px;
-  padding: 22px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
-}
-.confirm-card h3 {
-  font-size: 15px;
-  color: var(--ws-text);
-  margin: 0 0 16px;
-  font-weight: 800;
-  border-bottom: 1px solid var(--ws-surface-muted);
-  padding-bottom: 10px;
-}
-.item-summary-box {
-  background: var(--ws-surface-muted);
-  border: 1px solid var(--ws-border-subtle);
-  border-radius: 6px;
-  padding: 12px;
-  margin-bottom: 14px;
-}
-.badge-sup {
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--ws-text-2);
-}
-.item-summary-box h4 {
-  margin: 6px 0;
-  font-size: 13px;
-  color: var(--ws-text);
-  font-weight: 700;
-}
-.meta-line {
-  display: flex;
-  justify-content: space-between;
-  font-size: 12px;
-  color: var(--ws-text-muted);
-  margin-bottom: 2px;
-}
-.subtotal-line {
-  border-top: 1px solid var(--ws-border-subtle);
-  padding-top: 4px;
-  margin-top: 4px;
-  color: var(--ws-text);
-}
-
-.price-breakdown {
-  border-top: 1px solid var(--ws-surface-muted);
-  padding-top: 12px;
-  margin-bottom: 16px;
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  padding: 4px 0;
-  color: var(--ws-text-2);
-}
-.row.total {
-  font-weight: 800;
-  font-size: 15px;
-  color: var(--ws-text);
-  border-top: 1px solid var(--ws-border-subtle);
-  margin-top: 8px;
-  padding-top: 10px;
-}
-.row .free {
-  color: var(--ws-success);
-  font-weight: 700;
-}
-.row.downpayment-row {
-  background: var(--ws-brand-light);
-  border-radius: 4px;
-  padding: 8px;
-  margin-top: 8px;
-  font-weight: 700;
-}
-.val-dp {
-  color: var(--ws-brand);
-  font-size: 15px;
-  font-weight: 800;
-}
-
-.legal-notice {
-  font-size: 11px;
-  color: var(--ws-text-muted);
-  line-height: 1.4;
-  margin-bottom: 16px;
-  background: var(--ws-surface-muted);
-  padding: 10px;
-  border-radius: 4px;
-}
-.error-msg {
-  background: #FEF2F2;
-  color: var(--ws-danger);
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-  margin-bottom: 14px;
-}
-
-.btn-generate-contract {
-  width: 100%;
-  background: var(--ws-brand-hover);
-  color: var(--ws-surface);
-  border: none;
-  padding: 14px;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-.btn-generate-contract:hover {
-  background: var(--ws-brand-hover);
-}
-.btn-generate-contract:disabled {
-  background: #CBD5E1;
-  cursor: not-allowed;
-}
-
-@media (max-width: 960px) {
-  .checkout-layout {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-}
-
-@media (max-width: 640px) {
-  .checkout-page {
-    padding: 16px 12px 40px;
-  }
-  .form-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .form-grid .span-2 {
-    grid-column: span 1;
-  }
-  .form-card, .confirm-card {
-    padding: 16px;
-  }
-  .schedule-table th, .schedule-table td {
-    padding: 6px 8px;
-    font-size: 11px;
-  }
+.co-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
+.confirm { position: sticky; top: 84px; }
+.co-item { padding: 12px 0; border-bottom: 1px solid var(--ws-border-subtle); }
+.co-item p { margin: 0 0 4px; }
+.co-meta { font-size: 12px; color: var(--ws-text-muted); }
+.co-sub { display: flex; justify-content: space-between; font-size: 13px; color: var(--ws-text-2); }
+.sum-rows { margin: 12px 0; }
+.sum-rows div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 8px 0; border-bottom: 1px solid var(--ws-border-subtle); font-size: 13px; }
+.sum-rows div:last-child { border-bottom: 0; }
+.sum-rows dt { color: var(--ws-text-2); }
+.sum-rows dd { margin: 0; font-weight: 800; }
+.sum-rows .free { color: var(--ws-success); font-size: 12px; }
+.sum-rows .total dd { font-size: 17px; }
+.sum-rows .em dd { font-size: 16px; }
+.legal-note { font-size: 11px; color: var(--ws-text-muted); line-height: 1.6; background: var(--ws-surface-muted); border-radius: 8px; padding: 10px 12px; }
+@media (max-width: 1024px) {
+  .co-grid { grid-template-columns: minmax(0, 1fr); }
+  .confirm { position: static; }
 }
 </style>

@@ -1,66 +1,63 @@
 <template>
-  <div class="settlement-page">
-    <h2>공급사 정산 원장 및 출금 신청 (Settlement & Payouts)</h2>
-    <p class="subtitle">에스크로 보호 기간 종료 및 바이어 검수 합격 후 출금 가능한 정산 대금입니다.</p>
-
-    <div v-if="loading" class="loading-state">
-      정산 원장 데이터를 API 서버에서 조회 중입니다...
+  <div class="ws-page">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Settlement</p>
+      <h1 class="ws-page-title">정산 원장·출금 신청</h1>
+      <p class="ws-page-sub">에스크로 보호 기간 종료·바이어 검수 합격 후 출금 가능한 정산 대금입니다.</p>
     </div>
 
-    <div v-else-if="error" class="error-banner">
-      <WsIcon name="alert" :size="15" /> {{ error }}
+    <div v-if="loading" class="ws-stack">
+      <div class="ws-skeleton" style="height: 110px"></div>
+      <div class="ws-skeleton" style="height: 200px"></div>
     </div>
 
-    <div v-else class="content-box">
-      <!-- Balance Banner -->
-      <div class="balance-cards">
-        <div class="b-card">
-          <span class="lbl">지급 대기 잔액 (Pending Escrow)</span>
-          <span class="val">$0.00</span>
-          <span class="sub">검수 합격 후 해제 예정</span>
+    <div v-else-if="error" class="ws-banner ws-banner-danger">
+      <WsIcon name="alert" :size="16" />
+      <span>{{ error }}</span>
+    </div>
+
+    <div v-else class="ws-stack">
+      <div class="ws-grid-3">
+        <div class="ws-stat">
+          <p class="ws-stat-label">지급 대기 잔액 (Pending)</p>
+          <p class="ws-stat-value">$0.00</p>
+          <p class="ws-stat-foot">검수 합격 후 해제 예정</p>
         </div>
-        <div class="b-card eligible">
-          <span class="lbl">출금 가능 잔액 (Release Eligible)</span>
-          <span class="val highlight">${{ totalEligibleNet }}</span>
-          <button class="btn-payout" :disabled="submitting || parseFloat(totalEligibleNet) <= 0" @click="requestPayout">
-            {{ submitting ? '신청 중...' : '공식 출금 신청 (Disburse)' }}
+        <div class="ws-stat eligible">
+          <p class="ws-stat-label">출금 가능 잔액</p>
+          <p class="ws-stat-value">${{ totalEligibleNet }}</p>
+          <button class="ws-btn ws-btn-primary ws-btn-sm ws-btn-block" style="margin-top: 10px" :disabled="submitting || parseFloat(totalEligibleNet) <= 0" @click="requestPayout">
+            {{ submitting ? '신청 중...' : '공식 출금 신청' }}
           </button>
         </div>
-        <div class="b-card held">
-          <span class="lbl">분쟁 동결 금액 (Dispute Hold)</span>
-          <span class="val danger">$0.00</span>
-          <span class="sub">현재 진행 중 분쟁 없음</span>
+        <div class="ws-stat">
+          <p class="ws-stat-label">분쟁 동결 금액</p>
+          <p class="ws-stat-value held">$0.00</p>
+          <p class="ws-stat-foot">현재 진행 중 분쟁 없음</p>
         </div>
       </div>
 
-      <!-- Settlement Records Table -->
-      <div class="records-box">
-        <h3>정산 전표 내역 (Settlement Journals)</h3>
-        <table class="settlement-table">
-          <thead>
-            <tr>
-              <th>정산 ID</th>
-              <th>주문번호</th>
-              <th>거래 총액</th>
-              <th>플랫폼 수수료(5%)</th>
-              <th>정산 지급액</th>
-              <th>검수 상태</th>
-              <th>정산 상태</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="rec in records" :key="rec.id">
-              <td>{{ rec.id }}</td>
-              <td class="ord-col">{{ rec.order_number }}</td>
-              <td class="num">${{ (rec.gross_minor / 100).toFixed(2) }}</td>
-              <td class="num fee">-${{ (rec.fee_minor / 100).toFixed(2) }}</td>
-              <td class="num bold">${{ (rec.net_minor / 100).toFixed(2) }}</td>
-              <td><span class="tag-pass">✓ 합격</span></td>
-              <td><span class="tag-status" :class="rec.status.toLowerCase()">{{ rec.status }}</span></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+      <section class="ws-card ws-card-pad-sm">
+        <div class="ws-card-head"><h3>정산 전표 내역</h3></div>
+        <div class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead><tr><th>정산 ID</th><th>주문번호</th><th class="ws-num">거래 총액</th><th class="ws-num">수수료 5%</th><th class="ws-num">정산 지급액</th><th>검수</th><th>정산 상태</th></tr></thead>
+              <tbody>
+                <tr v-for="rec in records" :key="rec.id">
+                  <td class="ws-cell-sub ws-figure">{{ rec.id }}</td>
+                  <td class="ws-cell-main ws-figure">{{ rec.order_number }}</td>
+                  <td class="ws-num ws-figure">${{ (rec.gross_minor / 100).toFixed(2) }}</td>
+                  <td class="ws-num ws-figure fee">-${{ (rec.fee_minor / 100).toFixed(2) }}</td>
+                  <td class="ws-num"><b class="ws-figure">${{ (rec.net_minor / 100).toFixed(2) }}</b></td>
+                  <td><span class="ws-badge ws-badge-success">✓ 합격</span></td>
+                  <td><span class="ws-badge" :class="rec.status === 'RELEASE_ELIGIBLE' ? 'ws-badge-success' : rec.status === 'HELD' ? 'ws-badge-warning' : 'ws-badge-info'">{{ rec.status }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 </template>
@@ -123,38 +120,8 @@ async function requestPayout() {
 </script>
 
 <style scoped>
-.settlement-page { max-width: 1000px; margin: 0 auto; }
-h2 { margin: 0 0 6px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin-bottom: 24px; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-text-muted); }
-.error-banner { background: #FEF2F2; color: var(--ws-danger); padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-.balance-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
-.b-card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 20px; display: flex; flex-direction: column; }
-.b-card .lbl { font-size: 12px; color: var(--ws-text-muted); margin-bottom: 8px; }
-.b-card .val { font-size: 24px; font-weight: 800; color: var(--ws-text); font-variant-numeric: tabular-nums; }
-.b-card .val.highlight { color: var(--ws-success); }
-.b-card .val.danger { color: var(--ws-danger); }
-.b-card .sub { font-size: 11px; color: var(--ws-admin-dim); margin-top: 6px; }
-.btn-payout { margin-top: 12px; background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 8px 14px; border-radius: 4px; font-weight: 700; cursor: pointer; font-size: 13px; }
-.btn-payout:disabled { background: #CBD5E1; cursor: not-allowed; }
-.records-box { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
-.records-box h3 { margin: 0 0 16px 0; font-size: 16px; color: var(--ws-text); }
-.settlement-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.settlement-table th, .settlement-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 10px 12px; text-align: left; }
-.settlement-table th { background: var(--ws-surface-muted); color: var(--ws-text-2); font-weight: 600; }
-.ord-col { font-weight: 600; color: var(--ws-text); }
-.num { text-align: right; font-variant-numeric: tabular-nums; }
-.num.fee { color: var(--ws-danger); }
-.num.bold { font-weight: 700; color: var(--ws-text); }
-.tag-pass { background: var(--ws-success-bg); color: var(--ws-success); font-size: 11px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-.tag-status { font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 9999px; }
-.tag-status.release_eligible { background: var(--ws-success-bg); color: var(--ws-success); }
-.tag-status.payout_dispatched { background: var(--ws-info-bg); color: var(--ws-info); }
-.tag-status.held { background: var(--ws-warning-bg); color: var(--ws-warning); }
-
-@media (max-width: 768px) {
-  .balance-cards { grid-template-columns: 1fr; gap: 12px; }
-  .records-box { padding: 16px; }
-  .settlement-table { display: block; overflow-x: auto; }
-}
+.eligible { border-color: var(--ws-success); }
+.eligible .ws-stat-value { color: var(--ws-success); }
+.ws-stat-value.held { color: var(--ws-danger); }
+.fee { color: var(--ws-danger); }
 </style>

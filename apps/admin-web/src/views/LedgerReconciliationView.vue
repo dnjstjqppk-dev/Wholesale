@@ -1,48 +1,42 @@
 <template>
-  <div class="reconciliation-page">
-    <div class="head-row">
+  <div class="ws-admin-page recon">
+    <div class="admin-head">
       <div>
-        <h2>PG 결제 대사 및 복식부기 원장 검증 (Daily Reconciliation)</h2>
-        <p class="subtitle">PG사 승인 내역과 플랫폼 내부 복식원장(차변=대변) 간 일일 대사 배치를 실행하고 불일치(Discrepancy)를 전수 검증합니다.</p>
+        <p class="admin-eyebrow">Daily Reconciliation</p>
+        <h1>PG 결제 대사·원장 검증</h1>
+        <p class="admin-sub">PG 승인 내역과 복식원장 간 일일 대사 배치를 실행하고 불일치를 전수 검증합니다.</p>
       </div>
-      <button class="btn-batch" :disabled="reconciling" @click="runReconciliation">
-        <WsIcon v-if="!(reconciling)" name="bolt" :size="14" /> {{ reconciling ? '대사 배치 가동 중...' : '일일 결제 대사 배치 실행 (POST /v1/settlements/reconcile)' }}
+      <button class="ws-admin-btn ws-admin-btn-primary" :disabled="reconciling" @click="runReconciliation">
+        <WsIcon v-if="!reconciling" name="bolt" :size="14" /> {{ reconciling ? '대사 배치 가동 중...' : '일일 대사 배치 실행' }}
       </button>
     </div>
 
-    <div v-if="loading" class="loading-state">대사 기록을 불러오는 중입니다...</div>
+    <div v-if="loading" class="ws-skeleton sk-dark" style="height: 240px"></div>
 
-    <div class="card">
-      <h3><WsIcon name="trend" :size="15" /> 일일 결제 대사 실행 리포트</h3>
-      <table class="rec-table">
-        <thead>
-          <tr>
-            <th>대사 ID</th>
-            <th>기준 일자</th>
-            <th>PG 승인 총액</th>
-            <th>원장 차변 기표액</th>
-            <th>불일치 차액</th>
-            <th>대사 검증 건수</th>
-            <th>대사 상태</th>
-            <th>수행 일시</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="r in reconciliations" :key="r.id">
-            <td class="bold">{{ r.id }}</td>
-            <td>{{ r.date }}</td>
-            <td class="num">${{ ((r.pg_captured_minor || 0) / 100).toFixed(2) }}</td>
-            <td class="num">${{ ((r.ledger_debit_minor || 0) / 100).toFixed(2) }}</td>
-            <td class="num" :class="r.discrepancy_minor === 0 ? 'zero' : 'err'">
-              ${{ ((r.discrepancy_minor || 0) / 100).toFixed(2) }}
-            </td>
-            <td>{{ r.matched_records }}건 일치 (불일치 0건)</td>
-            <td><span class="st-pill balanced">✓ {{ r.status }}</span></td>
-            <td class="time">{{ formatTime(r.performed_at) }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <section v-else class="ws-admin-card">
+      <div class="ws-card-head">
+        <h3 class="admin-h"><WsIcon name="trend" :size="15" class="h-ico" /> 일일 대사 실행 리포트</h3>
+      </div>
+      <div class="ws-admin-table-wrap">
+        <div class="ws-admin-table-scroll">
+          <table class="ws-admin-table">
+            <thead><tr><th>대사 ID</th><th>기준 일자</th><th>PG 승인 총액</th><th>원장 차변 기표액</th><th>불일치 차액</th><th>검증 건수</th><th>상태</th><th>수행 일시</th></tr></thead>
+            <tbody>
+              <tr v-for="r in reconciliations" :key="r.id">
+                <td><b class="ws-figure">{{ r.id }}</b></td>
+                <td>{{ r.date }}</td>
+                <td class="ws-figure">${{ ((r.pg_captured_minor || 0) / 100).toFixed(2) }}</td>
+                <td class="ws-figure">${{ ((r.ledger_debit_minor || 0) / 100).toFixed(2) }}</td>
+                <td class="ws-figure" :class="r.discrepancy_minor === 0 ? 'zero' : 'err'"><b>${{ ((r.discrepancy_minor || 0) / 100).toFixed(2) }}</b></td>
+                <td>{{ r.matched_records }}건 일치 (불일치 0건)</td>
+                <td><span class="ws-admin-badge ws-admin-badge-ok">✓ {{ r.status }}</span></td>
+                <td class="ws-small dim">{{ formatTime(r.performed_at) }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -93,23 +87,15 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.reconciliation-page { max-width: 1100px; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #FFF; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
-.btn-batch { background: #059669; color: #FFF; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-.card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 24px; }
-.card h3 { margin: 0 0 16px 0; font-size: 16px; color: #FFF; }
-.rec-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.rec-table th, .rec-table td { padding: 10px 8px; border-bottom: 1px solid #2B3A55; text-align: left; }
-.rec-table th { color: var(--ws-admin-dim); background: var(--ws-admin-panel-2); }
-.bold { font-weight: 700; color: #FFF; }
-.num { font-variant-numeric: tabular-nums; font-weight: 700; }
-.num.zero { color: #10B981; }
-.num.err { color: #EF4444; }
-.st-pill { padding: 3px 8px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-.st-pill.balanced { background: #064E3B; color: #6EE7B7; }
-.time { color: var(--ws-admin-dim); font-size: 12px; }
+.recon { display: flex; flex-direction: column; gap: 18px; }
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); }
+.admin-h { color: #fff; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+.h-ico { color: var(--ws-admin-accent); }
+.zero { color: #6ee7b7; }
+.err { color: #f87171; }
+.dim { color: var(--ws-admin-dim); }
+.sk-dark { background: var(--ws-admin-panel); }
 </style>
-

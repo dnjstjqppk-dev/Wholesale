@@ -1,13 +1,14 @@
 <template>
-  <div class="audit-log-page">
-    <div class="head-row">
+  <div class="ws-admin-page auditlog">
+    <div class="admin-head">
       <div>
-        <h2>플랫폼 불변 보안 감사 로그 (Immutable Audit Trail)</h2>
-        <p class="subtitle">인증·상품 모더레이션·무역계약·결제·분쟁 중재·정산 이체 등 모든 트랜잭션 행위가 법적 효력을 갖는 감사 원장에 기록됩니다.</p>
+        <p class="admin-eyebrow">Audit Trail</p>
+        <h1>불변 보안 감사 로그</h1>
+        <p class="admin-sub">인증·모더레이션·계약·결제·분쟁·정산 행위 전체가 법적 효력의 감사 원장에 기록됩니다.</p>
       </div>
-      <div class="filter-controls">
-        <select v-model="selectedAction" @change="loadLogs">
-          <option value="">전체 행위 이벤트 (All Actions)</option>
+      <span class="ws-cluster" style="gap: 8px">
+        <select v-model="selectedAction" class="ws-admin-input" style="width: auto" @change="loadLogs">
+          <option value="">전체 행위 이벤트</option>
           <option value="TRADE_ORDER_PLACED">TRADE_ORDER_PLACED</option>
           <option value="ORDER_APPROVED">ORDER_APPROVED</option>
           <option value="CONTRACT_SIGNED">CONTRACT_SIGNED</option>
@@ -20,46 +21,38 @@
           <option value="SETTLEMENT_PAYOUT_DISPATCHED">SETTLEMENT_PAYOUT_DISPATCHED</option>
           <option value="SUPPLIER_VERIFICATION_APPROVED">SUPPLIER_VERIFICATION_APPROVED</option>
         </select>
-        <button class="btn-refresh" @click="loadLogs"><WsIcon name="refresh" :size="15" /> 새로고침</button>
-      </div>
+        <button class="ws-admin-btn" @click="loadLogs"><WsIcon name="refresh" :size="13" /> 새로고침</button>
+      </span>
     </div>
 
-    <div v-if="loading" class="loading-state">감사 로그를 안전하게 불러오는 중입니다...</div>
+    <div v-if="loading" class="ws-skeleton sk-dark" style="height: 240px"></div>
 
-    <div class="card">
-      <div class="card-head">
-        <h3>기록된 감사 전표 ({{ logs.length }}건)</h3>
-        <span class="policy-tag">보존 연한: 법적 불변 아카이브 7년</span>
+    <section v-else class="ws-admin-card">
+      <div class="ws-card-head">
+        <h3 class="admin-h">감사 전표 ({{ logs.length }}건)</h3>
+        <span class="ws-admin-badge ws-admin-badge-ok">불변 아카이브 7년 보존</span>
       </div>
-
-      <table class="log-table">
-        <thead>
-          <tr>
-            <th>로그 ID</th>
-            <th>타임스탬프 (UTC/KST)</th>
-            <th>이벤트 액션</th>
-            <th>행위 주체 (Actor)</th>
-            <th>대상 엔티티</th>
-            <th>감사 상세 내역</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="l in logs" :key="l.id">
-            <td class="bold code">{{ l.id }}</td>
-            <td class="time">{{ formatTime(l.created_at) }}</td>
-            <td><span class="action-badge">{{ l.action }}</span></td>
-            <td>
-              <div class="actor-info">
-                <strong>{{ l.actor_id }}</strong>
-                <span class="role-chip">{{ l.actor_role }}</span>
-              </div>
-            </td>
-            <td><code>{{ l.target_type }}:{{ l.target_id }}</code></td>
-            <td class="desc">{{ l.details }}</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+      <div class="ws-admin-table-wrap">
+        <div class="ws-admin-table-scroll">
+          <table class="ws-admin-table">
+            <thead><tr><th>로그 ID</th><th>타임스탬프</th><th>이벤트</th><th>행위 주체</th><th>대상 엔티티</th><th>상세 내역</th></tr></thead>
+            <tbody>
+              <tr v-for="l in logs" :key="l.id">
+                <td class="ws-figure dim">{{ l.id }}</td>
+                <td class="ws-small dim nowrap">{{ formatTime(l.created_at) }}</td>
+                <td><code class="evt">{{ l.action }}</code></td>
+                <td>
+                  <b>{{ l.actor_id }}</b><br />
+                  <span class="ws-small role">{{ l.actor_role }}</span>
+                </td>
+                <td><code class="ws-small">{{ l.target_type }}:{{ l.target_id }}</code></td>
+                <td class="desc">{{ l.details }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -98,28 +91,16 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.audit-log-page { max-width: 1200px; display: flex; flex-direction: column; gap: 20px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: #FFF; }
-.subtitle { color: var(--ws-admin-dim); font-size: 13px; margin: 0; }
-.filter-controls { display: flex; gap: 8px; }
-.filter-controls select { background: var(--ws-admin-panel); color: var(--ws-admin-text); border: 1px solid var(--ws-admin-line); padding: 8px 12px; border-radius: 6px; font-size: 12px; }
-.btn-refresh { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-text); padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.loading-state { padding: 40px; text-align: center; color: var(--ws-admin-dim); }
-
-.card { background: var(--ws-admin-panel); border: 1px solid var(--ws-admin-line); border-radius: 8px; padding: 24px; }
-.card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-.card-head h3 { margin: 0; font-size: 16px; color: #FFF; }
-.policy-tag { background: #064E3B; color: #6EE7B7; font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; }
-
-.log-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.log-table th, .log-table td { padding: 10px 8px; border-bottom: 1px solid #2B3A55; text-align: left; }
-.log-table th { background: var(--ws-admin-panel-2); color: var(--ws-admin-dim); }
-.code { font-family: monospace; color: var(--ws-admin-dim); }
-.time { color: var(--ws-admin-dim); white-space: nowrap; }
-.action-badge { background: var(--ws-admin-panel-2); border: 1px solid var(--ws-admin-line); color: var(--ws-admin-accent); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-weight: 700; }
-.actor-info { display: flex; flex-direction: column; gap: 2px; }
-.role-chip { font-size: 10px; color: var(--ws-admin-link); font-weight: 600; }
-.desc { color: var(--ws-admin-text); max-width: 440px; }
+.auditlog { display: flex; flex-direction: column; gap: 18px; }
+.admin-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; }
+.admin-head h1 { margin: 0 0 6px; font-size: 24px; font-weight: 800; letter-spacing: -0.015em; }
+.admin-eyebrow { margin: 0 0 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ws-admin-accent); }
+.admin-sub { margin: 0; font-size: 13px; color: var(--ws-admin-dim); max-width: 62ch; }
+.admin-h { color: #fff; font-size: 15px; }
+.evt { color: var(--ws-admin-accent); font-weight: 700; font-size: 11px; }
+.dim { color: var(--ws-admin-dim); }
+.nowrap { white-space: nowrap; }
+.role { color: var(--ws-admin-link); font-weight: 600; }
+.desc { max-width: 440px; }
+.sk-dark { background: var(--ws-admin-panel); }
 </style>
-

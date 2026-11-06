@@ -1,81 +1,91 @@
 <template>
-  <div class="bulk-upload">
-    <div class="head-row">
-      <div>
-        <h2>CSV 대량 상품 등록 및 서버 트랜잭션 검증 (Bulk Import)</h2>
-        <p class="subtitle">수백 개의 도매 SKU와 구간단가를 서버 API(`POST /v1/catalog/bulk-upload`)를 통해 Dry-run 검증 후 원자적(Atomically)으로 등록합니다.</p>
+  <div class="ws-page">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Bulk Import</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">CSV 대량 상품 등록</h1>
+        <div class="ws-page-actions">
+          <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="downloadTemplate"><WsIcon name="download" :size="14" /> 표준 양식 다운로드</button>
+        </div>
       </div>
-      <button class="btn-template" @click="downloadTemplate"><WsIcon name="download" :size="15" /> 표준 CSV 양식 다운로드</button>
+      <p class="ws-page-sub">수백 개 SKU·구간단가를 Dry-run 검증 후 원자적으로(Atomically) 등록합니다.</p>
     </div>
 
-    <div class="card">
-      <div class="upload-section">
-        <div class="file-row">
-          <label>1. CSV 파일 업로드 또는 원본 데이터 편집 (헤더 포함)</label>
-          <input type="file" accept=".csv,.txt" @change="onCsvFileChosen" />
-        </div>
-        <textarea v-model="csvContent" rows="7" class="csv-textarea"></textarea>
-        <p class="hint">※ 컬럼 규격: `title,category,moq,unit,base_price,sub_category,lead_time_days,incoterms`</p>
+    <div class="ws-steps">
+      <div class="ws-step" :class="dryRunResult ? 'ws-step-done' : 'ws-step-active'">
+        <span class="ws-step-num">{{ dryRunResult ? '✓' : '1' }}</span>
+        <span class="ws-step-label">Dry-run 유효성 검증</span>
       </div>
+      <div class="ws-step" :class="{ 'ws-step-active': !!dryRunResult && !commitResult, 'ws-step-done': !!commitResult }">
+        <span class="ws-step-num">{{ commitResult ? '✓' : '2' }}</span>
+        <span class="ws-step-label">원자적 일괄 등록</span>
+      </div>
+    </div>
 
-      <div class="action-bar">
-        <button class="btn-dryrun" :disabled="processing" @click="runServerDryRun">
-          <WsIcon name="search" :size="15" /> 1단계: 서버 Dry-run 유효성 사전 검증 (`POST /v1/catalog/bulk-upload`)
+    <section class="ws-card">
+      <div class="ws-split" style="margin-bottom: 10px">
+        <b>1 · CSV 업로드·원본 편집 (헤더 포함)</b>
+        <input type="file" accept=".csv,.txt" class="file-input" @change="onCsvFileChosen" />
+      </div>
+      <textarea v-model="csvContent" rows="7" class="ws-input ws-textarea csv-area"></textarea>
+      <p class="ws-hint">컬럼 규격: <code>title,category,moq,unit,base_price,sub_category,lead_time_days,incoterms</code></p>
+
+      <div class="ws-cluster" style="margin-top: 14px">
+        <button class="ws-btn ws-btn-navy" :disabled="processing" @click="runServerDryRun">
+          <WsIcon name="search" :size="14" /> 1단계: Dry-run 검증
         </button>
         <button
-          class="btn-commit"
+          class="ws-btn ws-btn-primary"
           :disabled="processing || !dryRunResult || dryRunResult.invalid_count > 0 || dryRunResult.valid_count === 0"
           @click="commitBulkUpload"
         >
-          <WsIcon name="send" :size="15" /> 2단계: 검증 통과 품목 카탈로그 원자적(Atomic) 일괄 등록
+          <WsIcon name="send" :size="14" /> 2단계: 검증 통과 품목 일괄 등록
         </button>
       </div>
 
-      <!-- Dry Run Result -->
-      <div v-if="dryRunResult" class="result-section">
-        <div class="result-summary">
-          <span class="tag-total">전체 행: {{ dryRunResult.total_rows }}건</span>
-          <span class="tag-ok">유효 통과: {{ dryRunResult.valid_count }}건</span>
-          <span v-if="dryRunResult.invalid_count > 0" class="tag-err">오류 행: {{ dryRunResult.invalid_count }}건</span>
+      <div v-if="dryRunResult" class="result-box">
+        <span class="ws-cluster" style="gap: 8px">
+          <span class="ws-badge ws-badge-outline">전체 {{ dryRunResult.total_rows }}건</span>
+          <span class="ws-badge ws-badge-success">유효 {{ dryRunResult.valid_count }}건</span>
+          <span v-if="dryRunResult.invalid_count > 0" class="ws-badge ws-badge-danger">오류 {{ dryRunResult.invalid_count }}건</span>
+        </span>
+        <p class="ws-small">{{ dryRunResult.message }}</p>
+        <div v-if="dryRunResult.errors?.length > 0" class="ws-banner ws-banner-danger">
+          <WsIcon name="alert" :size="16" />
+          <div>
+            <b>서버 검증 오류 상세</b>
+            <ul style="margin: 6px 0 0; padding-left: 18px">
+              <li v-for="(e, i) in dryRunResult.errors" :key="i">Row #{{ e.row }}: {{ e.error }}</li>
+            </ul>
+          </div>
         </div>
-        <p class="server-msg">{{ dryRunResult.message }}</p>
-
-        <div v-if="dryRunResult.errors?.length > 0" class="err-box">
-          <h4><WsIcon name="alert" :size="15" /> 서버 검증 오류 상세</h4>
-          <ul>
-            <li v-for="(e, i) in dryRunResult.errors" :key="i">Row #{{ e.row }}: {{ e.error }}</li>
-          </ul>
+        <div v-if="dryRunResult.sample_preview?.length > 0" class="ws-table-wrap">
+          <div class="ws-table-scroll">
+            <table class="ws-table">
+              <thead><tr><th>상품명</th><th>카테고리</th><th>MOQ</th><th>단위</th><th class="ws-num">기본 단가</th><th>인도조건</th></tr></thead>
+              <tbody>
+                <tr v-for="(r, idx) in dryRunResult.sample_preview" :key="idx">
+                  <td class="ws-cell-main">{{ r.title }}</td>
+                  <td class="ws-cell-sub">{{ r.category }} ({{ r.sub_category }})</td>
+                  <td class="ws-figure">{{ r.moq }}</td>
+                  <td>{{ r.unit }}</td>
+                  <td class="ws-num"><b class="ws-price ws-figure">${{ Number(r.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</b></td>
+                  <td>{{ r.incoterms }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
-
-        <table v-if="dryRunResult.sample_preview?.length > 0" class="result-table">
-          <thead>
-            <tr>
-              <th>상품명</th>
-              <th>카테고리</th>
-              <th>MOQ</th>
-              <th>단위</th>
-              <th>기본 단가 (USD)</th>
-              <th>인도조건</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(r, idx) in dryRunResult.sample_preview" :key="idx">
-              <td class="bold">{{ r.title }}</td>
-              <td>{{ r.category }} ({{ r.sub_category }})</td>
-              <td>{{ r.moq }}</td>
-              <td>{{ r.unit }}</td>
-              <td>${{ Number(r.price_tiers?.[0]?.unit_price || 0).toFixed(2) }}</td>
-              <td>{{ r.incoterms }}</td>
-            </tr>
-          </tbody>
-        </table>
       </div>
 
-      <div v-if="commitResult" class="commit-banner">
-        <strong><WsIcon name="check" :size="15" /> 서버 일괄 등록 완료 (Job ID: {{ commitResult.import_job_id }})</strong>
-        <p>{{ commitResult.message }} — 등록된 상품은 즉시 구매자 카탈로그에 노출됩니다.</p>
+      <div v-if="commitResult" class="ws-banner ws-banner-success">
+        <WsIcon name="check" :size="16" />
+        <div>
+          <b>일괄 등록 완료 (Job {{ commitResult.import_job_id }})</b><br />
+          {{ commitResult.message }} — 등록된 상품은 즉시 바이어 카탈로그에 노출됩니다.
+        </div>
       </div>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -156,29 +166,8 @@ async function commitBulkUpload() {
 </script>
 
 <style scoped>
-.bulk-upload { max-width: 980px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
-.btn-template { background: var(--ws-surface); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; color: var(--ws-text); }
-.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
-.file-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.upload-section label { font-size: 13px; font-weight: 700; color: var(--ws-text); }
-.csv-textarea { width: 100%; font-family: monospace; font-size: 12px; padding: 12px; border: 1px solid var(--ws-border); border-radius: 6px; background: var(--ws-surface-muted); box-sizing: border-box; }
-.hint { font-size: 11px; color: var(--ws-text-muted); margin: 6px 0 16px 0; }
-.action-bar { display: flex; gap: 12px; margin-bottom: 20px; }
-.btn-dryrun { background: var(--ws-text); color: var(--ws-surface); border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; }
-.btn-commit { background: var(--ws-success); color: var(--ws-surface); border: none; padding: 10px 18px; border-radius: 6px; font-weight: 700; cursor: pointer; font-size: 13px; }
-.btn-commit:disabled { background: #CBD5E1; cursor: not-allowed; }
-.result-summary { display: flex; gap: 12px; margin-bottom: 8px; font-size: 12px; font-weight: 700; }
-.tag-total { background: var(--ws-surface-muted); padding: 4px 10px; border-radius: 4px; }
-.tag-ok { background: var(--ws-success-bg); color: var(--ws-success); padding: 4px 10px; border-radius: 4px; }
-.tag-err { background: var(--ws-danger-bg); color: var(--ws-danger); padding: 4px 10px; border-radius: 4px; }
-.server-msg { font-size: 13px; color: var(--ws-text-2); margin-bottom: 12px; }
-.err-box { background: #FEF2F2; border: 1px solid #FECACA; padding: 12px; border-radius: 6px; color: var(--ws-danger); font-size: 12px; margin-bottom: 12px; }
-.result-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-.result-table th, .result-table td { border: 1px solid var(--ws-border); padding: 8px 10px; text-align: left; }
-.result-table th { background: var(--ws-surface-muted); }
-.bold { font-weight: 700; }
-.commit-banner { margin-top: 16px; background: #F0FDF4; border: 1px solid #86EFAC; padding: 14px 18px; border-radius: 6px; color: var(--ws-success); font-size: 13px; }
+.file-input { font-size: 12px; max-width: 260px; }
+.csv-area { font-family: ui-monospace, monospace; font-size: 12px; background: var(--ws-surface-muted); }
+.result-box { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+.result-box p { margin: 0; }
 </style>

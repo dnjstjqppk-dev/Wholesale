@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
 class MessengerScreen extends StatefulWidget {
   final bool isSupplier;
@@ -64,20 +65,39 @@ class _MessengerScreenState extends State<MessengerScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 decoration: const BoxDecoration(
-                  color: Color(0xFF173A5E),
+                  color: WsColors.navyInk,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.forum, color: Colors.white, size: 20),
-                    const SizedBox(width: 8),
+                    Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                        color: WsColors.brand,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text(
+                        partnerName.isNotEmpty ? partnerName[0] : '?',
+                        style: const TextStyle(
+                            color: Colors.white, fontWeight: FontWeight.w800, fontSize: 15),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(partnerName, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                          Text(partnerName,
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 14)),
                           Text(thread['listing_title']?.toString() ?? thread['subject']?.toString() ?? '문의 품목',
-                              style: const TextStyle(color: Color(0xFFCBD5E1), fontSize: 11), maxLines: 1, overflow: TextOverflow.ellipsis),
+                              style: const TextStyle(color: Color(0xFF93A4BC), fontSize: 11),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
@@ -105,78 +125,58 @@ class _MessengerScreenState extends State<MessengerScreen> {
                       alignment: isMine ? Alignment.centerRight : Alignment.centerLeft,
                       child: Container(
                         margin: const EdgeInsets.symmetric(vertical: 4),
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.78),
                         decoration: BoxDecoration(
-                          color: isMine ? const Color(0xFFFFF7ED) : Colors.white,
-                          border: Border.all(color: isMine ? const Color(0xFFFED7AA) : const Color(0xFFE2E8F0)),
-                          borderRadius: BorderRadius.circular(8),
+                          color: isMine ? WsColors.navy : Colors.white,
+                          border: Border.all(
+                              color: isMine ? WsColors.navy : WsColors.borderSubtle),
+                          borderRadius: BorderRadius.only(
+                            topLeft: const Radius.circular(12),
+                            topRight: const Radius.circular(12),
+                            bottomLeft: Radius.circular(isMine ? 12 : 4),
+                            bottomRight: Radius.circular(isMine ? 4 : 12),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(msg['sender_name']?.toString() ?? '담당자',
-                                style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Color(0xFF64748B))),
-                            const SizedBox(height: 2),
+                                style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 10,
+                                    color: isMine ? Colors.white70 : WsColors.muted)),
+                            const SizedBox(height: 4),
                             if (isQuoteCard) ...[
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFFED7AA)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('🏷️ 실시간 무역 견적 제안', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFFC2410C))),
-                                    const SizedBox(height: 4),
-                                    Text('제안 단가: \$${msg['quote_card']?['unit_price'] ?? '2.15'} / pc', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                                    Text('발주 수량: ${msg['quote_card']?['quantity'] ?? '1,000'} pcs', style: const TextStyle(fontSize: 11)),
-                                    Text('인도 조건: ${msg['quote_card']?['incoterms'] ?? 'FOB Busan Port'}', style: const TextStyle(fontSize: 10, color: Color(0xFF64748B))),
-                                  ],
-                                ),
+                              _TradeCard(
+                                badge: const WsBadge.brand('견적 제안', icon: Icons.tag),
+                                lines: [
+                                  '제안 단가: \$${msg['quote_card']?['unit_price'] ?? '2.15'} / pc',
+                                  '발주 수량: ${msg['quote_card']?['quantity'] ?? '1,000'} pcs',
+                                  '인도 조건: ${msg['quote_card']?['incoterms'] ?? 'FOB Busan Port'}',
+                                ],
                               ),
                             ] else if (isContractCard) ...[
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFF0FDF4),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFBBF7D0)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('📜 전자 무역 매매계약서 (ICC)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF15803D))),
-                                    const SizedBox(height: 4),
-                                    Text('계약총액: \$${msg['contract_card']?['total_amount'] ?? '4,200.00'} USD', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
+                              _TradeCard(
+                                badge: const WsBadge.ok('전자계약 (ICC)', icon: Icons.description_outlined),
+                                lines: [
+                                  '계약총액: \$${msg['contract_card']?['total_amount'] ?? '4,200.00'} USD',
+                                ],
                               ),
                             ] else if (isPaymentCard) ...[
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFEFF6FF),
-                                  borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFBFDBFE)),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text('🛡️ Trade Assurance 에스크로 예치 청구', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Color(0xFF1D4ED8))),
-                                    const SizedBox(height: 4),
-                                    Text('선급금(30%): \$${msg['payment_card']?['amount_usd'] ?? '1,260.00'} USD', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
-                                  ],
-                                ),
+                              _TradeCard(
+                                badge: const WsBadge.info('에스크로 예치 청구', icon: Icons.shield_outlined),
+                                lines: [
+                                  '선급금(30%): \$${msg['payment_card']?['amount_usd'] ?? '1,260.00'} USD',
+                                ],
                               ),
                             ] else ...[
                               Text(
                                 msg['translated_text']?.toString() ?? msg['content']?.toString() ?? '',
-                                style: const TextStyle(fontSize: 13, color: Color(0xFF0F172A)),
+                                style: TextStyle(
+                                    fontSize: 13, color: isMine ? Colors.white : WsColors.text),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 6),
                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
@@ -201,21 +201,34 @@ class _MessengerScreenState extends State<MessengerScreen> {
                                       } catch (_) {}
                                     },
                                     child: Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFFF1F5F9),
-                                        borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: const Color(0xFFCBD5E1)),
+                                        color: isMine
+                                            ? Colors.white.withValues(alpha: 0.15)
+                                            : WsColors.surfaceMuted,
+                                        borderRadius: BorderRadius.circular(6),
                                       ),
-                                      child: Text(
-                                        msg['translated_text'] != null ? '🌐 원본 보기' : '🌐 AI 번역',
-                                        style: const TextStyle(fontSize: 10, color: Color(0xFF0284C7), fontWeight: FontWeight.bold),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.translate,
+                                              size: 11,
+                                              color: isMine ? Colors.white : WsColors.info),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            msg['translated_text'] != null ? '원본 보기' : 'AI 번역',
+                                            style: TextStyle(
+                                                fontSize: 10,
+                                                color: isMine ? Colors.white : WsColors.info,
+                                                fontWeight: FontWeight.w700),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                   if (msg['translated_text'] != null) ...[
-                                    const SizedBox(width: 4),
-                                    const Text('✓ AI 번역됨', style: TextStyle(fontSize: 9, color: Color(0xFF15803D), fontWeight: FontWeight.bold)),
+                                    const SizedBox(width: 6),
+                                    const WsBadge.ok('AI 번역됨'),
                                   ],
                                 ],
                               ),
@@ -231,19 +244,32 @@ class _MessengerScreenState extends State<MessengerScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: const BoxDecoration(
-                  color: Color(0xFFFFF7ED),
+                  color: WsColors.brandFaint,
                   border: Border(
-                    top: BorderSide(color: Color(0xFFFFEDD5)),
-                    bottom: BorderSide(color: Color(0xFFFFEDD5)),
+                    top: BorderSide(color: WsColors.brandLight),
+                    bottom: BorderSide(color: WsColors.brandLight),
                   ),
                 ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      const Text('⚡ 무역 협상:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Color(0xFFC2410C))),
+                      const Row(
+                        children: [
+                          Icon(Icons.bolt, size: 13, color: WsColors.brand),
+                          SizedBox(width: 2),
+                          Text('무역 협상:',
+                              style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: WsColors.brand)),
+                        ],
+                      ),
                       const SizedBox(width: 8),
-                      InkWell(
+                      _QuickAction(
+                        icon: Icons.tag,
+                        label: '견적 카드 송부',
+                        color: WsColors.brand,
                         onTap: () async {
                           final quoteOffer = {
                             'unit_price_usd': '3.95',
@@ -272,18 +298,12 @@ class _MessengerScreenState extends State<MessengerScreen> {
                             });
                           });
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: const Color(0xFFFDBA74)),
-                          ),
-                          child: const Text('🏷️ 견적 제안 카드 송부', style: TextStyle(fontSize: 11, color: Color(0xFFC2410C), fontWeight: FontWeight.bold)),
-                        ),
                       ),
                       const SizedBox(width: 6),
-                      InkWell(
+                      _QuickAction(
+                        icon: Icons.description_outlined,
+                        label: '전자계약서 송부',
+                        color: WsColors.info,
                         onTap: () async {
                           final contractCard = {
                             'contract_no': 'CTR-2026-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
@@ -311,18 +331,12 @@ class _MessengerScreenState extends State<MessengerScreen> {
                             });
                           });
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: const Color(0xFF93C5FD)),
-                          ),
-                          child: const Text('📜 전자계약서 송부', style: TextStyle(fontSize: 11, color: Color(0xFF1D4ED8), fontWeight: FontWeight.bold)),
-                        ),
                       ),
                       const SizedBox(width: 6),
-                      InkWell(
+                      _QuickAction(
+                        icon: Icons.shield_outlined,
+                        label: '에스크로 청구서 송부',
+                        color: WsColors.success,
                         onTap: () async {
                           final paymentCard = {
                             'escrow_no': 'ESC-${DateTime.now().millisecondsSinceEpoch.toString().substring(7)}',
@@ -350,15 +364,6 @@ class _MessengerScreenState extends State<MessengerScreen> {
                             });
                           });
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(color: const Color(0xFF86EFAC)),
-                          ),
-                          child: const Text('🛡️ 에스크로 청구서 송부', style: TextStyle(fontSize: 11, color: Color(0xFF15803D), fontWeight: FontWeight.bold)),
-                        ),
                       ),
                     ],
                   ),
@@ -369,7 +374,7 @@ class _MessengerScreenState extends State<MessengerScreen> {
                 padding: const EdgeInsets.all(12),
                 decoration: const BoxDecoration(
                   color: Colors.white,
-                  border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                  border: Border(top: BorderSide(color: WsColors.borderSubtle)),
                 ),
                 child: Row(
                   children: [
@@ -377,18 +382,13 @@ class _MessengerScreenState extends State<MessengerScreen> {
                       child: TextField(
                         controller: msgController,
                         decoration: const InputDecoration(
-                          hintText: '기술 사양, 납기, 단가 협상 메시지 입력...',
-                          hintStyle: TextStyle(fontSize: 12),
-                          contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          border: OutlineInputBorder(),
+                          hintText: '기술 사양·납기·단가 협상 메시지 입력...',
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFC2410C),
-                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                       ),
                       onPressed: () async {
@@ -425,41 +425,22 @@ class _MessengerScreenState extends State<MessengerScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Color(0xFFC2410C)));
+      return const Center(child: CircularProgressIndicator(color: WsColors.brand));
     }
 
     return RefreshIndicator(
       onRefresh: _fetchThreads,
-      color: const Color(0xFFC2410C),
+      color: WsColors.brand,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF0FDF4),
-              border: Border.all(color: const Color(0xFF86EFAC)),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.lock, color: Color(0xFF15803D), size: 18),
-                SizedBox(width: 8),
-                Expanded(
-                  child: Text('알리바바 무역 보안 센터: 모든 1:1 상담 및 견적 대화록은 공증 보관됩니다.',
-                      style: TextStyle(fontSize: 11, color: Color(0xFF166534), fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
+          const WsBanner.ok('무역 보안 센터: 모든 1:1 상담·견적 대화록은 공증 보관됩니다.'),
           const SizedBox(height: 12),
           if (_threads.isEmpty)
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(32),
-                child: Text('진행 중인 1:1 문의 대화가 없습니다.\n상품 상세 또는 카탈로그에서 문의를 시작하세요.',
-                    textAlign: TextAlign.center, style: TextStyle(color: Color(0xFF64748B), height: 1.5)),
-              ),
+            const WsEmpty(
+              icon: Icons.forum_outlined,
+              title: '진행 중인 1:1 문의 대화가 없습니다',
+              body: '상품 상세 또는 카탈로그에서 문의를 시작하세요.',
             )
           else
             ..._threads.map((t) {
@@ -471,40 +452,122 @@ class _MessengerScreenState extends State<MessengerScreen> {
               final msgs = (t['messages'] as List<dynamic>?) ?? [];
               final lastMsg = msgs.isNotEmpty ? msgs.last['content']?.toString() ?? '' : subject;
 
-              return Card(
-                margin: const EdgeInsets.only(bottom: 10),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF173A5E),
-                    child: Text(title.isNotEmpty ? title[0] : 'B', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                  ),
-                  title: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(child: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))),
-                      Chip(
-                        label: Text(status, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF15803D))),
-                        backgroundColor: const Color(0xFFDCFCE7),
-                        padding: EdgeInsets.zero,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Card(
+                  child: ListTile(
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    leading: Container(
+                      width: 42,
+                      height: 42,
+                      decoration: BoxDecoration(
+                        color: WsColors.navy,
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                    ],
+                      alignment: Alignment.center,
+                      child: Text(title.isNotEmpty ? title[0] : 'B',
+                          style: const TextStyle(
+                              color: Colors.white, fontWeight: FontWeight.w800, fontSize: 17)),
+                    ),
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                            child: Text(title,
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w800, fontSize: 14))),
+                        WsBadge.ok(status),
+                      ],
+                    ),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 2),
+                        Text(subject,
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: WsColors.brand)),
+                        const SizedBox(height: 2),
+                        Text(lastMsg,
+                            style: const TextStyle(fontSize: 11, color: WsColors.muted),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios,
+                        size: 14, color: WsColors.faint),
+                    onTap: () => _openChatDialog(t),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 2),
-                      Text(subject, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFFC2410C))),
-                      const SizedBox(height: 2),
-                      Text(lastMsg, style: const TextStyle(fontSize: 11, color: Color(0xFF64748B)), maxLines: 1, overflow: TextOverflow.ellipsis),
-                    ],
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14, color: Color(0xFF94A3B8)),
-                  onTap: () => _openChatDialog(t),
                 ),
               );
             }),
         ],
+      ),
+    );
+  }
+}
+
+class _TradeCard extends StatelessWidget {
+  final WsBadge badge;
+  final List<String> lines;
+  const _TradeCard({required this.badge, required this.lines});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          badge,
+          const SizedBox(height: 6),
+          ...lines.map((l) => Padding(
+                padding: const EdgeInsets.only(bottom: 2),
+                child: Text(l,
+                    style: const TextStyle(fontSize: 12, color: WsColors.text)),
+              )),
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+  const _QuickAction(
+      {required this.icon, required this.label, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: WsColors.border),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: color),
+            const SizedBox(width: 4),
+            Text(label,
+                style: TextStyle(
+                    fontSize: 11, color: color, fontWeight: FontWeight.w800)),
+          ],
+        ),
       ),
     );
   }

@@ -1,51 +1,50 @@
 <template>
-  <div class="inv-page">
-    <div class="head-row">
-      <div>
-        <h2>창고·재고 원장 및 생산 배치 관리 (Warehouse & Inventory Ledger)</h2>
-        <p class="subtitle">SKU별 실물 재고(`on_hand`), 주문 예약 재고(`reserved`), 가용 재고(`available`) 및 안전 재고를 실시간 관리합니다.</p>
+  <div class="ws-page ws-page-wide">
+    <div class="ws-page-head">
+      <p class="ws-eyebrow">Inventory Ledger</p>
+      <div class="ws-page-head-row">
+        <h1 class="ws-page-title">창고·재고 원장</h1>
+        <div class="ws-page-actions">
+          <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="loadInventory"><WsIcon name="refresh" :size="14" /> 원장 새로고침</button>
+        </div>
       </div>
-      <button class="btn-refresh" @click="loadInventory"><WsIcon name="refresh" :size="15" /> 재고 원장 새로고침</button>
+      <p class="ws-page-sub">SKU별 실물·예약·가용·안전 재고를 실시간 관리합니다.</p>
     </div>
 
-    <div v-if="loadError" class="ws-banner ws-banner-danger">{{ loadError }}</div>
+    <div v-if="loadError" class="ws-banner ws-banner-danger"><WsIcon name="alert" :size="16" /> {{ loadError }}</div>
     <div v-if="!loadError && inventory.length === 0" class="ws-empty">
+      <span class="ws-empty-icon"><WsIcon name="package" :size="24" /></span>
       <h3>표시할 재고가 없습니다</h3>
       <p>새로고침 후에도 비어 있으면 상품·창고 등록 상태를 확인하세요.</p>
     </div>
 
-    <div class="card">
-      <h3><WsIcon name="package" :size="15" /> 창고별 실시간 재고 원장</h3>
-      <table class="inv-table">
-        <thead>
-          <tr>
-            <th>SKU 코드</th>
-            <th>상품명</th>
-            <th>보관 창고</th>
-            <th>실물재고 (On-Hand)</th>
-            <th>예약재고 (Reserved)</th>
-            <th>가용재고 (Available)</th>
-            <th>안전재고 기준</th>
-            <th>재고 입·출고 조정</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in inventory" :key="item.sku_id">
-            <td class="bold">{{ item.sku_code }}</td>
-            <td>{{ item.title }}</td>
-            <td>{{ item.warehouse_name }}</td>
-            <td class="num">{{ item.on_hand?.toLocaleString() }} {{ item.unit }}</td>
-            <td class="num warn">{{ item.reserved?.toLocaleString() }} {{ item.unit }}</td>
-            <td class="num avail">{{ item.available?.toLocaleString() }} {{ item.unit }}</td>
-            <td class="num">{{ item.safety_stock?.toLocaleString() }} {{ item.unit }}</td>
-            <td class="adj-cell">
-              <input v-model.number="adjustAmounts[item.sku_id]" type="number" step="100" class="adj-input" placeholder="+500 / -200" />
-              <button class="btn-adj" @click="applyAdjustment(item)">원장 반영</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <section class="ws-card ws-card-pad-sm">
+      <div class="ws-card-head"><h3><WsIcon name="package" :size="15" class="h-ico" /> 창고별 실시간 재고 원장</h3></div>
+      <div class="ws-table-wrap">
+        <div class="ws-table-scroll">
+          <table class="ws-table">
+            <thead><tr><th>SKU</th><th>상품명</th><th>창고</th><th class="ws-num">실물</th><th class="ws-num">예약</th><th class="ws-num">가용</th><th class="ws-num">안전기준</th><th>입·출고 조정</th></tr></thead>
+            <tbody>
+              <tr v-for="item in inventory" :key="item.sku_id">
+                <td class="ws-cell-main ws-figure">{{ item.sku_code }}</td>
+                <td>{{ item.title }}</td>
+                <td class="ws-cell-sub">{{ item.warehouse_name }}</td>
+                <td class="ws-num ws-figure">{{ item.on_hand?.toLocaleString() }} {{ item.unit }}</td>
+                <td class="ws-num ws-figure warn">{{ item.reserved?.toLocaleString() }} {{ item.unit }}</td>
+                <td class="ws-num"><b class="avail ws-figure">{{ item.available?.toLocaleString() }} {{ item.unit }}</b></td>
+                <td class="ws-num ws-figure">{{ item.safety_stock?.toLocaleString() }} {{ item.unit }}</td>
+                <td>
+                  <span class="adj-box">
+                    <input v-model.number="adjustAmounts[item.sku_id]" type="number" step="100" class="ws-input" placeholder="+500 / -200" />
+                    <button class="ws-btn ws-btn-primary ws-btn-sm" @click="applyAdjustment(item)">반영</button>
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
   </div>
 </template>
 
@@ -100,22 +99,9 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.inv-page { max-width: 1080px; }
-.head-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-h2 { margin: 0 0 4px 0; font-size: 20px; color: var(--ws-text); }
-.subtitle { color: var(--ws-text-muted); font-size: 13px; margin: 0; }
-.btn-refresh { background: var(--ws-surface); border: 1px solid #CBD5E1; padding: 8px 14px; border-radius: 6px; font-weight: 700; font-size: 12px; cursor: pointer; }
-.card { background: var(--ws-surface); border: 1px solid var(--ws-border); border-radius: 8px; padding: 24px; }
-.card h3 { margin: 0 0 16px 0; font-size: 16px; color: var(--ws-text); }
-.inv-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-.inv-table th, .inv-table td { border-bottom: 1px solid var(--ws-surface-muted); padding: 10px 8px; text-align: left; }
-.inv-table th { background: var(--ws-surface-muted); color: var(--ws-text-2); font-size: 12px; }
-.bold { font-weight: 700; color: var(--ws-text); }
-.num { font-variant-numeric: tabular-nums; font-weight: 600; }
-.num.warn { color: var(--ws-warning); }
-.num.avail { color: var(--ws-success); font-weight: 800; }
-.adj-cell { display: flex; gap: 6px; align-items: center; }
-.adj-input { width: 90px; padding: 6px 8px; border: 1px solid #CBD5E1; border-radius: 4px; font-size: 12px; }
-.btn-adj { background: var(--ws-brand); color: var(--ws-surface); border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.h-ico { color: var(--ws-navy); vertical-align: -2px; }
+.warn { color: var(--ws-warning); }
+.avail { color: var(--ws-success); }
+.adj-box { display: inline-flex; gap: 6px; align-items: center; }
+.adj-box .ws-input { width: 110px; padding: 7px 9px; font-size: 12px; }
 </style>
-

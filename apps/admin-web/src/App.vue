@@ -1,52 +1,54 @@
 <template>
-  <div class="admin-app">
-    <!-- Top Global Switcher -->
-    <div class="global-switcher-bar">
-      <span>WHOLESALE 플랫폼 운영 관리자 콘솔 (Platform Governance & Operations)</span>
-      <div class="links">
-        <a href="https://wholesale.dnjstjqppk.workers.dev/" target="_blank"><WsIcon name="cart" :size="12" /> 구매자 웹 콘솔 바로가기</a>
-        <span class="sep">|</span>
-        <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank"><WsIcon name="factory" :size="12" /> 공급사 파트너 콘솔 바로가기</a>
-        <span class="sep">|</span>
-        <a href="https://wholesale-api.dnjstjqppk.workers.dev/v1/health" target="_blank"><WsIcon name="bolt" :size="12" /> API 헬스체크</a>
+  <div class="admin-app ws-admin-page">
+    <div class="global-strip">
+      <span>WHOLESALE Platform Governance & Operations</span>
+      <div class="strip-links">
+        <a href="https://wholesale.dnjstjqppk.workers.dev/" target="_blank"><WsIcon name="cart" :size="12" /> 구매자 콘솔</a>
+        <a href="https://wholesale-partner.dnjstjqppk.workers.dev/" target="_blank"><WsIcon name="factory" :size="12" /> 파트너 콘솔</a>
+        <a href="https://wholesale-api.dnjstjqppk.workers.dev/v1/health" target="_blank"><WsIcon name="bolt" :size="12" /> API 상태</a>
       </div>
     </div>
 
-    <header class="app-header">
-      <div class="header-left">
-        <button class="mobile-toggle-btn" aria-label="관리자 메뉴 열기" @click="sidebarOpen = !sidebarOpen">
-          <span class="bar"></span>
-          <span class="bar"></span>
-          <span class="bar"></span>
+    <header class="ops-header">
+      <div class="ops-brand">
+        <button class="menu-btn" aria-label="관리자 메뉴 열기" @click="sidebarOpen = !sidebarOpen">
+          <span></span><span></span><span></span>
         </button>
-        <router-link to="/" class="brand">WHOLESALE <span>Admin</span></router-link>
-        <span class="env-pill">Zero Trust Secured</span>
+        <router-link to="/" class="brand-lockup">
+          <span class="ws-brand-mark">W</span>
+          <span class="brand-word">WHOLESALE <i>Admin</i></span>
+        </router-link>
+        <span class="ws-admin-badge ws-admin-badge-info">Zero Trust Secured</span>
       </div>
-      <div class="header-right">
-        <span class="admin-user">{{ currentUser.full_name }}</span>
-        <span class="role-pill">{{ currentUser.role }}</span>
+      <div class="ops-user">
+        <span class="user-meta">
+          <b>{{ currentUser.full_name }}</b>
+          <i>{{ currentUser.role }}</i>
+        </span>
+        <span class="ws-avatar ws-avatar-sm ops-avatar">{{ (currentUser.full_name || 'A').slice(0, 1) }}</span>
       </div>
     </header>
 
-    <div class="app-body">
-      <!-- Mobile Backdrop -->
-      <div v-if="sidebarOpen" class="sidebar-backdrop" @click="sidebarOpen = false"></div>
-
-      <aside class="sidebar" :class="{ 'mobile-open': sidebarOpen }">
-        <nav class="nav-menu">
-          <router-link to="/" class="nav-item" @click="sidebarOpen = false"><WsIcon name="chart" :size="15" /> 종합 운영 관제 대시보드</router-link>
-          <router-link to="/verifications" class="nav-item" @click="sidebarOpen = false"><WsIcon name="building" :size="15" /> 공급사 KYB 실사 심사</router-link>
-          <router-link to="/moderation" class="nav-item" @click="sidebarOpen = false"><WsIcon name="search" :size="15" /> 상품/RFQ 모더레이션</router-link>
-          <router-link to="/master-data" class="nav-item" @click="sidebarOpen = false"><WsIcon name="globe" :size="15" /> 마스터 데이터 (표준/관세/환율)</router-link>
-          <router-link to="/disputes" class="nav-item" @click="sidebarOpen = false"><WsIcon name="alert" :size="15" /> 분쟁 중재 (Arbitration)</router-link>
-          <router-link to="/ledger-audit" class="nav-item" @click="sidebarOpen = false"><WsIcon name="book" :size="15" /> 복식부기 원장 감사</router-link>
-          <router-link to="/reconciliation" class="nav-item" @click="sidebarOpen = false"><WsIcon name="refresh" :size="15" /> PG 일일 결제 대사</router-link>
-          <router-link to="/settlements" class="nav-item" @click="sidebarOpen = false"><WsIcon name="card" :size="15" /> 정산 이중통제 승인 (SoD)</router-link>
-          <router-link to="/audit" class="nav-item" @click="sidebarOpen = false"><WsIcon name="lock" :size="15" /> 불변 보안 감사 로그</router-link>
+    <div class="ops-body">
+      <div v-if="sidebarOpen" class="side-veil" @click="sidebarOpen = false"></div>
+      <aside class="side-nav" :class="{ open: sidebarOpen }">
+        <nav>
+          <p class="nav-cap">관제</p>
+          <router-link to="/" @click="sidebarOpen = false"><WsIcon name="chart" :size="16" /> 종합 운영 대시보드</router-link>
+          <p class="nav-cap">심사·모더레이션</p>
+          <router-link to="/verifications" @click="sidebarOpen = false"><WsIcon name="building" :size="16" /> KYB 실사 심사</router-link>
+          <router-link to="/moderation" @click="sidebarOpen = false"><WsIcon name="search" :size="16" /> 상품·RFQ 모더레이션</router-link>
+          <router-link to="/master-data" @click="sidebarOpen = false"><WsIcon name="globe" :size="16" /> 마스터 데이터</router-link>
+          <p class="nav-cap">재무·분쟁</p>
+          <router-link to="/disputes" @click="sidebarOpen = false"><WsIcon name="alert" :size="16" /> 분쟁 중재</router-link>
+          <router-link to="/ledger-audit" @click="sidebarOpen = false"><WsIcon name="book" :size="16" /> 복식부기 감사</router-link>
+          <router-link to="/reconciliation" @click="sidebarOpen = false"><WsIcon name="refresh" :size="16" /> PG 일일 대사</router-link>
+          <router-link to="/settlements" @click="sidebarOpen = false"><WsIcon name="card" :size="16" /> 정산 이중통제 (SoD)</router-link>
+          <p class="nav-cap">보안</p>
+          <router-link to="/audit" @click="sidebarOpen = false"><WsIcon name="lock" :size="16" /> 불변 감사 로그</router-link>
         </nav>
       </aside>
-
-      <main class="content-area">
+      <main class="ops-main">
         <router-view />
       </main>
     </div>
@@ -63,78 +65,40 @@ const sidebarOpen = ref(false);
 </script>
 
 <style scoped>
-.admin-app { display: flex; flex-direction: column; min-height: 100vh; background-color: var(--ws-admin-panel-2); color: var(--ws-admin-text); }
-.global-switcher-bar { background: #070B19; color: var(--ws-text-muted); font-size: 11px; padding: 4px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-admin-panel); }
-.global-switcher-bar .links { display: flex; gap: 10px; align-items: center; }
-.global-switcher-bar a { color: var(--ws-admin-link); text-decoration: none; font-weight: 500; }
-.global-switcher-bar .sep { color: #334155; }
-.app-header { background: var(--ws-admin-panel); padding: 12px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--ws-admin-line); }
-.header-left { display: flex; align-items: center; gap: 12px; }
-.brand { font-size: 18px; font-weight: 800; color: #FFF; text-decoration: none; }
-.brand span { color: var(--ws-brand); }
-.env-pill { background: #3B82F6; color: #FFF; font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 4px; }
-.header-right { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-.role-pill { background: var(--ws-danger); color: #FFF; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; }
-.app-body { display: flex; flex: 1; position: relative; }
-.sidebar { width: 250px; background: var(--ws-admin-panel); border-right: 1px solid var(--ws-admin-line); padding: 20px 0; flex-shrink: 0; }
-.nav-menu { display: flex; flex-direction: column; }
-.nav-item { padding: 12px 20px; color: var(--ws-admin-dim); text-decoration: none; font-size: 13px; font-weight: 600; border-left: 3px solid transparent; display: flex; align-items: center; gap: 10px; }
-.nav-item:hover { background: var(--ws-admin-panel-2); color: #FFF; }
-.nav-item.router-link-exact-active { background: var(--ws-admin-panel-2); color: var(--ws-admin-link); border-left-color: var(--ws-admin-link); }
-.content-area { flex: 1; padding: 32px; box-sizing: border-box; max-width: 1240px; background: var(--ws-admin-panel-2); overflow-x: hidden; }
-
-.mobile-toggle-btn {
-  display: none;
-  background: transparent;
-  border: none;
-  flex-direction: column;
-  gap: 4px;
-  cursor: pointer;
-  padding: 4px;
-}
-.mobile-toggle-btn .bar {
-  width: 20px;
-  height: 2px;
-  background: var(--ws-admin-text);
-  border-radius: 2px;
-}
-
-.sidebar-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 100;
-  backdrop-filter: blur(2px);
-}
-
+.admin-app { display: flex; flex-direction: column; min-height: 100vh; background: var(--ws-admin-bg); }
+.global-strip { background: #070b19; color: #7c8fad; font-size: 11px; font-weight: 600; padding: 6px 20px; display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--ws-admin-panel); }
+.strip-links { display: flex; gap: 16px; }
+.strip-links a { color: var(--ws-admin-link); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+.strip-links a:hover { text-decoration: underline; }
+.ops-header { background: var(--ws-admin-panel); border-bottom: 1px solid var(--ws-admin-line); padding: 10px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 50; }
+.ops-brand { display: flex; align-items: center; gap: 12px; }
+.menu-btn { display: none; background: none; border: 1px solid var(--ws-admin-line); border-radius: 8px; width: 36px; height: 36px; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; }
+.menu-btn span { width: 16px; height: 2px; background: var(--ws-admin-text); border-radius: 2px; }
+.brand-lockup { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; font-weight: 800; font-size: 16px; color: #fff; }
+.brand-word i { font-style: normal; color: var(--ws-admin-dim); font-weight: 600; font-size: 13px; }
+.ops-user { display: flex; align-items: center; gap: 10px; }
+.user-meta { display: flex; flex-direction: column; line-height: 1.3; text-align: right; }
+.user-meta b { font-size: 12px; }
+.user-meta i { font-style: normal; font-size: 10px; color: var(--ws-admin-accent); font-weight: 800; }
+.ops-avatar { background: var(--ws-brand); }
+.ops-body { display: flex; flex: 1; align-items: stretch; }
+.side-veil { position: fixed; inset: 0; background: rgb(0 0 0 / 0.6); z-index: 90; }
+.side-nav { width: 248px; flex: none; background: var(--ws-admin-panel); border-right: 1px solid var(--ws-admin-line); padding: 16px 12px 24px; }
+.side-nav nav { display: flex; flex-direction: column; gap: 2px; position: sticky; top: 76px; }
+.nav-cap { margin: 14px 8px 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: #54678a; }
+.nav-cap:first-child { margin-top: 0; }
+.side-nav a { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 8px; color: var(--ws-admin-dim); font-size: 13px; font-weight: 600; text-decoration: none; }
+.side-nav a:hover { background: var(--ws-admin-panel-2); color: #fff; }
+.side-nav a.router-link-active { background: rgb(245 158 11 / 0.14); color: var(--ws-admin-accent); font-weight: 800; }
+.ops-main { flex: 1; min-width: 0; padding: 28px 28px 80px; max-width: 1240px; }
 @media (max-width: 992px) {
-  .global-switcher-bar {
-    display: none;
-  }
-  .env-pill {
-    display: none;
-  }
-  .admin-user {
-    display: none;
-  }
-  .mobile-toggle-btn {
-    display: flex;
-  }
-  .sidebar {
-    position: fixed;
-    top: 50px;
-    left: -260px;
-    bottom: 0;
-    width: 250px;
-    z-index: 101;
-    box-shadow: 4px 0 15px rgba(0,0,0,0.3);
-    transition: left 0.25s ease;
-  }
-  .sidebar.mobile-open {
-    left: 0;
-  }
-  .content-area {
-    padding: 16px 12px;
-  }
+  .global-strip { display: none; }
+  .menu-btn { display: inline-flex; }
+  .ops-brand .ws-admin-badge { display: none; }
+  .user-meta { display: none; }
+  .side-nav { position: fixed; top: 0; left: -270px; bottom: 0; z-index: 100; width: 260px; transition: left 220ms ease; overflow-y: auto; }
+  .side-nav.open { left: 0; }
+  .side-nav nav { position: static; }
+  .ops-main { padding: 18px 14px 64px; }
 }
 </style>

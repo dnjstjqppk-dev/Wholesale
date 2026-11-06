@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/api_client.dart';
+import '../core/ws_theme.dart';
 
 class CheckoutScreen extends StatefulWidget {
   final String? productId;
@@ -43,27 +44,57 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('체크아웃')),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('상품 ID: ${widget.productId ?? '-'}'),
-            Text('수량: ${widget.quantity}'),
-            const SizedBox(height: 16),
-            if (_orderId != null)
-              Text('주문 생성 완료: $_orderId',
-                  style: const TextStyle(
-                      color: Colors.green, fontWeight: FontWeight.bold)),
-            if (_error != null)
-              Text(_error!, style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 16),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const WsSectionHead('발주 품목 확인'),
+                    const SizedBox(height: 8),
+                    _FactRow(label: '상품 ID', value: widget.productId ?? '-'),
+                    _FactRow(label: '발주 수량', value: '${widget.quantity}'),
+                    _FactRow(label: '인도 조건', value: 'FOB'),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_orderId != null) WsBanner.ok('주문 생성 완료: $_orderId'),
+            if (_error != null) WsBanner.bad(_error!),
+            const SizedBox(height: 12),
             ElevatedButton(
               onPressed: _submitting ? null : _createOrder,
-              child: Text(_submitting ? '주문 생성 중...' : '주문 생성'),
+              child: Text(_submitting ? '주문 생성 중...' : '주문 생성·계약서 발급'),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FactRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _FactRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 13, color: WsColors.muted)),
+          Text(value,
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
+        ],
       ),
     );
   }
