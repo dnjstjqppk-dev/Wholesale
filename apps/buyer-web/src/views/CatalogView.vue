@@ -30,7 +30,13 @@
       <button class="ws-btn ws-btn-ghost ws-btn-sm" @click="clearKeyword"><WsIcon name="x" :size="13" /> 검색어 해제</button>
     </div>
 
+    <button class="filter-toggle ws-btn ws-btn-secondary" :aria-expanded="filtersOpen" @click="filtersOpen = !filtersOpen">
+      <WsIcon name="menu" :size="14" /> 도매 조건 필터{{ activeFilterCount > 0 ? ` (${activeFilterCount}개 적용)` : '' }}
+      <span class="toggle-arrow">{{ filtersOpen ? '▲' : '▼' }}</span>
+    </button>
+
     <div class="ws-layout-side catalog-layout">
+      <div class="filters-wrap" :class="{ open: filtersOpen }">
       <CatalogFilterSidebar
         v-model:filterVerified="filterVerified"
         v-model:filterTradeAssurance="filterTradeAssurance"
@@ -44,6 +50,7 @@
         :facets="serverFacets"
         @reset="resetFilters"
       />
+      </div>
 
       <section class="results">
         <div v-if="hasActiveFilters" class="chips-bar">
@@ -135,6 +142,21 @@ const selectedCertification = ref('ALL');
 const selectedLeadTime = ref('ALL');
 const sortOrder = ref('recommended');
 const serverFacets = ref<any>({});
+const filtersOpen = ref(false);
+
+const activeFilterCount = computed(() => {
+  let n = 0;
+  if (filterVerified.value) n++;
+  if (filterTradeAssurance.value) n++;
+  if (filterCustomization.value) n++;
+  if (selectedCategory.value !== 'ALL') n++;
+  if (selectedIncoterm.value !== 'ALL') n++;
+  if (selectedMaterial.value !== 'ALL') n++;
+  if (selectedCertification.value !== 'ALL') n++;
+  if (selectedLeadTime.value !== 'ALL') n++;
+  if (selectedMoqPreset.value !== 'all') n++;
+  return n;
+});
 
 const hasActiveFilters = computed(() => {
   return (
@@ -312,6 +334,13 @@ onMounted(() => {
 .keyword-bar { align-items: center; }
 .keyword-bar .ws-btn { margin-left: auto; }
 .catalog-layout { margin-top: 4px; }
+.filter-toggle { display: none; }
+@media (max-width: 1024px) {
+  .filter-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-bottom: 12px; }
+  .toggle-arrow { font-size: 11px; }
+  .filters-wrap { display: none; }
+  .filters-wrap.open { display: block; margin-bottom: 16px; }
+}
 .chips-bar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
 .chips-label { font-size: 12px; font-weight: 800; color: var(--ws-text-muted); }
 .chip-x { display: inline-flex; align-items: center; gap: 6px; background: var(--ws-accent); color: #fff; border: 0; border-radius: 9999px; padding: 5px 8px 5px 12px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--ws-font); }

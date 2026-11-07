@@ -66,7 +66,7 @@
             <router-link to="/fulfillment" class="ws-section-more">전체 주문 관리 →</router-link>
           </div>
           <div class="ws-table-scroll">
-            <table class="ws-table">
+            <table class="ws-table orders-table">
               <thead><tr><th>주문번호</th><th>구매기업</th><th>품목</th><th class="ws-num">총액</th><th>상태</th></tr></thead>
               <tbody>
                 <tr v-for="o in recentOrders" :key="o.id">
@@ -87,12 +87,12 @@
             <router-link to="/inventory" class="ws-section-more">재고 입고/조정 →</router-link>
           </div>
           <div class="ws-table-scroll">
-            <table class="ws-table">
+            <table class="ws-table inv-table">
               <thead><tr><th>SKU</th><th>창고</th><th class="ws-num">실물</th><th class="ws-num">예약</th><th class="ws-num">가용</th></tr></thead>
               <tbody>
                 <tr v-for="inv in inventoryList" :key="inv.sku_id">
-                  <td class="ws-cell-main ws-figure">{{ inv.sku_code }}</td>
-                  <td>{{ inv.warehouse_name }}</td>
+                  <td class="ws-cell-main ws-figure">{{ inv.sku_code ?? inv.sku_id }}</td>
+                  <td>{{ inv.warehouse_name ?? inv.warehouse }}</td>
                   <td class="ws-num ws-figure">{{ inv.on_hand?.toLocaleString() }}</td>
                   <td class="ws-num ws-figure">{{ inv.reserved?.toLocaleString() }}</td>
                   <td class="ws-num ws-figure"><b class="avail">{{ inv.available?.toLocaleString() }}</b></td>
@@ -155,6 +155,10 @@ onMounted(() => {
 .ws-stat .ws-section-more { display: inline-block; margin-top: 6px; font-size: 12px; }
 .h-ico { color: var(--ws-accent); vertical-align: -2px; }
 .avail { color: var(--ws-success); }
+.orders-table, .inv-table { min-width: 600px; }
+.orders-table th, .orders-table td { white-space: nowrap; }
+.inv-table th, .inv-table td { white-space: nowrap; }
+.inv-table td:nth-child(2) { white-space: normal; min-width: 140px; word-break: keep-all; }
 @media (max-width: 1100px) {
   .kpi-5 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }

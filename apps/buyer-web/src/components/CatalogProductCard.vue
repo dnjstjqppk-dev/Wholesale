@@ -17,7 +17,7 @@
       <p class="cc-sup">
         <b :title="item.supplier_name">{{ item.supplier_name }}</b>
         <span v-if="item.verified_supplier || item.is_verified_supplier" class="ws-badge ws-badge-success">Verified</span>
-        <span class="ws-muted">{{ item.years_in_business || 10 }} yrs</span>
+        <span class="ws-muted yrs">{{ item.years_in_business || 10 }} yrs</span>
       </p>
 
       <router-link :to="`/${locale}/${currency}/products/${item.id}`" class="cc-title" :title="item.title">
@@ -34,7 +34,7 @@
         </tbody>
       </table>
 
-      <p class="cc-meta"><span class="ws-moq">MOQ: <b>{{ item.moq }}{{ item.unit }}</b></span> · 납기 <b>{{ item.lead_time_days }}일</b> · 응답률 <b>{{ item.response_rate || '99.2%' }}</b></p>
+      <p class="cc-meta"><span class="ws-moq meta-seg">MOQ: <b>{{ item.moq }}{{ item.unit }}</b></span> · <span class="meta-seg">납기 <b>{{ item.lead_time_days }}일</b></span> · <span class="meta-seg">응답률 <b>{{ item.response_rate || '99.2%' }}</b></span></p>
 
       <div class="cc-actions">
         <button class="ws-btn ws-btn-secondary ws-btn-sm" @click="$emit('inquiry', item)">
@@ -102,7 +102,10 @@ async function addToCart(item: any) {
 .cc-pills { position: absolute; bottom: 10px; left: 10px; }
 .cc-body { padding: 14px; display: flex; flex-direction: column; flex: 1; }
 .cc-sup { display: flex; align-items: center; gap: 7px; margin: 0 0 6px; font-size: 12px; }
-.cc-sup b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cc-sup b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.cc-sup .ws-badge, .cc-sup .yrs { flex: none; }
+.cc-sup .yrs { white-space: nowrap; }
+.cc-meta .meta-seg { white-space: nowrap; }
 .cc-title { font-size: 14px; font-weight: 700; color: var(--ws-text); text-decoration: none; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px; margin-bottom: 8px; }
 .cc-title:hover { color: var(--ws-brand); }
 .cc-tiers { margin-bottom: 8px; }

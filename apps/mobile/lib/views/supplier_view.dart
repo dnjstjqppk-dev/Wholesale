@@ -348,8 +348,8 @@ class _SupplierDashboardScreenState extends State<SupplierDashboardScreen> {
                     )
                   else
                     ..._inventory.map((inv) {
-                      final skuCode = inv['sku_code']?.toString() ?? 'SKU';
-                      final wh = inv['warehouse_name']?.toString() ?? '창고';
+                      final skuCode = inv['sku_code']?.toString() ?? inv['sku_id']?.toString() ?? 'SKU';
+                      final wh = inv['warehouse_name']?.toString() ?? inv['warehouse']?.toString() ?? '창고';
                       final onHand = inv['on_hand']?.toString() ?? '0';
                       final available = inv['available']?.toString() ?? '0';
                       final unit = inv['unit']?.toString() ?? 'pcs';

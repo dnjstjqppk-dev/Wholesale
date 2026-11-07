@@ -62,7 +62,7 @@
           <div><i>요구 납기</i><b>{{ rfq.lead_time_days }}일 이내</b></div>
           <div><i>인도 조건</i><b>{{ rfq.incoterms }}</b></div>
           <div><i>목적국</i><b>{{ rfq.destination_country }}</b></div>
-          <div><i>등록일</i><b class="ws-muted">{{ formatDate(rfq.created_at) }}</b></div>
+          <div><i>등록일</i><b class="ws-muted">{{ formatDate(rfq.created_at ?? rfq.createdAt) }}</b></div>
         </div>
 
         <div class="ws-split quotes-head">
@@ -118,6 +118,7 @@
 import { ref, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { apiRequest } from '../api';
+import { formatDate } from '../i18n';
 import WsIcon from '@packages/ui/WsIcon.vue';
 
 const route = useRoute();
@@ -140,15 +141,6 @@ function showToast(msg: string, type: 'success' | 'error' = 'success') {
   setTimeout(() => {
     toastMessage.value = '';
   }, 4000);
-}
-
-function formatDate(iso: string): string {
-  if (!iso) return '-';
-  return new Date(iso).toLocaleDateString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  });
 }
 
 function formatCategory(cat: string): string {

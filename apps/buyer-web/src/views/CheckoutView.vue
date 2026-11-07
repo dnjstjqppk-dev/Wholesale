@@ -64,7 +64,7 @@
           <div class="ws-card-head"><h3>3 · 에스크로 분할 결제 일정</h3></div>
           <div class="ws-table-wrap">
             <div class="ws-table-scroll">
-              <table class="ws-table">
+              <table class="ws-table escrow-table">
                 <thead><tr><th>회차</th><th>결제 항목</th><th>비율</th><th class="ws-num">금액</th><th>정산 지급 조건</th></tr></thead>
                 <tbody>
                   <tr>
@@ -255,6 +255,9 @@ async function generateContract() {
 .sum-rows .total dd { font-size: 17px; }
 .sum-rows .em dd { font-size: 16px; }
 .legal-note { font-size: 11px; color: var(--ws-text-muted); line-height: 1.6; background: var(--ws-surface-muted); border-radius: 8px; padding: 10px 12px; }
+.escrow-table { min-width: 640px; }
+.escrow-table th, .escrow-table td { white-space: nowrap; }
+.escrow-table td:last-child { white-space: normal; min-width: 220px; }
 @media (max-width: 1024px) {
   .co-grid { grid-template-columns: minmax(0, 1fr); }
   .confirm { position: static; }

@@ -153,6 +153,36 @@ export async function loadFxRates(): Promise<void> {
     // Keep static fallback rates
   }
 }
+export function formatDate(value: unknown): string {
+  try {
+    if (value === undefined || value === null) return '-';
+    let time: number;
+    if (typeof value === 'number') {
+      if (!isFinite(value)) return '-';
+      time = Math.abs(value) < 1e11 ? value * 1000 : value; // unix seconds vs ms
+    } else if (value instanceof Date) {
+      time = value.getTime();
+    } else {
+      const text = String(value).trim();
+      if (!text) return '-';
+      if (/^-?\d+$/.test(text)) {
+        const n = Number(text);
+        time = Math.abs(n) < 1e11 ? n * 1000 : n;
+      } else {
+        time = new Date(text).getTime();
+      }
+    }
+    if (!isFinite(time) || time <= 0) return '-'; // invalid or epoch garbage
+    return new Date(time).toLocaleDateString('ko-KR', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+  } catch {
+    return '-';
+  }
+}
+
 export function formatCurrency(
   usdAmount: number | string,
   targetCurrency: SupportedCurrency = 'USD',

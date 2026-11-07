@@ -94,7 +94,8 @@
           <h3>등록된 선적 내역이 없습니다</h3>
         </div>
         <div v-else class="ws-table-wrap">
-          <table class="ws-table">
+          <div class="ws-table-scroll">
+          <table class="ws-table ledger-table">
             <thead><tr><th>선적 ID</th><th class="ws-num">수량</th><th>B/L</th><th>운송사</th><th>선적일</th></tr></thead>
             <tbody>
               <tr v-for="(s, idx) in orderShipments" :key="s.id || idx">
@@ -106,6 +107,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </section>
 
@@ -127,7 +129,8 @@
         </button>
         <div class="ws-table-wrap" style="margin-top: 14px">
           <div v-if="orderCustoms.length === 0" class="ws-empty" style="padding: 20px"><h3>등록된 수출통관필증이 없습니다</h3></div>
-          <table v-else class="ws-table">
+          <div v-else class="ws-table-scroll">
+          <table class="ws-table ledger-table">
             <thead><tr><th>신고번호</th><th>HS</th><th>구간</th><th>관세사</th><th class="ws-num">관부가세</th><th>상태</th></tr></thead>
             <tbody>
               <tr v-for="(m, idx) in orderCustoms" :key="m.id || idx">
@@ -140,6 +143,7 @@
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </section>
     </div>
@@ -343,7 +347,14 @@ async function handleDispatch() {
 <style scoped>
 .sort-box { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; color: var(--ws-text-muted); }
 .sort-box .ws-input { width: 340px; font-size: 13px; padding: 8px 10px; }
+.sort-box span { white-space: nowrap; }
+@media (max-width: 640px) {
+  .sort-box { flex-direction: column; align-items: stretch; width: 100%; }
+  .sort-box .ws-input { width: 100%; }
+}
 .h-ico { color: var(--ws-accent); vertical-align: -2px; }
+.ledger-table { min-width: 620px; }
+.ledger-table th, .ledger-table td { white-space: nowrap; }
 .xs-up { padding: 2px 8px; margin-left: 6px; }
 .ws-field { margin-bottom: 12px; }
 </style>

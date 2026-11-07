@@ -108,7 +108,7 @@
           <div class="p-body">
             <h3 :title="product.title">{{ product.title }}</h3>
             <p class="p-price"><span class="ws-price-dark ws-price-dark-lg">{{ formatMoney(product.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ product.unit }}</span></p>
-            <p class="p-meta"><span class="ws-moq">MOQ: <b>{{ product.moq }} {{ product.unit }}</b></span> · <WsIcon name="star" :size="12" class="ws-star" /> {{ product.rating }} ({{ product.reviews_count }})</p>
+            <p class="p-meta"><span class="ws-moq meta-seg">MOQ: <b>{{ product.moq }} {{ product.unit }}</b></span> · <span class="meta-seg"><WsIcon name="star" :size="12" class="ws-star" /> {{ product.rating }} ({{ product.reviews_count }})</span></p>
             <p class="p-sup">{{ product.supplier_name.split(' (')[0] }}</p>
           </div>
         </article>
@@ -188,7 +188,7 @@
         <h2 class="ws-section-title">5대 핵심 산업 기획전</h2>
       </div>
       <p class="section-lead">산업기계 · 전자부품 · 패키징 · 주방생활 · 화학원자재 25개 소분류 직거래</p>
-      <div class="ws-tabs">
+      <div class="ws-tabs shelf-tabs">
         <button
           v-for="cat in categories"
           :key="cat.id"
@@ -209,7 +209,7 @@
             <span class="ws-badge ws-badge-outline sub-tag">{{ item.sub_category }}</span>
             <h3 :title="item.title">{{ item.title }}</h3>
             <p class="p-price"><span class="ws-price-dark ws-price-dark-lg">{{ formatMoney(item.price_tiers[0]?.unit_price) }}</span> <span class="ws-muted">/ {{ item.unit }}</span></p>
-            <p class="p-meta"><span class="ws-moq">MOQ: <b>{{ item.moq }} {{ item.unit }}</b></span> · {{ item.incoterms }}</p>
+            <p class="p-meta"><span class="ws-moq meta-seg">MOQ: <b>{{ item.moq }} {{ item.unit }}</b></span> · <span class="meta-seg">{{ item.incoterms }}</span></p>
           </div>
         </article>
       </div>
@@ -398,7 +398,8 @@ onMounted(() => {
 .p-body { padding: 14px 14px 16px; }
 .p-body h3 { margin: 0 0 8px; font-size: 14px; font-weight: 700; line-height: 1.45; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 40px; }
 .p-price { margin: 0 0 6px; font-size: 13px; }
-.p-meta { margin: 0 0 6px; font-size: 12px; color: var(--ws-text-muted); display: flex; align-items: center; gap: 4px; }
+.p-meta { margin: 0 0 6px; font-size: 12px; color: var(--ws-text-muted); display: flex; align-items: center; gap: 4px; flex-wrap: wrap; row-gap: 2px; }
+.p-meta .meta-seg { white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
 .p-sup { margin: 0; font-size: 12px; color: var(--ws-text-2); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .sub-tag { margin-bottom: 8px; }
 
@@ -437,6 +438,9 @@ onMounted(() => {
   .rfq-band { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 640px) {
+  .shelf-tabs { scrollbar-width: none; -ms-overflow-style: none; -webkit-overflow-scrolling: touch; -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); mask-image: linear-gradient(to right, #000 calc(100% - 36px), transparent); }
+  .shelf-tabs::-webkit-scrollbar { display: none; }
+  .shelf-tabs .ws-tab { flex: none; }
   .rfq-band-form { grid-template-columns: minmax(0, 1fr) 80px; }
   .rfq-band-form input:first-child { grid-column: 1 / -1; }
   .rfq-band-form .ws-btn { grid-column: 1 / -1; }

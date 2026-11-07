@@ -26,9 +26,9 @@
             <thead><tr><th>SKU</th><th>상품명</th><th>창고</th><th class="ws-num">실물</th><th class="ws-num">예약</th><th class="ws-num">가용</th><th class="ws-num">안전기준</th><th>입·출고 조정</th></tr></thead>
             <tbody>
               <tr v-for="item in inventory" :key="item.sku_id">
-                <td class="ws-cell-main ws-figure">{{ item.sku_code }}</td>
+                <td class="ws-cell-main ws-figure">{{ item.sku_code ?? item.sku_id }}</td>
                 <td>{{ item.title }}</td>
-                <td class="ws-cell-sub">{{ item.warehouse_name }}</td>
+                <td class="ws-cell-sub">{{ item.warehouse_name ?? item.warehouse }}</td>
                 <td class="ws-num ws-figure">{{ item.on_hand?.toLocaleString() }} {{ item.unit }}</td>
                 <td class="ws-num ws-figure warn">{{ item.reserved?.toLocaleString() }} {{ item.unit }}</td>
                 <td class="ws-num"><b class="avail ws-figure">{{ item.available?.toLocaleString() }} {{ item.unit }}</b></td>
